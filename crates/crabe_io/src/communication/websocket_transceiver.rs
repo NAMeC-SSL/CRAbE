@@ -1,6 +1,6 @@
 use flume::{unbounded, Receiver, Sender};
 use futures_util::StreamExt;
-use log::{error, info};
+use log::{debug, error, info};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::net::SocketAddr;
@@ -46,11 +46,15 @@ impl<RX: Send + DeserializeOwned, TX: Send + Serialize> WebSocketThread<RX, TX> 
         let incoming_fut = incoming
             .filter_map(|x| async move {
                 if let Ok(Message::Text(m)) = x {
+                    debug!("message : {} ", &m);
+                    serde_json::from_str::<RX>(&m).unwrap();
+                    info!("message");
+
                     if let Ok(req) = serde_json::from_str::<RX>(&m) {
+                        info!("deserialized");
                         return Some(Ok(req));
                     }
                 }
-
                 None
             })
             .forward(tx.sink());
@@ -66,8 +70,9 @@ impl<RX: Send + DeserializeOwned, TX: Send + Serialize> WebSocketThread<RX, TX> 
     }
 }
 
-impl<RX: Send + DeserializeOwned + 'static, TX: Send + Serialize + 'static>
-    WebSocketThread<RX, TX>
+impl<RX, TX> WebSocketThread<RX, TX>
+    where RX: Send + DeserializeOwned + 'static,
+          TX: Send + Serialize + 'static
 {
     fn run(&mut self, cancellation: Receiver<()>) {
         let future = async {
@@ -138,7 +143,7 @@ impl<RX: DeserializeOwned + Send + 'static, TX: Serialize + Send + 'static>
     }
 
     pub fn receive(&mut self) -> Option<RX> {
-        self.rx.recv().ok()
+        self.rx.try_recv().ok()
     }
 
     pub fn close(self) {

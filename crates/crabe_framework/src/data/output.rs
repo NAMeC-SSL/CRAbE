@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
 
 // TODO: Document
 pub type FeedbackMap = HashMap<u32, Feedback>;
@@ -11,12 +12,14 @@ pub struct Feedback {
 
 pub type CommandMap = HashMap<u8, Command>;
 
+#[derive(Deserialize)]
 pub enum Kick {
     StraightKick { power: f32 },
     ChipKick { power: f32 },
 }
 
-#[derive(Default)]
+#[derive(Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Command {
     /// Velocity forward in m.s-1 (towards the dribbler)
     pub forward_velocity: f32,

@@ -19,6 +19,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
+use crabe_io::neptune::NeptuneServer;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -115,6 +116,7 @@ impl System {
         self.input_component.close();
         self.filter_component.close();
         self.tool_component.close();
+        self.output_component.close()
     }
 }
 
@@ -134,7 +136,8 @@ fn main() {
         World::with_config(&cli.common),
         InputPipeline::with_config(cli.input_config, &cli.common),
         FilterPipeline::with_config(cli.filter_config, &cli.common),
-        DecisionPipeline::with_config(cli.decision_config, &cli.common),
+        NeptuneServer::with_config(&cli.common),
+        //DecisionPipeline::with_config(cli.decision_config, &cli.common),
         ToolServer::with_config(cli.tool_config, &cli.common),
         GuardPipeline::with_config(cli.guard_config, &cli.common),
         OutputPipeline::with_config(cli.output_config, &cli.common),

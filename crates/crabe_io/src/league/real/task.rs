@@ -1,3 +1,4 @@
+use log::debug;
 use crate::league::real::RealConfig;
 
 use crabe_framework::constant::MAX_ID_ROBOTS;
@@ -29,6 +30,8 @@ impl Real {
             Some(Kick::ChipKick { power }) => (2, power),
         };
 
+        println!("dribbler: {}", command.dribbler > 0.0);
+
         IaToMainBoard {
             robot_id: id as u32,
             normal_speed: command.forward_velocity,
@@ -38,7 +41,7 @@ impl Real {
             kicker_cmd,
             kick_power,
             charge: command.charge,
-            dribbler: command.dribbler.is_sign_positive(),
+            dribbler: command.dribbler > 0.0,
         }
     }
 }
