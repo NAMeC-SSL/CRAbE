@@ -60,9 +60,9 @@ impl Strategy for Stricker {
                     };
                     action_wrapper.push(self.id, RawOrder::new(cmd));
                 }
-                let mut dir = Point2::new(ball.position.x, ball.position.y) - world.geometry.enemy_goal.top_center_position();
+                let mut dir = Point2::new(ball.position.x, ball.position.y) - world.geometry.enemy_goal.back_center_position();
                 dir = dir.normalize().mul(0.09);
-                let to_goal = world.geometry.enemy_goal.top_center_position() - robot.pose.position;
+                let to_goal = world.geometry.enemy_goal.back_center_position() - robot.pose.position;
                 let a = vector_angle(to_goal);
                 action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x + dir.x, ball.position.y + dir.y), a));
             
