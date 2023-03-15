@@ -14,17 +14,20 @@ pub struct Goal {
 }
 
 impl Goal {
-    pub fn top_center_position(&self) -> Point2<f64>{
-        let goal_x = self.top_left_position.x- self.depth/2.;
+    //Return the position of the center of the back line of the goal
+    pub fn back_center_position(&self) -> Point2<f64>{
+        let goal_x = self.top_left_position.x;
         let goal_y = self.top_left_position.y - self.width/2.;
         Point2::new(goal_x, goal_y)
     }
-    pub fn bottom_left_position(&self) -> Point2<f64>{
+    //Return the position of the left pole of the goal
+    pub fn front_left_position(&self) -> Point2<f64>{
         let goal_x = self.top_left_position.x- self.depth;
         let goal_y = self.top_left_position.y;
         Point2::new(goal_x, goal_y)
     }
-    pub fn bottom_right_position(&self) -> Point2<f64>{
+    //Return the position of the right pole of the goal
+    pub fn front_right_position(&self) -> Point2<f64>{
         let goal_x = self.top_left_position.x- self.depth;
         let goal_y = self.top_left_position.y - self.width;
         Point2::new(goal_x, goal_y)
