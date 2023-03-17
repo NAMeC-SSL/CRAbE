@@ -11,5 +11,10 @@ pub mod manual;
 pub trait Manager {
     /// The step function is called by the DecisionPipeline on each iteration to compute the
     /// appropriate actions to be taken by the robot based on the current game state.
-    fn step(&mut self, world: &World, tools_data: &mut ToolData, action_wrapper: &mut ActionWrapper);
+    fn step(
+        &mut self,
+        world: &World,
+        tools_data: &mut ToolData,
+        action_wrapper: &mut ActionWrapper,
+    );
 }

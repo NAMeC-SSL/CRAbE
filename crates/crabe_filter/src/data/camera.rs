@@ -6,7 +6,9 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct CamBall {
-    pub position: Point3<f64>,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
     pub frame_info: FrameInfo,
     pub confidence: f64,
 }

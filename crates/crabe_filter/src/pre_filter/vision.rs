@@ -104,11 +104,9 @@ mod detection {
         pub fn detect_balls(detection: &mut BallDetectionInfo, frame: &FrameInfo) {
             let ball_packets = detection.detected.iter().map(|b| CamBall {
                 frame_info: frame.clone(),
-                position: Point3::new(
-                    b.x as f64 / 1000.0,
-                    b.y as f64 / 1000.0,
-                    b.z.unwrap_or(0.0) as f64 / 1000.0,
-                ),
+                x: b.x as f64 / 1000.0,
+                y: b.y as f64 / 1000.0,
+                z: b.z.unwrap_or(0.0) as f64 / 1000.0,
                 confidence: b.confidence as f64,
             });
 
