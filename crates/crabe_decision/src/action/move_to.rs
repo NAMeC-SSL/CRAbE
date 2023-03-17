@@ -52,11 +52,7 @@ fn frame_inv(frame: Isometry2<f64>) -> Isometry2<f64> {
 }
 
 fn robot_frame(robot: &Robot<AllyInfo>) -> Isometry2<f64> {
-    frame(
-        robot.pose.position.x,
-        robot.pose.position.y,
-        robot.pose.orientation,
-    )
+    frame(robot.pose.x, robot.pose.y, robot.pose.orientation)
 }
 
 fn angle_wrap(alpha: f64) -> f64 {

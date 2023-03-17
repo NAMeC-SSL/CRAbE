@@ -17,7 +17,6 @@ mod detection {
         use crabe_framework::data::world::{AllyInfo, EnemyInfo, Robot, TeamColor};
         use crabe_protocol::protobuf::vision_packet::SslDetectionRobot;
         use log::warn;
-        use nalgebra::Point2;
         use ringbuffer::RingBufferWrite;
 
         pub struct RobotDetectionInfo<'a> {
@@ -59,7 +58,8 @@ mod detection {
                             Some(CamRobot {
                                 id: id as u8,
                                 frame_info: frame.clone(),
-                                position: Point2::new(r.x as f64 / 1000.0, r.y as f64 / 1000.0),
+                                x: r.x as f64 / 1000.0,
+                                y: r.y as f64 / 1000.0,
                                 orientation: r.orientation.unwrap_or(0.0) as f64,
                                 confidence: r.confidence as f64,
                             })
@@ -94,7 +94,6 @@ mod detection {
     mod ball {
         use crate::data::{camera::CamBall, FrameInfo, TrackedBall};
         use crabe_protocol::protobuf::vision_packet::SslDetectionBall;
-        use nalgebra::Point3;
 
         pub struct BallDetectionInfo<'a> {
             pub detected: &'a [SslDetectionBall],

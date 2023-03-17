@@ -20,7 +20,7 @@ fn update_robot_vel_accel<T>(tracked_robots: &mut TrackedRobotMap<T>, robots: &R
             if let Some(secs) =
                 get_duration_secs(tracked.data.timestamp.clone(), robot.timestamp.clone())
             {
-                let distance = tracked.data.pose.position - robot.pose.position;
+                let distance = tracked.data.position() - robot.position();
                 let angle = tracked.data.pose.orientation - robot.pose.orientation;
                 tracked.data.velocity.linear = distance / secs;
                 tracked.data.velocity.angular = angle / secs;

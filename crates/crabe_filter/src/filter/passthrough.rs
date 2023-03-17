@@ -11,7 +11,7 @@ fn robot_passthrough<'a, T: 'a + Default>(
         if let Some(packet) = last_packet {
             r.data = Robot {
                 id: packet.id,
-                pose: Pose::new(packet.position, packet.orientation),
+                pose: Pose::new(packet.x, packet.y, packet.orientation),
                 has_ball: false,
                 robot_info: T::default(),
                 velocity: Default::default(),

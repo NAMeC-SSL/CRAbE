@@ -1,7 +1,6 @@
 use crate::data::FrameInfo;
 use crabe_math::shape::Arc;
 use crabe_math::shape::Line;
-use nalgebra::{Point2, Point3};
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -17,7 +16,8 @@ pub struct CamBall {
 pub struct CamRobot {
     pub id: u8,
     pub frame_info: FrameInfo,
-    pub position: Point2<f64>,
+    pub x: f64,
+    pub y: f64,
     pub orientation: f64,
     pub confidence: f64,
 }

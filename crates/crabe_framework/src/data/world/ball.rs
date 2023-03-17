@@ -21,12 +21,12 @@ pub struct Ball {
 
 impl Ball {
     /// Returns the position of the ball as a 3D point (x, y and z-coordinate)
-    pub fn position(self) -> Point3<f64> {
+    pub fn position(&self) -> Point3<f64> {
         Point3::new(self.x, self.y, self.z)
     }
 
     /// Returns the position of the ball as a 2D point (x and y-coordinate).
-    pub fn position2D(self) -> Point2<f64> {
+    pub fn position_2d(&self) -> Point2<f64> {
         Point2::new(self.x, self.y)
     }
 }
