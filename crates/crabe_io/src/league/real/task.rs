@@ -3,7 +3,7 @@ use crate::league::real::RealConfig;
 use crabe_framework::constant::MAX_ID_ROBOTS;
 use crabe_framework::data::output::{Command, CommandMap, FeedbackMap, Kick};
 
-use crabe_protocol::protobuf::robot_packet::IaToMainBoard;
+use crabe_protocol::protobuf::robot_packet::{IaToMainBoard, Kicker};
 
 use crate::communication::UsbTransceiver;
 use crate::pipeline::output::CommandSenderTask;
@@ -23,10 +23,10 @@ impl Real {
     fn prepare_packet(&mut self, id: u8, command: Command) -> IaToMainBoard {
         let (kicker_cmd, kick_power) = match command.kick {
             None => {
-                (0, 0.0 as f32) // TODO : Remove this 0 and use the kicker enum
+                (Kicker::NoKick, 0.0) // TODO : Remove this 0 and use the kicker enum
             }
-            Some(Kick::StraightKick { power }) => (1, power),
-            Some(Kick::ChipKick { power }) => (2, power),
+            Some(Kick::StraightKick { power }) => (Kicker::Kick1, power),
+            Some(Kick::ChipKick { power }) => (Kicker::Kick2, power),
         };
 
         IaToMainBoard {
@@ -35,7 +35,7 @@ impl Real {
             tangential_speed: command.left_velocity,
             angular_speed: command.angular_velocity,
             motor_break: false,
-            kicker_cmd,
+            kicker_cmd: kicker_cmd.into(),
             kick_power,
             charge: command.charge,
             dribbler: command.dribbler.is_sign_positive(),
