@@ -48,24 +48,28 @@ impl Strategy for Stricker {
             //action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x, ball.position.y), 0.0));
             if let Some(robot) = world.allies_bot.get(&(self.id)) {
                 let to_ball = robot.pose.position - Point2::new(ball.position.x, ball.position.y);
-                if robot.has_ball || to_ball.magnitude() <= 0.11 {
+                let angle_to_ball = (vector_angle(to_ball) - robot.pose.orientation).abs();
+                if robot.has_ball || (to_ball.magnitude() <= 0.11 && (angle_to_ball<0.1 || angle_to_ball>3.)) {
                     println!("kick");
                     let cmd = Command {
                         forward_velocity: 0.0,
                         left_velocity: 0.0,
                         angular_velocity: 0.0,
                         charge: true,
-                        kick: Some(Kick::StraightKick{power:4.0}),
+                        kick: Some(Kick::StraightKick{power:0.0}),
                         dribbler: 1.,
                     };
+                    let mut dir = Point2::new(ball.position.x, ball.position.y) - world.geometry.enemy_goal.back_center_position();
+                    dir = dir.normalize().mul(0.09);
+                    let to_goal = world.geometry.enemy_goal.back_center_position() - robot.pose.position;
+                    let a = vector_angle(to_goal);
+                    action_wrapper.push(self.id, MoveTo::new(Point2::new(robot.pose.position.x, robot.pose.position.y), a));
                     action_wrapper.push(self.id, RawOrder::new(cmd));
+
+                }else{
+                    let a = vector_angle(-to_ball);
+                    action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x, ball.position.y), a));
                 }
-                let mut dir = Point2::new(ball.position.x, ball.position.y) - world.geometry.enemy_goal.back_center_position();
-                dir = dir.normalize().mul(0.09);
-                let to_goal = world.geometry.enemy_goal.back_center_position() - robot.pose.position;
-                let a = vector_angle(to_goal);
-                action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x + dir.x, ball.position.y + dir.y), a));
-            
             }
         }
         false
