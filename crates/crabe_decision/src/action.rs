@@ -8,6 +8,8 @@ pub mod sequencer;
 
 /// The state module contains the State enum which represents the current state of an action.
 pub mod state;
+pub mod move_to_with_kick;
+pub mod kick;
 
 use crate::action::move_to::MoveTo;
 use crate::action::order_raw::RawOrder;
@@ -18,6 +20,8 @@ use crabe_framework::data::world::World;
 use enum_dispatch::enum_dispatch;
 use state::State;
 use std::collections::HashMap;
+use crate::action::kick::Kick;
+use crate::action::move_to_with_kick::MoveToWithKick;
 
 /// The Action trait represents an action that can be performed by a robot, such as moving to a certain point.
 #[enum_dispatch(Actions)]
@@ -36,7 +40,9 @@ pub trait Action {
 #[enum_dispatch]
 pub enum Actions {
     MoveTo(MoveTo),
+    MoveToWithKick(MoveToWithKick),
     RawOrder(RawOrder),
+    Kick(Kick)
 }
 
 /// The `ActionWrapper` struct represents a wrapper for a sequence of actions to be executed for each robot.
