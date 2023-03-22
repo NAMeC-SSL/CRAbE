@@ -1,5 +1,8 @@
 /// The `move_to` module contains the `MoveTo` action which moves a robot to a specific location on the field and a target orientation.
 pub mod move_to;
+
+//pub mod move_with_kick;
+
 /// The `order_raw` module contains the `RawOrder` action which sends a raw command to the robot.
 pub mod order_raw;
 
@@ -11,6 +14,7 @@ pub mod state;
 pub mod move_to_with_kick;
 pub mod kick;
 
+//use crate::action::move_with_kick::MoveToWithKick;
 use crate::action::move_to::MoveTo;
 use crate::action::order_raw::RawOrder;
 use crate::action::sequencer::Sequencer;

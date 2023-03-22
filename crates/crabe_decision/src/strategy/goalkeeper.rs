@@ -1,0 +1,79 @@
+use crate::action::move_to::MoveTo;
+use crate::action::order_raw::RawOrder;
+use crate::action::{ActionWrapper, Actions};
+use crate::strategy::Strategy;
+use crabe_framework::data::output::{Command, Kick};
+use crabe_framework::data::tool::ToolData;
+use crabe_framework::data::world::{World, self};
+use nalgebra::{Point2, Vector2};
+use std::f64::consts::PI;
+use std::ops::Mul;
+#[derive(Default)]
+pub struct Goalkeeper {
+    id: u8,
+}
+
+impl Goalkeeper {
+    /// Creates a new Square instance with the desired robot id.
+    pub fn new(id: u8) -> Self {
+        Self { id }
+    }
+}
+
+impl Strategy for Goalkeeper {
+    /// Executes the Square strategy.
+    ///
+    /// This strategy commands the robot with the specified ID to move in a square shape in a
+    /// counter-clockwise direction.
+    ///
+    /// # Arguments
+    ///
+    /// * data: The current state of the game world.
+    /// * tools_data: A collection of external tools used by the strategy, such as a viewer.    
+    /// * action_wrapper: An `ActionWrapper` instance used to issue actions to the robot.
+    ///
+    /// # Returns
+    ///
+    /// A boolean value indicating whether the strategy is finished or not.
+    #[allow(unused_variables)]
+    fn step(
+        &mut self,
+        world: &World,
+        tools_data: &mut ToolData,
+        action_wrapper: &mut ActionWrapper,
+    ) -> bool {
+        action_wrapper.clean(self.id);
+        if let Some(ball) = world.ball.as_ref() {
+            //action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x, ball.position.y), 0.0));
+            if let Some(robot) = world.allies_bot.get(&(self.id)) {
+                let to_ball = Point2::new(ball.position.x, ball.position.y) - robot.pose.position;
+                let a = vector_angle(to_ball);
+                let x = world.geometry.ally_goal.top_left_position.x + world.geometry.ally_goal.depth*2.0;
+                let mut y = ball.position.y;
+                y = min(y, world.geometry.ally_goal.width/2.0);
+                y = max(y, -world.geometry.ally_goal.width/2.0);
+                action_wrapper.push(self.id, MoveTo::new(Point2::new(x, y), a));
+            }
+        }
+        false
+    }
+}
+
+fn min(a: f64, b:f64) -> f64{
+    if a<b {
+        return a;}
+    b 
+}
+fn max(a: f64, b:f64) -> f64{
+    if a>b {
+        return a;}
+    b 
+}
+
+fn vector_angle(m: Vector2<f64>) -> f64{
+    let dir = m.normalize();
+    if m.y < 0.0{
+        return -dir.x.acos()
+    }
+    dir.x.acos()
+}
