@@ -46,13 +46,17 @@ impl Strategy for Goalkeeper {
         if let Some(ball) = world.ball.as_ref() {
             //action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x, ball.position.y), 0.0));
             if let Some(robot) = world.allies_bot.get(&(self.id)) {
-                ball.velocity.normalize();
+                
+                let ball_dest_point = ball.position + ball.velocity.normalize().mul(100.);
+                let ball_dest_point = Point2::new(ball_dest_point.x, ball_dest_point.y);
+                let end_point = line_intersect(Point2::new(ball.position.x, ball.position.y), ball_dest_point, world.geometry.enemy_goal.front_left_position(), world.geometry.enemy_goal.front_right_position());
                 let to_ball = Point2::new(ball.position.x, ball.position.y) - robot.pose.position;
                 let a = vector_angle(to_ball);
                 let x = world.geometry.ally_goal.top_left_position.x + world.geometry.ally_goal.depth*2.0;
                 let mut y = ball.position.y;
                 y = min(y, world.geometry.ally_goal.width/2.0);
                 y = max(y, -world.geometry.ally_goal.width/2.0);
+                y = end_point.y;
                 action_wrapper.push(self.id, MoveTo::new(Point2::new(x, y), a));
             }
         }
