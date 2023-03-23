@@ -23,7 +23,7 @@ impl Manual {
     pub fn new() -> Self {
         Self {
             strategies: vec![
-                Box::new(Mbappe::new(0))
+                Box::new(Mbappe::new(0)),
                 Box::new(Goalkeeper::new(1))],
         }
     }

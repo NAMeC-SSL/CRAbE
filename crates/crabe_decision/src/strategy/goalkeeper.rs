@@ -49,6 +49,7 @@ impl Strategy for Goalkeeper {
                 
                 let ball_dest_point = ball.position + ball.velocity.normalize().mul(100.);
                 let ball_dest_point = Point2::new(ball_dest_point.x, ball_dest_point.y);
+                println!("{}",ball.velocity);
                 let top_left = Point2::new(world.geometry.field.width / 2., world.geometry.field.length / 2.);
                 let top_right = Point2::new(world.geometry.field.width / 2., -world.geometry.field.length / 2.);
                 let end_point = line_intersect(Point2::new(ball.position.x, ball.position.y), ball_dest_point, top_left, top_right);
