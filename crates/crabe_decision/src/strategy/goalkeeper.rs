@@ -49,16 +49,16 @@ impl Strategy for Goalkeeper {
                 
                 let ball_dest_point = ball.position + ball.velocity.normalize().mul(100.);
                 let ball_dest_point = Point2::new(ball_dest_point.x, ball_dest_point.y);
-                let end_point = line_intersect(Point2::new(ball.position.x, ball.position.y), ball_dest_point, world.geometry.enemy_goal.front_left_position(), world.geometry.enemy_goal.front_right_position());
+                let top_left = Point2::new(world.geometry.field.width / 2., world.geometry.field.length / 2.);
+                let top_right = Point2::new(world.geometry.field.width / 2., -world.geometry.field.length / 2.);
+                let end_point = line_intersect(Point2::new(ball.position.x, ball.position.y), ball_dest_point, top_left, top_right);
                 let to_ball = Point2::new(ball.position.x, ball.position.y) - robot.pose.position;
                 let a = vector_angle(to_ball);
                 let x = world.geometry.ally_goal.top_left_position.x + world.geometry.ally_goal.depth*2.0;
                 let mut y = ball.position.y;
-                y = min(y, world.geometry.ally_goal.width/2.0);
-                y = max(y, -world.geometry.ally_goal.width/2.0);
                 y = match end_point {
                     None => {
-                        return false;
+                        min(max(y, -world.geometry.ally_goal.width/2.0), world.geometry.ally_goal.width/2.0)
                     }
                     Some(p) => {
                         p.y
