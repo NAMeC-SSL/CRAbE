@@ -6,6 +6,7 @@ use crabe_framework::data::world::World;
 /// are not meant to be used in an actual game but rather to test specific functionalities or to
 /// experiment with different behaviors.
 pub mod testing;
+pub mod mbappe;
 pub mod stricker;
 pub mod goalkeeper;
 /// The `Strategy` trait defines the interface for a behavior that one or multiple robots can adopt to achieve a certain goal.

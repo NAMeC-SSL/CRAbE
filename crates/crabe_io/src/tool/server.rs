@@ -7,13 +7,17 @@ use crabe_framework::data::world::World;
 use serde::{Deserialize, Serialize};
 use std::net::{Ipv4Addr, SocketAddrV4};
 
+
 #[derive(Serialize)]
-enum ToolMessage {
-    World(World),
+#[serde(rename_all = "camelCase")]
+struct ToolMessage {
+    world: World,
+    data: ToolData
 }
 
 #[derive(Deserialize)]
-enum ToolRequest {}
+enum ToolRequest {
+}
 
 pub struct ToolServer {
     websocket: WebSocketTransceiver<ToolRequest, ToolMessage>,
@@ -36,8 +40,13 @@ impl Component for ToolServer {
 }
 
 impl ToolComponent for ToolServer {
-    fn step(&mut self, world_data: &World, _tool_data: &mut ToolData) -> ToolCommands {
-        self.websocket.send(ToolMessage::World(world_data.clone()));
+    fn step(&mut self, world_data: &World, tool_data: &mut ToolData) -> ToolCommands {
+        let msg = ToolMessage {
+            data: tool_data.clone(),
+            world: world_data.clone()
+        };
+        println!("msg: {:?}", serde_json::to_string(&msg));
+        self.websocket.send(msg);
         ToolCommands {}
     }
 }

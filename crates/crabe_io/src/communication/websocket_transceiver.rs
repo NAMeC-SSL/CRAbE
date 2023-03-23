@@ -138,7 +138,7 @@ impl<RX: DeserializeOwned + Send + 'static, TX: Serialize + Send + 'static>
     }
 
     pub fn receive(&mut self) -> Option<RX> {
-        self.rx.recv().ok()
+        self.rx.try_recv().ok()
     }
 
     pub fn close(self) {

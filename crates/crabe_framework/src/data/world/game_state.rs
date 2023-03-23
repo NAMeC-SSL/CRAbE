@@ -3,6 +3,7 @@ use serde::Serialize;
 
 /// The `GameState` struct represents the state of the SSL game, including the teams and which team is on the positive half of the field.
 #[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct GameState {
     /// The `Team` struct representing our ally team.
     pub ally: Team,

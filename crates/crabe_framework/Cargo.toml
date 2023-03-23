@@ -14,3 +14,4 @@ nalgebra = { version = "0.32.2", features = ["serde-serialize"] }
 crabe_protocol = { path = "../crabe_protocol" }
 crabe_math = { path = "../crabe_math" }
 chrono={ version="0.4.24", features = ["serde"]}
+serde_with = "2.3.1"

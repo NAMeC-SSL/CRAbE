@@ -5,14 +5,17 @@ use std::collections::HashMap;
 
 /// The `AllyInfo` struct represents the information related to allies in the game.
 #[derive(Serialize, Clone, Default, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct AllyInfo;
 
 /// The `EnemyInfo` struct represents the information related to enemies in the game.
 #[derive(Serialize, Clone, Default, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct EnemyInfo;
 
 /// The `RobotVelocity` struct represents the velocity of a robot in the SSL.
 #[derive(Serialize, Default, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct RobotVelocity {
     /// The linear velocity of the robot in meters per second.
     pub linear: Vector2<f64>,
@@ -22,6 +25,7 @@ pub struct RobotVelocity {
 
 /// The `RobotAcceleration` struct represents the acceleration of a robot in the SSL.
 #[derive(Serialize, Default, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct RobotAcceleration {
     /// The linear acceleration of the robot in meters per second squared.
     pub linear: Vector2<f64>,
@@ -31,10 +35,11 @@ pub struct RobotAcceleration {
 
 /// The `Pose` struct represents the pose of a robot in the SSL, containing its position and orientation.
 #[derive(Serialize, Default, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Pose {
     /// The orientation of the robot in radians.
     pub orientation: f64,
-    /// The position in 2D of the robot in meters.
+    /// The position in 2D of the robot in meters, with respect to the center of the field.
     pub position: Point2<f64>,
 }
 
@@ -52,6 +57,7 @@ pub type RobotMap<T> = HashMap<u8, Robot<T>>;
 
 /// The Robot struct represents a robot in the SSL game.
 #[derive(Serialize, Default, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Robot<T> {
     /// The unique identifier of the robot.
     pub id: u8,

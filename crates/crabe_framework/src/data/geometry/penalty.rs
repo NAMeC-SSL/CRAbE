@@ -3,6 +3,7 @@ use serde::Serialize;
 
 /// Represents a penalty area on a soccer field.
 #[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Penalty {
     /// The width of the penalty area in meters.
     pub width: f64,

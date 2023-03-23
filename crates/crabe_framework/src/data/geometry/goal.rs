@@ -3,6 +3,7 @@ use serde::Serialize;
 
 /// Represents a goal on a soccer field.
 #[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Goal {
     /// The width of the goal, in meters.
     pub width: f64,
