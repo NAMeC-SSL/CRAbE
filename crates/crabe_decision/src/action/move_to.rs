@@ -70,6 +70,8 @@ const GOTO_ROTATION: f64 = 1.5;
 /// The error tolerance for arriving at the target position.
 const ERR_TOLERANCE: f64 = 0.115;
 
+const ERR_TOLERANCE_ANGLE: f64 = 0.3;
+
 impl Action for MoveTo {
     /// Returns the name of the action.
     fn name(&self) -> String {
@@ -97,8 +99,10 @@ impl Action for MoveTo {
             let error_orientation = angle_wrap(self.orientation - robot.pose.orientation);
             let error_x = target_in_robot[0];
             let error_y = target_in_robot[1];
-            let arrived = Vector3::new(error_x, error_y, error_orientation).norm() < ERR_TOLERANCE;
-            if arrived {
+            let arrived = Vector2::new(error_x, error_y).norm() < ERR_TOLERANCE;
+            let arrived_angle = error_orientation < ERR_TOLERANCE_ANGLE;
+
+            if arrived && arrived_angle {
                 self.state = State::Done;
             }
 

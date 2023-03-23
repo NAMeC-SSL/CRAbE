@@ -25,8 +25,8 @@ impl Real {
             None => {
                 (0, 0.0 as f32) // TODO : Remove this 0 and use the kicker enum
             }
-            Some(Kick::StraightKick { power }) => (1, power),
-            Some(Kick::ChipKick { power }) => (2, power),
+            Some(Kick::StraightKick { power }) => (2, power),
+            Some(Kick::ChipKick { power }) => (1, power),
         };
 
         dbg!(IaToMainBoard {
@@ -37,7 +37,7 @@ impl Real {
             motor_break: false,
             kicker_cmd,
             kick_power,
-            charge: command.charge,
+            charge: true, //command.charge,
             dribbler: command.dribbler > 0.0,
         })
     }

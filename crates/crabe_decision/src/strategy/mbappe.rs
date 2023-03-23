@@ -106,7 +106,7 @@ impl Strategy for Mbappe {
                 }
             }
             MbappeState::GoingCloseBehindBall => {
-                if dbg!(robot_to_ball_distance) < 0.11 && dbg!(robot_to_ball_angle.abs()) < 3.0 {
+                if dbg!(robot_to_ball_distance) < 0.098 && dbg!(robot_to_ball_angle.abs()) < 3.0 {
                     action_wrapper.push(self.id, Kick::new(KickType::StraightKick {power: 10.0}));
                     self.internal_state = MbappeState::GoingBehindBall;
                 } else {
