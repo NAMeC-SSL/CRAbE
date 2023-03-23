@@ -46,6 +46,7 @@ impl Strategy for Goalkeeper {
         if let Some(ball) = world.ball.as_ref() {
             //action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x, ball.position.y), 0.0));
             if let Some(robot) = world.allies_bot.get(&(self.id)) {
+                ball.velocity.normalize();
                 let to_ball = Point2::new(ball.position.x, ball.position.y) - robot.pose.position;
                 let a = vector_angle(to_ball);
                 let x = world.geometry.ally_goal.top_left_position.x + world.geometry.ally_goal.depth*2.0;
@@ -76,4 +77,21 @@ fn vector_angle(m: Vector2<f64>) -> f64{
         return -dir.x.acos()
     }
     dir.x.acos()
+}
+
+
+fn line_intersect(A1: Point2<f64>, A2: Point2<f64>, B1: Point2<f64>, B2: Point2<f64>) -> Point2<f64>{
+    let d = (B2.y - B1.y) * (A2.x - A1.x) - (B2.x - B1.x) * (A2.y - A1.y);
+    
+    if d == 0.{()}
+    
+    let uA = ((B2.x - B1.x) * (A1.y - B1.y) - (B2.y - B1.y) * (A1.x - B1.x)) / d;
+    let uB = ((A2.x - A1.x) * (A1.y - B1.y) - (A2.y - A1.y) * (A1.x - B1.x)) / d;
+
+    if !(uA <= 1. && uA >= 0. && uB <= 1. && uB >= 0.){()}
+    
+    let x = A1.x + uA * (A2.x - A1.x);
+    let y = A1.y + uA * (A2.y - A1.y);
+    
+    Point2::new(x, y)
 }
