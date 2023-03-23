@@ -56,8 +56,16 @@ impl Strategy for Goalkeeper {
                 let mut y = ball.position.y;
                 y = min(y, world.geometry.ally_goal.width/2.0);
                 y = max(y, -world.geometry.ally_goal.width/2.0);
-                y = end_point.y;
-                action_wrapper.push(self.id, MoveTo::new(Point2::new(x, y), a));
+                y = match end_point {
+                    None => {
+                        return false;
+                    }
+                    Some(p) => {
+                        p.y
+                    }
+                };
+
+                action_wrapper.push(self.id, MoveTo::new(dbg!(Point2::new(x, y)), a));
             }
         }
         false
@@ -84,18 +92,22 @@ fn vector_angle(m: Vector2<f64>) -> f64{
 }
 
 
-fn line_intersect(A1: Point2<f64>, A2: Point2<f64>, B1: Point2<f64>, B2: Point2<f64>) -> Point2<f64>{
+fn line_intersect(A1: Point2<f64>, A2: Point2<f64>, B1: Point2<f64>, B2: Point2<f64>) -> Option<Point2<f64>> {
     let d = (B2.y - B1.y) * (A2.x - A1.x) - (B2.x - B1.x) * (A2.y - A1.y);
     
-    if d == 0.{()}
+    if d == 0.{
+        return None;
+    }
     
     let uA = ((B2.x - B1.x) * (A1.y - B1.y) - (B2.y - B1.y) * (A1.x - B1.x)) / d;
     let uB = ((A2.x - A1.x) * (A1.y - B1.y) - (A2.y - A1.y) * (A1.x - B1.x)) / d;
 
-    if !(uA <= 1. && uA >= 0. && uB <= 1. && uB >= 0.){()}
+    if !(uA <= 1. && uA >= 0. && uB <= 1. && uB >= 0.){
+        return None;
+    }
     
     let x = A1.x + uA * (A2.x - A1.x);
     let y = A1.y + uA * (A2.y - A1.y);
     
-    Point2::new(x, y)
+    Some(Point2::new(x, y))
 }
