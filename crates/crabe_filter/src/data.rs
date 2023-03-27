@@ -1,4 +1,6 @@
 pub mod camera;
+pub mod referee;
+pub mod event;
 
 use crate::constant;
 use crate::data::camera::{CamBall, CamGeometry, CamRobot};
@@ -8,6 +10,7 @@ use crabe_framework::data::world::{AllyInfo, Ball, EnemyInfo, Robot};
 use ringbuffer::ConstGenericRingBuffer;
 use std::collections::HashMap;
 use std::time::Instant;
+use crabe_protocol::protobuf::game_controller_packet::Referee;
 
 #[derive(Clone, Debug)]
 pub struct FrameInfo {
@@ -23,6 +26,7 @@ pub struct FilterData {
     pub enemies: TrackedRobotMap<EnemyInfo>,
     pub ball: TrackedBall,
     pub geometry: CamGeometry,
+    pub referee: Vec<Referee>,
 }
 
 pub struct TrackedRobot<T> {
