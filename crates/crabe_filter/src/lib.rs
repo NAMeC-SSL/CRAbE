@@ -8,6 +8,7 @@ use crate::data::FilterData;
 
 use crate::filter::passthrough::PassthroughFilter;
 use crate::filter::Filter;
+use crate::filter::velocity_acceleration::VelocityAccelerationFilter;
 use crate::post_filter::ball::BallFilter;
 use crate::post_filter::geometry::GeometryFilter;
 use crate::post_filter::robot::RobotFilter;
@@ -35,7 +36,7 @@ impl FilterPipeline {
     pub fn with_config(_config: FilterConfig, common_config: &CommonConfig) -> Self {
         Self {
             pre_filters: vec![Box::new(VisionFilter::new())],
-            filters: vec![Box::new(PassthroughFilter)],
+            filters: vec![Box::new(PassthroughFilter), Box::new(VelocityAccelerationFilter)],
             post_filters: vec![
                 Box::new(RobotFilter),
                 Box::new(GeometryFilter),

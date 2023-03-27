@@ -172,18 +172,13 @@ impl Action for MoveTo {
         }
 
         if !xy_ok {
-            let x_cur = cmd.forward_velocity;
-            let y_cur = cmd.left_velocity;
-            let ns = self.xy_speed.new_speed((x_cur.powi(2) + y_cur.powi(2)).sqrt() as f64, distance);
+            let world_speed = (robot.velocity.linear.x.powi(2) + robot.velocity.linear.y.powi(2)).sqrt();
+            dbg!(world_speed);
+            let ns = self.xy_speed.new_speed(world_speed, distance);
             let target_x = dx / distance_through * ns;
             let target_y = dy / distance_through * ns;
             cmd.forward_velocity = (target_x * robot.pose.orientation.cos() + target_y * robot.pose.orientation.sin()) as f32;
             cmd.left_velocity = (-target_x * robot.pose.orientation.sin() + target_y * robot.pose.orientation.cos()) as f32;
-
-
-            dbg!(cmd.forward_velocity);
-            dbg!(cmd.left_velocity);
-            dbg!(cmd.angular_velocity);
         }
 
         if angl_ok && xy_ok {

@@ -117,7 +117,11 @@ mod detection {
     }
 
     fn create_date_time(t_capture: f64) -> DateTime<Utc> {
-        match Utc.timestamp_opt((t_capture) as i64, 0) {
+        let seconds = t_capture as i64;
+        let leftover_seconds = t_capture - (seconds as f64);
+        let nanos = leftover_seconds * 1_000_000_000.0;
+
+        match Utc.timestamp_opt((t_capture) as i64, nanos as u32) {
             LocalResult::Single(dt) => dt,
             LocalResult::None => {
                 let now_utc = Utc::now();

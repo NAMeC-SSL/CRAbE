@@ -38,7 +38,7 @@ impl Real {
             kicker_cmd,
             kick_power,
             charge: command.charge,
-            dribbler: command.dribbler.is_sign_positive(),
+            dribbler: command.dribbler > 0.0,
         }
     }
 }
