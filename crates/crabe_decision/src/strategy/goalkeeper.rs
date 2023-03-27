@@ -46,7 +46,7 @@ impl Strategy for Goalkeeper {
         if let Some(ball) = world.ball.as_ref() {
             //action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x, ball.position.y), 0.0));
             if let Some(robot) = world.allies_bot.get(&(self.id)) {
-                println!("{:?}", line_intersect(Point2::new(-5., 0.), Point2::new(3., -4.), Point2::new(-2., -4.), Point2::new(0., 0.)));
+                //println!("{:?}", line_intersect(Point2::new(-5., 0.), Point2::new(3., -4.), Point2::new(-2., -4.), Point2::new(0., 0.)));
                 let mut dir=ball.velocity;
                 if let Some(robot2) = world.allies_bot.get(&(0)) {
                     dir = ball.position.sub(Point3::new(robot2.pose.position.x, robot2.pose.position.y, 0.));
@@ -61,13 +61,11 @@ impl Strategy for Goalkeeper {
                 let to_ball = Point2::new(ball.position.x, ball.position.y) - robot.pose.position;
                 let a = vector_angle(to_ball);
                 let x = world.geometry.ally_goal.top_left_position.x + world.geometry.ally_goal.depth*2.0;
-                let mut y = ball.position.y;
-                y = match end_point {
+                let y = match end_point {
                     None => {
-                        min(max(y, -world.geometry.ally_goal.width/2.0), world.geometry.ally_goal.width/2.0)
+                        min(max(ball.position.y, -world.geometry.ally_goal.width/2.0), world.geometry.ally_goal.width/2.0)
                     }
                     Some(p) => {
-                        
                         min(max(p.y, -world.geometry.ally_goal.width/2.0), world.geometry.ally_goal.width/2.0)
                     }
                 };
