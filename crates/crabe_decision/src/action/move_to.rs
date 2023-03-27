@@ -71,7 +71,7 @@ impl MoveTo {
     fn update_how(&mut self, how: How) {
         match how {
             How::Fast => {
-                self.xy_speed.update(0.2, 4.0, 4.0, 2.0);
+                self.xy_speed.update(0.5, 10.0, 8.0, 3.0);
                 self.angle_speed.update(0.1, 4.0, 4.0, PI);
                 self.xy_hyst = 0.1;
                 self.angle_hyst = PI / 8.0;
@@ -158,8 +158,6 @@ impl Action for MoveTo {
         } else {
             cmd.angular_velocity = (dt.signum() *
                 self.angle_speed.new_speed(cmd.angular_velocity.abs() as f64, dt.abs())) as f32;
-
-            dbg!(cmd.angular_velocity);
         }
 
         if distance_through < self.xy_hyst * 2.0 {
@@ -240,7 +238,7 @@ impl RampSpeed {
     }
 
     pub fn new_speed(&mut self, mut current_speed: f64, target_distance: f64) -> f64 {
-        let dt = (Instant::now() - self.last_computation_time_).as_millis() as f64;
+        let mut dt = (Instant::now() - self.last_computation_time_).as_secs_f64();
         self.last_computation_time_ = Instant::now();
 
         // TODO: fix this
