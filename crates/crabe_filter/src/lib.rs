@@ -46,6 +46,7 @@ impl FilterPipeline {
                 enemies: Default::default(),
                 ball: Default::default(),
                 geometry: Default::default(),
+                referee: Default::default()
             },
             team_color: if common_config.yellow {
                 TeamColor::Yellow

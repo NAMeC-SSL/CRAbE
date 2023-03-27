@@ -35,7 +35,7 @@ pub struct GameEventProposalGroup {
     pub accepted: Option<bool>
 }
 
-enum Stage {
+pub enum Stage {
     NormalFirstHalfPre,
     NormalFirstHalf,
     NormalHalfTime,
@@ -52,7 +52,7 @@ enum Stage {
     PostGame
 }
 
-enum RefereeCommand {
+pub enum RefereeCommand {
     Halt,
     Stop,
     NormalStart,

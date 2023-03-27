@@ -1,4 +1,6 @@
-#[derive(Serialize)]
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Clone, Debug)]
 #[serde(rename_all="camelCase")]
 pub enum GameState {
     Halted(HaltedState),
@@ -6,14 +8,14 @@ pub enum GameState {
     Running(RunningState)
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone, Debug)]
 #[serde(rename_all="camelCase")]
 pub enum HaltedState {
     Halt,
     Timeout
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone, Debug)]
 #[serde(rename_all="camelCase")]
 pub enum StoppedState {
     Stop,
@@ -22,7 +24,7 @@ pub enum StoppedState {
     BallPlacement
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone, Debug)]
 #[serde(rename_all="camelCase")]
 pub enum RunningState {
     KickOff,
