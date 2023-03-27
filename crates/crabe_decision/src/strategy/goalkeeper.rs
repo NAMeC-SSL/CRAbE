@@ -1,4 +1,5 @@
 use crate::action::move_to::MoveTo;
+use crate::action::move_to_with_kick_dribble::MoveToWithParams;
 use crate::action::order_raw::RawOrder;
 use crate::action::{ActionWrapper, Actions};
 use crate::strategy::Strategy;
@@ -70,7 +71,7 @@ impl Strategy for Goalkeeper {
                     }
                 };
 
-                action_wrapper.push(self.id, MoveTo::new(Point2::new(x, y), a));
+                action_wrapper.push(self.id, MoveToWithParams::new(Point2::new(x, y), a, None, 1.));
             }
         }
         false
