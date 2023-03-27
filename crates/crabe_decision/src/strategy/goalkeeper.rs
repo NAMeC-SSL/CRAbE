@@ -5,25 +5,25 @@ use crate::strategy::Strategy;
 use crabe_framework::data::output::{Command, Kick};
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::{World, self};
-use nalgebra::{Point2, Vector2};
+use nalgebra::{Point2, Vector2, Point3};
 use std::f64::consts::PI;
-use std::ops::Mul;
+use std::ops::{Mul, Sub};
 #[derive(Default)]
 pub struct Goalkeeper {
     id: u8,
 }
 
 impl Goalkeeper {
-    /// Creates a new Square instance with the desired robot id.
+    /// Creates a new Squ_are instance with the desired robot id.
     pub fn new(id: u8) -> Self {
         Self { id }
     }
 }
 
 impl Strategy for Goalkeeper {
-    /// Executes the Square strategy.
+    /// Executes the Squ_are strategy.
     ///
-    /// This strategy commands the robot with the specified ID to move in a square shape in a
+    /// This strategy commands the robot with the specified ID to move in a squ_are shape in a
     /// counter-clockwise direction.
     ///
     /// # Arguments
@@ -46,12 +46,17 @@ impl Strategy for Goalkeeper {
         if let Some(ball) = world.ball.as_ref() {
             //action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x, ball.position.y), 0.0));
             if let Some(robot) = world.allies_bot.get(&(self.id)) {
-                
-                let ball_dest_point = ball.position + ball.velocity.normalize().mul(100.);
+                println!("{:?}", line_intersect(Point2::new(-5., 0.), Point2::new(3., -4.), Point2::new(-2., -4.), Point2::new(0., 0.)));
+                let mut dir=ball.velocity;
+                if let Some(robot2) = world.allies_bot.get(&(0)) {
+                    dir = ball.position.sub(Point3::new(robot2.pose.position.x, robot2.pose.position.y, 0.));
+                }
+                //calculate the segment between ball and a point his direction
+                let ball_dest_point = ball.position + dir.normalize().mul(100.);
                 let ball_dest_point = Point2::new(ball_dest_point.x, ball_dest_point.y);
-                println!("{}",ball.velocity);
-                let top_left = Point2::new(world.geometry.field.width / 2., world.geometry.field.length / 2.);
-                let top_right = Point2::new(world.geometry.field.width / 2., -world.geometry.field.length / 2.);
+                println!("{}",ball_dest_point);
+                let top_left = Point2::new(-world.geometry.field.width / 2., -world.geometry.field.length / 2.);
+                let top_right = Point2::new(-world.geometry.field.width / 2., world.geometry.field.length / 2.);
                 let end_point = line_intersect(Point2::new(ball.position.x, ball.position.y), ball_dest_point, top_left, top_right);
                 let to_ball = Point2::new(ball.position.x, ball.position.y) - robot.pose.position;
                 let a = vector_angle(to_ball);
@@ -62,11 +67,12 @@ impl Strategy for Goalkeeper {
                         min(max(y, -world.geometry.ally_goal.width/2.0), world.geometry.ally_goal.width/2.0)
                     }
                     Some(p) => {
-                        p.y
+                        
+                        min(max(p.y, -world.geometry.ally_goal.width/2.0), world.geometry.ally_goal.width/2.0)
                     }
                 };
 
-                action_wrapper.push(self.id, MoveTo::new(dbg!(Point2::new(x, y)), a));
+                action_wrapper.push(self.id, MoveTo::new(Point2::new(x, y), a));
             }
         }
         false
@@ -93,22 +99,21 @@ fn vector_angle(m: Vector2<f64>) -> f64{
 }
 
 
-fn line_intersect(A1: Point2<f64>, A2: Point2<f64>, B1: Point2<f64>, B2: Point2<f64>) -> Option<Point2<f64>> {
-    let d = (B2.y - B1.y) * (A2.x - A1.x) - (B2.x - B1.x) * (A2.y - A1.y);
+fn line_intersect(a1: Point2<f64>, a2: Point2<f64>, b1: Point2<f64>, b2: Point2<f64>) -> Option<Point2<f64>> {
+    let d = (b2.y - b1.y) * (a2.x - a1.x) - (b2.x - b1.x) * (a2.y - a1.y);
     
     if d == 0.{
         return None;
     }
     
-    let uA = ((B2.x - B1.x) * (A1.y - B1.y) - (B2.y - B1.y) * (A1.x - B1.x)) / d;
-    let uB = ((A2.x - A1.x) * (A1.y - B1.y) - (A2.y - A1.y) * (A1.x - B1.x)) / d;
-
-    if !(uA <= 1. && uA >= 0. && uB <= 1. && uB >= 0.){
+    let u_a = ((a1.x - b1.x) * (b1.y - b2.y) - (a1.y - b1.y) * (b1.x - b2.x)) / d;
+    let u_b = -((a1.x - a2.x) * (a1.y - b1.y) - (a1.y - a2.y) * (a1.x - b1.x)) / d;
+    if !(u_a <= 1. && u_a >= 0. && u_b <= 1. && u_b >= 0.){
         return None;
     }
     
-    let x = A1.x + uA * (A2.x - A1.x);
-    let y = A1.y + uA * (A2.y - A1.y);
+    let x = a1.x + u_a * (a2.x - a1.x);
+    let y = a1.y + u_a * (a2.y - a1.y);
     
     Some(Point2::new(x, y))
 }

@@ -45,7 +45,7 @@ impl ToolComponent for ToolServer {
             data: tool_data.clone(),
             world: world_data.clone()
         };
-        println!("msg: {:?}", serde_json::to_string(&msg));
+        //println!("msg: {:?}", serde_json::to_string(&msg));
         self.websocket.send(msg);
         ToolCommands {}
     }
