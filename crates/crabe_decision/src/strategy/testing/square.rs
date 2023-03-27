@@ -51,13 +51,13 @@ impl Strategy for Square {
         //     self.id, None, Point2::new(0.0, 0.0), How::Accurate));
 
         action_wrapper.push(self.id, MoveTo::new(
-            self.id, None, Point2::new(-1.0, 1.0), How::Accurate));
+            self.id, None, Point2::new(-1.0, 2.0), How::Accurate));
         action_wrapper.push(self.id, MoveTo::new(
-            self.id, None, Point2::new(-1.0, 1.0), How::Accurate));
+            self.id, None, Point2::new(-4.0, 2.0), How::Accurate));
         action_wrapper.push(self.id, MoveTo::new(
-            self.id, None, Point2::new(1.0, -1.0), How::Accurate));
+            self.id, None, Point2::new(-4.0, -2.0), How::Accurate));
         action_wrapper.push(self.id, MoveTo::new(
-            self.id, None, Point2::new(-1.0, -1.0), How::Accurate));
+            self.id, None, Point2::new(-1.0, -2.0), How::Accurate));
         true
     }
 }

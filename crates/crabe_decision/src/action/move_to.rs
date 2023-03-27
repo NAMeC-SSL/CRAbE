@@ -361,9 +361,10 @@ impl RampSpeed {
     }
 
     pub fn new_speed(&mut self, mut current_speed: f64, target_distance: f64) -> f64 {
-        let mut dt = (Instant::now() - self.last_computation_time_).as_millis() as f64;
+        let dt = (Instant::now() - self.last_computation_time_).as_millis() as f64;
         self.last_computation_time_ = Instant::now();
 
+        // TODO: fix this
         // if dbg!(dt) > 0.5 {
         //     dt = 0.5;
         // }
@@ -389,22 +390,5 @@ impl RampSpeed {
             new_speed = self.max_speed_;
         }
         return new_speed;
-
-        // let acceleration = current_speed * self.acceleration_factor_ * dt;
-        // let deceleration = current_speed * self.deceleration_factor_ * dt;
-        // let target_speed = 2.0 * target_distance;
-        // let mut new_speed = current_speed;
-        // if target_speed < new_speed {
-        //     new_speed -= deceleration;
-        //     if target_speed > new_speed {
-        //         new_speed = target_speed;
-        //     }
-        // } else {
-        //     new_speed += acceleration;
-        //     if target_speed < new_speed {
-        //         new_speed = target_speed;
-        //     }
-        // }
-        // new_speed = new_speed.max(self.min_speed_).min(self.max_speed_);
     }
 }
