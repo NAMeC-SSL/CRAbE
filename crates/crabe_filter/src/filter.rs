@@ -1,5 +1,5 @@
 pub mod passthrough;
-mod velocity_acceleration;
+pub mod velocity_acceleration;
 
 use crate::data::FilterData;
 use crabe_framework::data::world::World;
