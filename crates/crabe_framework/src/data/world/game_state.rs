@@ -23,3 +23,32 @@ impl GameState {
         }
     }
 }
+
+
+enum GameStates {
+    // Robots are not allowed to move
+    Halt,
+    // Both teams can do what ever they want
+    Timeout,
+    // Both teams have to keep distance to the ball
+    Stop,
+    // Teams have to move to their sides
+    PrepareKickoff,
+    // Keeper on goal line,
+    // attacker behind ball,
+    // other robots on legal positions
+    PreparePenalty,
+    // One team places the ball,
+    // the other keeps distance to ball
+    BallPlacement,
+    // One team may kick the ball
+    // within 5 (A) or 10 (B) seconds
+    Kickoff,
+    // Execute a penalty kick within 10 seconds
+    Penalty,
+    // One team may kick the ball
+    // within 5 (A) or 10 (B) seconds
+    FreeKick,
+    // Both teams may manipulate the ball
+    Run
+}

@@ -276,6 +276,7 @@ dependencies = [
  "prost",
  "serde",
  "serde_json",
+ "serde_with",
  "serialport",
  "tokio",
  "tokio-tungstenite",
