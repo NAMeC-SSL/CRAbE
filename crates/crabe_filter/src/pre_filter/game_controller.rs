@@ -18,6 +18,7 @@ impl PreFilter for GameControllerFilter {
         _team_color: &TeamColor,
         filter_data: &mut FilterData,
     ) {
-        filter_data.referee.extend(inbound_data.gc_packet.iter());
+        // TODO: this allocates a ton
+        filter_data.referee.extend(inbound_data.gc_packet.iter().map(|p| p.clone()));
     }
 }

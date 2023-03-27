@@ -14,13 +14,12 @@ pub use self::team::{Team, TeamColor};
 mod game_data;
 mod game_state;
 
-pub use self::game_data::GameState;
-
 use crate::config::CommonConfig;
 use crate::data::geometry::Geometry;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
 use crate::data::world::game_data::GameData;
+use crate::data::world::game_state::{GameState, HaltedState};
 
 /// The `World` struct represents the state of the world in the SSL game,
 /// containing information about the game state, the field geometry, the robots and the ball.
@@ -53,7 +52,7 @@ impl World {
             TeamColor::Blue
         };
         Self {
-            data: GameState::new(team_color),
+            data: GameData::new(team_color),
             geometry: Default::default(),
             allies_bot: Default::default(),
             enemies_bot: Default::default(),
