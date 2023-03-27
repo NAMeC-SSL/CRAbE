@@ -360,25 +360,51 @@ impl RampSpeed {
         self.max_speed_ = max_speed;
     }
 
-    pub fn new_speed(&mut self, current_speed: f64, target_distance: f64) -> f64 {
-        let time_elapsed = (Instant::now() - self.last_computation_time_).as_nanos() as f64;
+    pub fn new_speed(&mut self, mut current_speed: f64, target_distance: f64) -> f64 {
+        let mut dt = (Instant::now() - self.last_computation_time_).as_millis() as f64;
         self.last_computation_time_ = Instant::now();
-        let acceleration = current_speed * self.acceleration_factor_ * time_elapsed;
-        let deceleration = current_speed * self.deceleration_factor_ * time_elapsed;
-        let target_speed = 2.0 * target_distance;
-        let mut new_speed = current_speed;
-        if target_speed < new_speed {
-            new_speed -= deceleration;
-            if target_speed > new_speed {
-                new_speed = target_speed;
-            }
-        } else {
-            new_speed += acceleration;
-            if target_speed < new_speed {
-                new_speed = target_speed;
-            }
+
+        // if dbg!(dt) > 0.5 {
+        //     dt = 0.5;
+        // }
+
+        if current_speed < self.min_speed_ {
+            current_speed = self.min_speed_;
         }
-        new_speed = new_speed.max(self.min_speed_).min(self.max_speed_);
-        return new_speed * 100.0;
+
+        let delta_pos = current_speed * (1.0 / self.deceleration_factor_);  // max distance if we slow now
+        let mut new_speed = current_speed;
+        if (target_distance - delta_pos) > 0.0  // we can accelerate
+        {                                       // acceleration
+            new_speed = current_speed + current_speed * self.acceleration_factor_ * dt;
+        }
+        else
+        {  // decelaration
+            new_speed = current_speed - current_speed * self.deceleration_factor_ * dt;
+        }
+        if new_speed < 0 as f64 {
+            new_speed = 0.0;
+        }
+        if new_speed > self.max_speed_ {
+            new_speed = self.max_speed_;
+        }
+        return new_speed;
+
+        // let acceleration = current_speed * self.acceleration_factor_ * dt;
+        // let deceleration = current_speed * self.deceleration_factor_ * dt;
+        // let target_speed = 2.0 * target_distance;
+        // let mut new_speed = current_speed;
+        // if target_speed < new_speed {
+        //     new_speed -= deceleration;
+        //     if target_speed > new_speed {
+        //         new_speed = target_speed;
+        //     }
+        // } else {
+        //     new_speed += acceleration;
+        //     if target_speed < new_speed {
+        //         new_speed = target_speed;
+        //     }
+        // }
+        // new_speed = new_speed.max(self.min_speed_).min(self.max_speed_);
     }
 }
