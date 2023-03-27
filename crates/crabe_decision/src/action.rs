@@ -9,6 +9,7 @@ pub mod sequencer;
 /// The state module contains the State enum which represents the current state of an action.
 pub mod state;
 pub mod move_to_with_kick;
+pub mod move_to_with_kick_dribble;
 pub mod kick;
 
 use crate::action::move_to::MoveTo;
@@ -22,6 +23,7 @@ use state::State;
 use std::collections::HashMap;
 use crate::action::kick::Kick;
 use crate::action::move_to_with_kick::MoveToWithKick;
+use crate::action::move_to_with_kick_dribble::MoveToWithParams;
 
 /// The Action trait represents an action that can be performed by a robot, such as moving to a certain point.
 #[enum_dispatch(Actions)]
@@ -41,6 +43,7 @@ pub trait Action {
 pub enum Actions {
     MoveTo(MoveTo),
     MoveToWithKick(MoveToWithKick),
+    MoveToWithParams(MoveToWithParams),
     RawOrder(RawOrder),
     Kick(Kick)
 }
