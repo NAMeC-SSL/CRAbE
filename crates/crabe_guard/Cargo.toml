@@ -8,5 +8,5 @@ authors = ["NAMeC"]
 
 [dependencies]
 log = "0.4.17"
-clap = { version = "4.1.8", features = ["derive"] }
+clap = { version = "4.1.13", features = ["derive"] }
 crabe_framework = { path = "../crabe_framework" }

@@ -8,4 +8,4 @@ authors = ["NAMeC"]
 
 [dependencies]
 nalgebra = { version = "0.32.2", features = ["serde-serialize"] }
-serde = { version= "1.0.156", features = ["derive"] }
+serde = { version= "1.0.158", features = ["derive"] }

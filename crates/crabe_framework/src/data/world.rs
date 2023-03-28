@@ -13,6 +13,7 @@ pub use self::team::{Team, TeamColor};
 
 mod game_data;
 mod game_state;
+pub use self::game_state::GameState;
 
 use crate::config::CommonConfig;
 use crate::data::geometry::Geometry;

@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// The FeedbackMap type is a hash map that stores feedback data for robots in the game.
 /// Each robot is identified by its ID.
@@ -28,7 +28,7 @@ pub enum Kick {
 }
 
 #[derive(Copy, Clone, Default, Deserialize)]
-#[serde(rename_all="camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct Command {
     /// Velocity forward in m.s-1 (towards the dribbler)
     pub forward_velocity: f32,

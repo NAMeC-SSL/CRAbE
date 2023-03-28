@@ -39,7 +39,7 @@ pub struct RobotAcceleration {
 pub struct Pose {
     /// The orientation of the robot in radians.
     pub orientation: f64,
-    /// The position in 2D of the robot in meters.
+    /// The position in 2D of the robot in meters, with respect to the center of the field.
     pub position: Point2<f64>,
 }
 

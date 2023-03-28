@@ -45,6 +45,9 @@ impl DecisionComponent for DecisionPipeline {
         self.manager
             .step(world, &mut tool_data, &mut self.action_wrapper);
 
-        (self.action_wrapper.compute(world, &mut tool_data), tool_data)
+        (
+            self.action_wrapper.compute(world, &mut tool_data),
+            tool_data,
+        )
     }
 }
