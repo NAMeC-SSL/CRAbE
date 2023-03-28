@@ -46,7 +46,7 @@ impl<T: Default> Default for TrackedRobot<T> {
 
 pub struct TrackedBall {
     pub packets: ConstGenericRingBuffer<CamBall, PACKET_BUFFER_SIZE>,
-    pub data: Ball,
+    pub data: Option<Ball>,
     pub last_update: Instant,
 }
 

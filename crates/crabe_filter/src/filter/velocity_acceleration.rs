@@ -35,12 +35,15 @@ fn update_robot_vel_accel<T>(tracked_robots: &mut TrackedRobotMap<T>, robots: &R
 }
 
 fn update_ball_vel_accel(tracked: &mut TrackedBall, ball: &Ball) {
-    if let Some(secs) = get_duration_secs(tracked.data.timestamp.clone(), ball.timestamp.clone()) {
-        let distance = tracked.data.position - ball.position;
-        tracked.data.velocity = distance / secs;
-        let vel_diff = tracked.data.velocity - ball.velocity;
-        tracked.data.acceleration = vel_diff / secs;
+    if let Some(mut data) = tracked.data.as_mut() {
+        if let Some(secs) = get_duration_secs(data.timestamp.clone(), ball.timestamp.clone()) {
+            let distance = data.position - ball.position;
+            data.velocity = distance / secs;
+            let vel_diff = data.velocity - ball.velocity;
+            data.acceleration = vel_diff / secs;
+        }
     }
+
 }
 
 impl Filter for VelocityAccelerationFilter {
