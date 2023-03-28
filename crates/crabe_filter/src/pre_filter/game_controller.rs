@@ -339,6 +339,7 @@ fn map_event(event: ProtocolEvent) -> Option<GameEvent> {
                 }))
             }
 
+            // DEPRECATED
             ProtocolEventData::Prepared(_) |
             ProtocolEventData::IndirectGoal(_) |
             ProtocolEventData::ChippedGoal(_) |
