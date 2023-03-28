@@ -10,6 +10,7 @@ mod detection {
     use crabe_framework::data::world::TeamColor;
     use crabe_protocol::protobuf::vision_packet::SslDetectionFrame;
     use log::error;
+    use crate::pre_filter::common::create_date_time;
 
     mod robot {
         use crate::data::{camera::CamRobot, FrameInfo, TrackedRobot, TrackedRobotMap};
@@ -116,22 +117,6 @@ mod detection {
         }
     }
 
-    fn create_date_time(t_capture: f64) -> DateTime<Utc> {
-        match Utc.timestamp_opt((t_capture) as i64, 0) {
-            LocalResult::Single(dt) => dt,
-            LocalResult::None => {
-                let now_utc = Utc::now();
-                error!("Invalid timestamp, using current time: {}", now_utc);
-                now_utc
-            }
-            LocalResult::Ambiguous(dt_min, dt_max) => {
-                let dt_midpoint = dt_min + (dt_max - dt_min) / 2;
-                error!("Ambiguous timestamp resolved to midpoint: {}", dt_midpoint);
-                dt_midpoint
-            }
-        }
-    }
-
     pub fn handle_detection(
         detection: &SslDetectionFrame,
         filter_data: &mut FilterData,
@@ -140,7 +125,7 @@ mod detection {
         let frame_info = FrameInfo {
             camera_id: detection.camera_id,
             frame_number: detection.frame_number,
-            t_capture: create_date_time(detection.t_capture),
+            t_capture: create_date_time(detection.t_capture as i64),
         };
 
         let mut robot_detection_info = robot::RobotDetectionInfo {
@@ -241,11 +226,11 @@ impl VisionFilter {
 impl PreFilter for VisionFilter {
     fn step(
         &mut self,
-        inbound_data: &InboundData,
+        inbound_data: &mut InboundData,
         team_color: &TeamColor,
         filter_data: &mut FilterData,
     ) {
-        inbound_data.vision_packet.iter().for_each(|packet| {
+        inbound_data.vision_packet.drain(..).for_each(|packet| {
             if let Some(detection) = packet.detection.as_ref() {
                 detection::handle_detection(detection, filter_data, team_color);
             }

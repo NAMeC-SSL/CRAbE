@@ -1,7 +1,8 @@
 use chrono::Duration;
 use nalgebra::Point2;
-use crabe_framework::data::world::TeamColor;
+use crate::data::world::TeamColor;
 use crabe_protocol::protobuf::game_controller_packet::referee::Point;
+use crabe_protocol::protobuf::game_controller_packet::{game_event as protocol_event, Vector2 as ProtocolVector2};
 
 pub enum EventOrigin {
     GameController,
@@ -20,6 +21,8 @@ pub struct AimlessKick {
     pub location: Option<Point2<f64>>,
     pub kick_location: Option<Point2<f64>>,
 }
+
+
 
 pub struct Goal {
     pub by_team: TeamColor,
@@ -157,16 +160,11 @@ pub struct NoProgressInGame {
 }
 
 pub struct PlacementFailed {
-    pub location: Option<Point2<f64>>,
-    pub remaining_distance: f64,
-}
-
-pub struct UnsportingBehaviorMinor {
     pub by_team: TeamColor,
-    pub reason: String,
+    pub remaining_distance: Option<f64>,
 }
 
-pub struct UnsportingBehaviorMajor {
+pub struct UnsportingBehavior {
     pub by_team: TeamColor,
     pub reason: String,
 }
@@ -179,7 +177,7 @@ pub struct KeeperHeldBall {
 
 pub struct PlacementSucceeded {
     pub by_team: TeamColor,
-    pub time_taken: Option<f64>,
+    pub time_taken: Option<Duration>,
     pub precision: Option<f64>,
     pub distance: Option<f64>
 }
@@ -227,15 +225,15 @@ pub enum GameEvent {
     InvalidGoal(Goal),
     AttackerDoubleTouchedBall(AttackerDoubleTouchedBall),
     PlacementSucceeded(PlacementSucceeded),
+    PlacementFailed(PlacementFailed),
     PenaltyKickFailed(PenaltyKickFailed),
     NoProgressInGame(NoProgressInGame),
-    PlacementFailed(PlacementFailed),
     MultipleCards(TeamColor),
     MultipleFouls(MultipleFouls),
     TooManyRobots(TooManyRobots),
     BotSubstitution(TeamColor),
     ChallengeFlag(TeamColor),
     EmergencyStop(TeamColor),
-    UnsportingBehaviorMinor(UnsportingBehaviorMinor),
-    UnsportingBehaviorMajor(UnsportingBehaviorMajor),
+    UnsportingBehaviorMinor(UnsportingBehavior),
+    UnsportingBehaviorMajor(UnsportingBehavior),
 }

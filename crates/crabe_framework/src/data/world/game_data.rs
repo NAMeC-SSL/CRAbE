@@ -27,3 +27,12 @@ impl GameData {
         }
     }
 }
+
+#[derive(Serialize, Clone, Debug)]
+#[serde(rename_all="camelCase")]
+pub enum MatchType {
+    UnknownMatch,
+    GroupPhase,
+    EliminationPhase,
+    Friendly
+}

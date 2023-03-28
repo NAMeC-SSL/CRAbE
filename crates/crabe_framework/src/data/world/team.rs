@@ -23,9 +23,9 @@ impl TeamColor {
 #[serde(rename_all = "camelCase")]
 pub struct Team {
     /// The color of the team.
-    color: TeamColor,
+    pub color: TeamColor,
     /// The name of the team, if provided.
-    name: Option<String>,
+    pub name: Option<String>,
 }
 
 impl Team {

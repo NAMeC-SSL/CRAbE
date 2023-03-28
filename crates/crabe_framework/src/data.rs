@@ -12,3 +12,4 @@ pub mod tool;
 /// in the control system. It includes information about robots, the ball, and the field.
 pub mod world;
 pub mod annotation;
+pub mod event;
