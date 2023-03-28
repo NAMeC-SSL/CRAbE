@@ -19,19 +19,19 @@ use crate::pre_filter::common::{create_date_time};
 pub struct GameControllerFilter;
 
 impl GameControllerFilter {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self
     }
 }
 
-pub fn map_team_color(team: ProtocolTeam) -> TeamColor {
+fn map_team_color(team: ProtocolTeam) -> TeamColor {
     match team {
         ProtocolTeam::Blue | ProtocolTeam::Unknown => TeamColor::Blue, // TODO: Handle unknown?
         ProtocolTeam::Yellow => TeamColor::Yellow
     }
 }
 
-pub fn map_team_color_i32(value: i32) -> TeamColor {
+fn map_team_color_i32(value: i32) -> TeamColor {
     map_team_color(ProtocolTeam::from_i32(value).unwrap_or(ProtocolTeam::Unknown))
 }
 
@@ -395,11 +395,11 @@ fn map_referee(mut referee: ProtocolReferee, team_color: &TeamColor) -> Result<R
             command_counter: referee.command_counter,
             command_timestamp: create_date_time(referee.command_timestamp as i64),
             ally: Team {
-                color: TeamColor::Blue,
+                color: team_color.clone(),
                 name: Some(ally.name),
             },
             enemy: Team {
-                color: TeamColor::Blue,
+                color: team_color.opposite(),
                 name: Some(enemy.name),
             },
             designated_position: referee.designated_position.map(map_point),

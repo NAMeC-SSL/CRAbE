@@ -25,7 +25,7 @@ impl GameController {
         let ipv4 = Ipv4Addr::from_str(cli.gc_ip.as_str())
             .expect("Failed to create an ipv4 address with the ip");
         let mut gc =
-            MulticastUDPReceiver::new(ipv4, cli.gc_port).expect("Failed to create vision receiver");
+            MulticastUDPReceiver::new(ipv4, cli.gc_port).expect("Failed to create gc receiver");
         let running = Arc::new(AtomicBool::new(true));
         let running_clone = Arc::clone(&running);
 
