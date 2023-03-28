@@ -1,4 +1,6 @@
-#[derive(Serialize)]
+use serde::{Serialize};
+
+#[derive(Serialize, Clone, Debug)]
 #[serde(rename_all="camelCase")]
 pub enum GameState {
     Halted(HaltedState),

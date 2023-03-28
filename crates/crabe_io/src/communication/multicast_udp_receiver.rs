@@ -2,6 +2,9 @@ use crate::constant::BUFFER_SIZE;
 use log::error;
 use std::io::Cursor;
 use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
+use std::os::fd::AsRawFd;
+use nix::sys::socket::{self, sockopt::ReusePort};
+use nix::sys::socket::sockopt::ReuseAddr;
 
 /// A struct that handles a Multicast UDP Receiver.
 pub struct MulticastUDPReceiver {
@@ -45,7 +48,9 @@ impl MulticastUDPReceiver {
     /// address 224.5.23.2 and port 10020, which is the default grSim vision
     /// address and port.
     pub fn new(ip: Ipv4Addr, port: u16) -> Result<Self, Box<dyn std::error::Error>> {
-        let socket = UdpSocket::bind(SocketAddrV4::new(ip, port))?;
+        let socket = UdpSocket::bind(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, port))?;
+        // socket::setsockopt(socket.as_raw_fd(), ReusePort, &true);
+        // socket::setsockopt(socket.as_raw_fd(), ReuseAddr, &true);
 
         socket.join_multicast_v4(&ip, &Ipv4Addr::UNSPECIFIED)?;
         socket.set_nonblocking(true)?;

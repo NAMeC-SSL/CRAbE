@@ -11,8 +11,8 @@ pub use self::ball::Ball;
 mod team;
 pub use self::team::{Team, TeamColor};
 
-mod game_data;
-mod game_state;
+pub mod game_data;
+pub mod game_state;
 
 use crate::config::CommonConfig;
 use crate::data::geometry::Geometry;
