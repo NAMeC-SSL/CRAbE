@@ -8,7 +8,6 @@ use std::f64::consts::PI;
 use crabe_framework::data::output::{Command, Kick as KickType};
 use crate::action::kick::Kick;
 use crate::action::move_to_with_kick::MoveToWithKick;
-use crate::action::move_to_with_kick_dribble::MoveToWithParams;
 use crate::action::order_raw::RawOrder;
 
 /// The Square struct represents a strategy that commands a robot to move in a square shape
@@ -103,7 +102,7 @@ impl Strategy for Mbappe {
                 if dbg!((behind_ball_pos - robot_pos).norm()) < 0.1 {
                     self.internal_state = MbappeState::GoingCloseBehindBall;
                 } else {
-                    action_wrapper.push(self.id, MoveToWithParams::new(behind_ball_pos, robot_to_goal_angle, None, 1.));
+                    action_wrapper.push(self.id, MoveTo::new(behind_ball_pos, robot_to_goal_angle));
                 }
             }
             MbappeState::GoingCloseBehindBall => {

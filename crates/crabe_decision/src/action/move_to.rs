@@ -1,6 +1,6 @@
 use crate::action::state::State;
 use crate::action::Action;
-use crabe_framework::data::output::Command;
+use crabe_framework::data::output::{Command, Kick};
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::{AllyInfo, Robot, World};
 use nalgebra::{Isometry2, Point2, Vector2, Vector3};
@@ -15,6 +15,8 @@ pub struct MoveTo {
     target: Point2<f64>,
     /// The target orientation of the robot.
     orientation: f64,
+    kick: Option<Kick>,
+    dribbler: f32
 }
 
 impl From<&mut MoveTo> for MoveTo {
@@ -23,6 +25,8 @@ impl From<&mut MoveTo> for MoveTo {
             state: other.state,
             target: other.target,
             orientation: other.orientation,
+            kick: other.kick,
+            dribbler: other.dribbler
         }
     }
 }
@@ -35,10 +39,36 @@ impl MoveTo {
     /// * `target`: The target position on the field to move the robot to.
     /// * `orientation`: The target orientation of the robot.
     pub fn new(target: Point2<f64>, orientation: f64) -> Self {
+        let kick = None;
+        let dribbler = 0.;
         Self {
             state: State::Running,
             target,
             orientation,
+            kick,
+            dribbler
+        }
+    }
+    pub fn new_dribble(target: Point2<f64>, orientation: f64) -> Self {
+        let kick = None;
+        let dribbler = 1.;
+        Self {
+            state: State::Running,
+            target,
+            orientation,
+            kick,
+            dribbler
+        }
+    }
+    pub fn new_kick(target: Point2<f64>, orientation: f64) -> Self {
+        let kick = Some(Kick::StraightKick { power: 1. });
+        let dribbler = 1.;
+        Self {
+            state: State::Running,
+            target,
+            orientation,
+            kick,
+            dribbler
         }
     }
 }
@@ -113,8 +143,8 @@ impl Action for MoveTo {
                 left_velocity: order.y as f32,
                 angular_velocity: order.z as f32,
                 charge: false,
-                kick: None,
-                dribbler: 0.0,
+                kick: self.kick,
+                dribbler: self.dribbler,
             }
         } else {
             Command::default()
