@@ -388,12 +388,12 @@ fn map_referee(mut referee: ProtocolReferee, team_color: &TeamColor) -> Result<R
     Ok(
         Referee {
             match_type: referee.match_type.map(|m| ProtocolMatchType::from_i32(m)).flatten(),
-            packet_timestamp: create_date_time(referee.packet_timestamp as i64),
+            packet_timestamp: create_date_time(referee.packet_timestamp as i64 / 1_000_000),
             stage: ProtocolStage::from_i32(referee.stage).map(map_stage).ok_or(RefereeDeserializationError)?,
             stage_time_left: referee.stage_time_left.map(|d| Duration::microseconds(d as i64)),
             command: ProtocolCommand::from_i32(referee.command).map(map_command).ok_or(RefereeDeserializationError)?,
             command_counter: referee.command_counter,
-            command_timestamp: create_date_time(referee.command_timestamp as i64),
+            command_timestamp: create_date_time(referee.command_timestamp as i64 / 1_000_000),
             ally: Team {
                 color: team_color.clone(),
                 name: Some(ally.name),

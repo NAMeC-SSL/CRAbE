@@ -4,17 +4,20 @@ use crate::data::world::TeamColor;
 use crabe_protocol::protobuf::game_controller_packet::referee::Point;
 use crabe_protocol::protobuf::game_controller_packet::{game_event as protocol_event, Vector2 as ProtocolVector2};
 
+#[derive(Debug)]
 pub enum EventOrigin {
     GameController,
     Autorefs(Vec<String>)
 }
 
+#[derive(Debug)]
 pub struct BallLeftField {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
     pub location: Option<Point2<f64>>,
 }
 
+#[derive(Debug)]
 pub struct AimlessKick {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
@@ -23,7 +26,7 @@ pub struct AimlessKick {
 }
 
 
-
+#[derive(Debug)]
 pub struct Goal {
     pub by_team: TeamColor,
     pub kicking_team: Option<TeamColor>,
@@ -36,6 +39,7 @@ pub struct Goal {
     pub message: Option<String>
 }
 
+#[derive(Debug)]
 pub struct BotTooFastInStop {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
@@ -43,6 +47,7 @@ pub struct BotTooFastInStop {
     pub speed: Option<f64>
 }
 
+#[derive(Debug)]
 pub struct DefenderTooCloseToKickPoint {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
@@ -50,6 +55,7 @@ pub struct DefenderTooCloseToKickPoint {
     pub distance: Option<f64>
 }
 
+#[derive(Debug)]
 pub struct BotCrashDrawn {
     pub bot_blue: Option<u32>,
     pub bot_yellow: Option<u32>,
@@ -58,6 +64,7 @@ pub struct BotCrashDrawn {
     pub crash_angle: Option<f64>
 }
 
+#[derive(Debug)]
 pub struct BotCrashUnique {
     pub by_team: TeamColor,
     pub violator: Option<u32>,
@@ -68,6 +75,7 @@ pub struct BotCrashUnique {
     pub crash_angle: Option<f64>
 }
 
+#[derive(Debug)]
 pub struct BotPushedBot {
     pub by_team: TeamColor,
     pub violator: Option<u32>,
@@ -76,6 +84,7 @@ pub struct BotPushedBot {
     pub pushed_distance: Option<f64>
 }
 
+#[derive(Debug)]
 pub struct BotTippedOver {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
@@ -83,6 +92,7 @@ pub struct BotTippedOver {
     pub ball_location: Option<Point2<f64>>
 }
 
+#[derive(Debug)]
 pub struct DefenderInDefenseArea {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
@@ -90,6 +100,7 @@ pub struct DefenderInDefenseArea {
     pub distance: Option<f64>,
 }
 
+#[derive(Debug)]
 pub struct DefenderInDefenseAreaPartially {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
@@ -98,7 +109,7 @@ pub struct DefenderInDefenseAreaPartially {
     pub ball_location: Option<Point2<f64>>
 }
 
-
+#[derive(Debug)]
 pub struct AttackerTouchedBallInDefenseArea {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
@@ -106,6 +117,7 @@ pub struct AttackerTouchedBallInDefenseArea {
     pub distance: Option<f64>,
 }
 
+#[derive(Debug)]
 pub struct BotKickedBallTooFast {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
@@ -114,6 +126,7 @@ pub struct BotKickedBallTooFast {
     pub chipped: Option<bool>,
 }
 
+#[derive(Debug)]
 pub struct BotDribbledBallTooFar {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
@@ -121,13 +134,14 @@ pub struct BotDribbledBallTooFar {
     pub end: Option<Point2<f64>>
 }
 
-
+#[derive(Debug)]
 pub struct AttackerDoubleTouchedBall {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
     pub location: Option<Point2<f64>>
 }
 
+#[derive(Debug)]
 pub struct AttackerTooCloseToDefenseArea {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
@@ -136,6 +150,7 @@ pub struct AttackerTooCloseToDefenseArea {
     pub ball_location: Option<Point2<f64>>,
 }
 
+#[derive(Debug)]
 pub struct BotHeldBallDeliberately {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
@@ -143,38 +158,45 @@ pub struct BotHeldBallDeliberately {
     pub duration: Option<Duration>,
 }
 
+#[derive(Debug)]
 pub struct BotInterferedPlacement {
     pub by_team: TeamColor,
     pub by_bot: Option<u32>,
     pub location: Option<Point2<f64>>,
 }
 
+#[derive(Debug)]
 pub struct MultipleFouls {
     pub by_team: TeamColor,
     pub caused_game_events: Vec<GameEvent>,
 }
 
+#[derive(Debug)]
 pub struct NoProgressInGame {
     pub location: Option<Point2<f64>>,
     pub time: Option<Duration>
 }
 
+#[derive(Debug)]
 pub struct PlacementFailed {
     pub by_team: TeamColor,
     pub remaining_distance: Option<f64>,
 }
 
+#[derive(Debug)]
 pub struct UnsportingBehavior {
     pub by_team: TeamColor,
     pub reason: String,
 }
 
+#[derive(Debug)]
 pub struct KeeperHeldBall {
     pub by_team: TeamColor,
     pub location: Option<Point2<f64>>,
     pub duration: Option<Duration>
 }
 
+#[derive(Debug)]
 pub struct PlacementSucceeded {
     pub by_team: TeamColor,
     pub time_taken: Option<Duration>,
@@ -182,6 +204,7 @@ pub struct PlacementSucceeded {
     pub distance: Option<f64>
 }
 
+#[derive(Debug)]
 pub struct TooManyRobots {
     pub by_team: TeamColor,
     pub num_robots_allowed: Option<u32>,
@@ -189,17 +212,19 @@ pub struct TooManyRobots {
     pub ball_location: Option<Point2<f64>>
 }
 
-
+#[derive(Debug)]
 pub struct BoundaryCrossing {
     pub by_team: TeamColor,
     pub location: Option<Point2<f64>>
 }
 
+#[derive(Debug)]
 pub struct PenaltyKickFailed {
     pub by_team: TeamColor,
     pub location: Option<Point2<f64>>
 }
 
+#[derive(Debug)]
 pub enum GameEvent {
     Unknown,
     BallLeftFieldTouchLine(BallLeftField),

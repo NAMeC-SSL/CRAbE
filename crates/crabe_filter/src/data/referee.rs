@@ -6,6 +6,7 @@ use crabe_framework::data::world::{Team, TeamColor};
 use crabe_framework::data::event::GameEvent;
 use crabe_protocol::protobuf::game_controller_packet::MatchType;
 
+#[derive(Debug)]
 pub struct Referee {
     pub match_type: Option<MatchType>,
     pub packet_timestamp: DateTime<Utc>,
@@ -24,11 +25,13 @@ pub struct Referee {
     pub current_action_time_remaining: Option<Duration>
 }
 
+#[derive(Debug)]
 pub struct GameEventProposalGroup {
     pub game_event: Vec<GameEvent>,
     pub accepted: Option<bool>
 }
 
+#[derive(Debug)]
 #[repr(i32)]
 pub enum Stage {
     NormalFirstHalfPre = 0,
@@ -47,6 +50,7 @@ pub enum Stage {
     PostGame = 13
 }
 
+#[derive(Debug)]
 pub enum RefereeCommand {
     Halt,
     Stop,
