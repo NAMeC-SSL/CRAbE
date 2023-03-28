@@ -24,9 +24,9 @@ impl PostFilter for GcFilter {
             }
         };
 
-        if let Halt = last_event {
-
-        }
+        // if let Halt = last_event {
+        //
+        // }
 
         match &world.data.state {
             GameState::Halted(h) => {
