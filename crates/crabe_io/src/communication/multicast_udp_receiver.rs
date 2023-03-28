@@ -1,9 +1,9 @@
 use crate::constant::BUFFER_SIZE;
 use log::error;
 use std::io::Cursor;
-use std::net::{IpAddr, Ipv4Addr, SocketAddrV4, UdpSocket};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, UdpSocket};
 use std::io;
-use socket2::{Domain, Protocol, Socket, Type};
+use socket2::{Domain, Protocol, SockAddr, Socket, Type};
 
 /// A struct that handles a Multicast UDP Receiver.
 pub struct MulticastUDPReceiver {
@@ -75,10 +75,11 @@ impl MulticastUDPReceiver {
         socket.set_reuse_address(true).expect("reuse addr Error");
         #[cfg(unix)] // this is currently restricted to Unix's in socket2
         {
-            socket.set_reuse_port(true).expect("reuse port Error");
-            bind_multicast(&socket, &multicast_addr).expect("bind Error");
+            // socket.set_reuse_port(true).expect("reuse port Error");
         }
-        
+        let sa = SocketAddr::V4(SocketAddrV4::new(ip, port));
+        bind_multicast(&socket, &sa).expect("bind Error");
+
         Ok(Self {
             socket: socket.into(),
             buffer: [0u8; BUFFER_SIZE],

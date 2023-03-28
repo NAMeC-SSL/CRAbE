@@ -26,15 +26,18 @@ impl GameController {
             .expect("Failed to create an ipv4 address with the ip");
         let mut gc =
             MulticastUDPReceiver::new(ipv4, cli.gc_port).expect("Failed to create vision receiver");
+
         let running = Arc::new(AtomicBool::new(true));
         let running_clone = Arc::clone(&running);
 
         let handle = thread::spawn(move || {
             while running_clone.load(Ordering::Relaxed) {
                 if let Some(packet) = gc.receive() {
-                    if let Err(e) = tx_gc.send(packet) {
+                    if let Err(e) = tx_gc.send(dbg!(packet)) {
                         error!("Error sending GameController packet: {:?}", e);
                     }
+                } else {
+                    println!("bruh");
                 }
             }
         });
