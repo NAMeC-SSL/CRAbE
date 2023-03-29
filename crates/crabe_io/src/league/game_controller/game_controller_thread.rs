@@ -20,7 +20,7 @@ pub struct GameController {
 }
 
 impl GameController {
-    pub fn with_config(cli: GameControllerConfig) -> Self {
+    pub fn with_config(cli: &GameControllerConfig) -> Self {
         let (tx_gc, rx_gc) = mpsc::channel::<Referee>();
         let ipv4 = Ipv4Addr::from_str(cli.gc_ip.as_str())
             .expect("Failed to create an ipv4 address with the ip");
@@ -33,7 +33,7 @@ impl GameController {
         let handle = thread::spawn(move || {
             while running_clone.load(Ordering::Relaxed) {
                 if let Some(packet) = gc.receive() {
-                    if let Err(e) = tx_gc.send(dbg!(packet)) {
+                    if let Err(e) = tx_gc.send(packet) {
                         error!("Error sending GameController packet: {:?}", e);
                     }
                 } else {

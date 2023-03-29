@@ -22,7 +22,7 @@ pub struct Vision {
 }
 
 impl Vision {
-    pub fn with_config(vision_cfg: VisionConfig, common_cfg: &CommonConfig) -> Self {
+    pub fn with_config(vision_cfg: &VisionConfig, common_cfg: &CommonConfig) -> Self {
         let port = if let Some(port) = vision_cfg.vision_port {
             port
         } else {

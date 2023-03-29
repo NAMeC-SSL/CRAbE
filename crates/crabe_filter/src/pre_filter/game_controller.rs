@@ -3,15 +3,15 @@ use crabe_framework::data::world::TeamColor;
 use crate::data::FilterData;
 use crate::pre_filter::PreFilter;
 
-pub struct GameControllerFilter;
+pub struct GameControllerPreFilter;
 
-impl GameControllerFilter {
+impl GameControllerPreFilter {
     fn new() -> Self {
         Self
     }
 }
 
-impl PreFilter for GameControllerFilter {
+impl PreFilter for GameControllerPreFilter {
     fn step(
         &mut self,
         inbound_data: &InboundData,

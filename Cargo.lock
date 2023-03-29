@@ -232,6 +232,7 @@ dependencies = [
  "chrono",
  "clap",
  "crabe_framework",
+ "crabe_io",
  "crabe_math",
  "crabe_protocol",
  "log",
