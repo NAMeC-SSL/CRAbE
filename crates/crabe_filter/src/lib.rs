@@ -22,7 +22,7 @@ use crabe_framework::data::input::InboundData;
 use crabe_framework::data::world::{TeamColor, World};
 use crabe_io::league::game_controller::GameControllerConfig;
 use crabe_io::pipeline::input::InputConfig;
-use crate::post_filter::game_controller::GameControllerFilter;
+use crate::post_filter::game_controller::GameControllerPostFilter;
 use crate::pre_filter::game_controller::GameControllerPreFilter;
 
 
@@ -49,7 +49,7 @@ impl FilterPipeline {
 
         if input_config.gc {
             pre_filters.push(Box::new(GameControllerPreFilter));
-            post_filters.push(Box::new(GameControllerFilter));
+            post_filters.push(Box::new(GameControllerPostFilter));
         }
 
         Self {
