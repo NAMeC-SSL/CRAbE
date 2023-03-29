@@ -2,7 +2,7 @@ pub mod camera;
 
 use crate::constant;
 use crate::data::camera::{CamBall, CamGeometry, CamRobot};
-use chrono::{DateTime, Utc};
+use chrono::{Date, DateTime, Utc};
 use constant::PACKET_BUFFER_SIZE;
 use crabe_framework::data::world::{AllyInfo, Ball, EnemyInfo, Robot};
 use ringbuffer::ConstGenericRingBuffer;
@@ -19,10 +19,13 @@ pub struct FrameInfo {
 pub type TrackedRobotMap<T> = HashMap<u8, TrackedRobot<T>>;
 
 pub struct FilterData {
+    pub last_vision_received: DateTime<Utc>,
     pub allies: TrackedRobotMap<AllyInfo>,
     pub enemies: TrackedRobotMap<EnemyInfo>,
     pub ball: TrackedBall,
     pub geometry: CamGeometry,
+    pub timestamp: DateTime<Utc>,
+    pub tick: u64
 }
 
 pub struct TrackedRobot<T> {

@@ -15,7 +15,7 @@ impl HaltGuard {
 impl Guard for HaltGuard {
     fn guard(&mut self, world: &World, commands: &mut CommandMap, _tool_commands: &mut ToolCommands) {
         if world.vision_timeout {
-            let halt_commands = (0..MAX_ID_ROBOTS).map(|id| (id, Command::default()));
+            let halt_commands = (0..MAX_ID_ROBOTS).map(|id| (id as u8, Command::default()));
             commands.extend(halt_commands);
         }
     }

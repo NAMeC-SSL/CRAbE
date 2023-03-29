@@ -2,11 +2,13 @@ use crate::data::output::FeedbackMap;
 use crabe_protocol::protobuf::game_controller_packet::Referee;
 use crabe_protocol::protobuf::vision_packet::SslWrapperPacket;
 use std::fmt::Debug;
+use chrono::{DateTime, Utc};
 
 /// Represents the data received by the software from external sources and
 /// passed through the filters.
 #[derive(Debug, Default)]
 pub struct InboundData {
+    pub last_vision_received: DateTime<Utc>,
     /// Vision packet received by the software. This can come from a simulator
     /// or SSL-Vision.
     pub vision_packet: Vec<SslWrapperPacket>,
