@@ -6,6 +6,7 @@ use crabe_framework::data::world::{AllyInfo, Robot, World};
 use nalgebra::{Isometry2, Point, Point2, Vector2, Vector3};
 use std::f64::consts::PI;
 use std::time::{Duration, Instant};
+use log::error;
 
 fn delta_angle(a: f64, b: f64) -> f64 {
     let mut a = a % (2.0 * PI);
@@ -71,7 +72,7 @@ impl MoveTo {
     fn update_how(&mut self, how: How) {
         match how {
             How::Fast => {
-                self.xy_speed.update(0.5, 10.0, 8.0, 3.0);
+                self.xy_speed.update(0.2, 4.0, 4.0, 2.0);
                 self.angle_speed.update(0.1, 4.0, 4.0, PI);
                 self.xy_hyst = 0.1;
                 self.angle_hyst = PI / 8.0;
@@ -80,7 +81,7 @@ impl MoveTo {
                 self.xy_speed.update(0.01, 3.0, 1.5, 1.5);
                 self.angle_speed.update(0.05, 3.0, 3.0, PI);
                 self.xy_hyst = 0.01;
-                self.angle_hyst = 2.5;
+                self.angle_hyst = 2.5 / 360.0;
             }
             How::Intersept => {
                 self.xy_speed.update(0.25, 5.0, 5.0, 4.0);
@@ -206,7 +207,12 @@ impl Action for MoveTo {
             self.state = State::Failed;
         }
 
-        cmd
+        if cmd.forward_velocity.is_nan() || cmd.left_velocity.is_nan() || cmd.angular_velocity.is_nan() {
+            error!("nan in command");
+            return Command::default();
+        }
+
+        dbg!(cmd)
     }
 }
 

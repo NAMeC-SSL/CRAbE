@@ -1,6 +1,6 @@
 use serde::{Serialize};
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Copy, Clone, Debug, Eq, PartialEq)]
 #[serde(rename_all="camelCase")]
 pub enum GameState {
     Halted(HaltedState),
@@ -8,14 +8,14 @@ pub enum GameState {
     Running(RunningState)
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Copy, Clone, Debug, Eq, PartialEq)]
 #[serde(rename_all="camelCase")]
 pub enum HaltedState {
     Halt,
     Timeout
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Copy, Clone, Debug, Eq, PartialEq)]
 #[serde(rename_all="camelCase")]
 pub enum StoppedState {
     Stop,
@@ -24,7 +24,7 @@ pub enum StoppedState {
     BallPlacement
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Copy, Clone, Debug, Eq, PartialEq)]
 #[serde(rename_all="camelCase")]
 pub enum RunningState {
     KickOff,

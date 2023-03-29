@@ -19,7 +19,7 @@ pub struct Feedback {
 pub type CommandMap = HashMap<u8, Command>;
 
 /// The Kick enum is used to specify the type of kick to be performed by a robot.
-#[derive(Copy, Clone, Deserialize)]
+#[derive(Copy, Clone, Deserialize, Debug)]
 pub enum Kick {
     /// A straight kick with the specified power.
     StraightKick { power: f32 },
@@ -27,7 +27,7 @@ pub enum Kick {
     ChipKick { power: f32 },
 }
 
-#[derive(Copy, Clone, Default, Deserialize)]
+#[derive(Copy, Clone, Default, Deserialize, Debug)]
 #[serde(rename_all="camelCase")]
 pub struct Command {
     /// Velocity forward in m.s-1 (towards the dribbler)
