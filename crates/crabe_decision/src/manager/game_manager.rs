@@ -1,3 +1,4 @@
+use log::info;
 use crate::action::ActionWrapper;
 use crate::manager::Manager;
 use crate::strategy::Strategy;
@@ -37,10 +38,18 @@ impl Manager for Karen {
         action_wrapper: &mut ActionWrapper,
     ) {
         if self.last_game_state.is_none() || self.last_game_state.unwrap() != world.data.state {
+            info!("clearing strategy");
+            // clear current strategy
+            self.strategy = None;
+            for id in world.allies_bot.keys() {
+                action_wrapper.clean(*id);
+            }
+
             match world.data.state {
                 GameState::Halted(_) => {}
                 GameState::Stopped(_) => {}
                 GameState::Running(_) => {
+                    info!("setting strategy to square");
                     self.strategy = Some(Box::new(Square::new(0)));
                 }
             }

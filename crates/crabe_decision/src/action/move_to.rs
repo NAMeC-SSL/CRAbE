@@ -81,7 +81,7 @@ impl MoveTo {
                 self.xy_speed.update(0.01, 3.0, 1.5, 1.5);
                 self.angle_speed.update(0.05, 3.0, 3.0, PI);
                 self.xy_hyst = 0.01;
-                self.angle_hyst = 2.5 / 360.0;
+                self.angle_hyst = 2.5;
             }
             How::Intersept => {
                 self.xy_speed.update(0.25, 5.0, 5.0, 4.0);
@@ -212,7 +212,7 @@ impl Action for MoveTo {
             return Command::default();
         }
 
-        dbg!(cmd)
+        cmd
     }
 }
 
