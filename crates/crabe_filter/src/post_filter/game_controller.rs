@@ -26,11 +26,18 @@ impl PostFilter for GameControllerPostFilter {
             world.data.state = GameState::Halted(HaltedState::Halt);
         }
 
+        match referee_command {
+            Command::Halt => {
+                world.data.state = GameState::Halted(HaltedState::Halt);
+            }
+            Command::Stop => {
+                world.data.state = GameState::Stopped(StoppedState::Stop);
+            }
+            _ => {}
+        }
+
         match &world.data.state {
             GameState::Halted(_) => {
-                if let Command::Stop = referee_command {
-                    world.data.state = GameState::Stopped(StoppedState::Stop);
-                }
             }
             GameState::Stopped(stopped_state) => {
                 match stopped_state {
