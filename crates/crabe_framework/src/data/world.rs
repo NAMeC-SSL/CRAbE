@@ -27,6 +27,7 @@ use serde::{Serialize, Serializer};
 pub struct World {
     /// The current state of the game.
     pub state: GameState,
+    pub vision_timeout: bool,
     /// The geometry of the field, including its dimensions and the positions of goals and other areas.
     pub geometry: Geometry,
     /// A map of all the ally robots in the game, identified by their unique ID.
@@ -51,6 +52,7 @@ impl World {
         };
         Self {
             state: GameState::new(team_color),
+            vision_timeout: false,
             geometry: Default::default(),
             allies_bot: Default::default(),
             enemies_bot: Default::default(),
