@@ -22,9 +22,11 @@ use crabe_framework::data::input::InboundData;
 use crabe_framework::data::world::{TeamColor, World};
 use crate::post_filter::vision_timeout::VisionTimeoutFilter;
 use crate::pre_filter::tick::TickFilter;
+use crate::filter::inactive::InactiveFilter;
 
 #[derive(Args)]
 pub struct FilterConfig {}
+
 
 pub struct FilterPipeline {
     pub pre_filters: Vec<Box<dyn PreFilter>>,
@@ -38,7 +40,7 @@ impl FilterPipeline {
     pub fn with_config(_config: FilterConfig, common_config: &CommonConfig) -> Self {
         Self {
             pre_filters: vec![Box::new(TickFilter::new()), Box::new(VisionFilter::new())],
-            filters: vec![Box::new(PassthroughFilter)],
+            filters: vec![Box::new(PassthroughFilter), Box::new(InactiveFilter::default())],
             post_filters: vec![
                 Box::new(RobotFilter),
                 Box::new(GeometryFilter),

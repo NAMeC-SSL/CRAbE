@@ -39,7 +39,7 @@ mod detection {
                     },
                     ..Default::default()
                 });
-
+                robot.last_update = r.frame_info.t_capture;
                 robot.packets.push(r);
             })
         }
