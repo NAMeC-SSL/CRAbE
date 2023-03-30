@@ -2,13 +2,14 @@ use crate::action::move_to::MoveTo;
 use crate::action::ActionWrapper;
 use crate::strategy::Strategy;
 use crabe_framework::data::tool::ToolData;
-use crabe_framework::data::world::World;
-use nalgebra::Point2;
+use crabe_framework::data::world::{Ball, World};
+use nalgebra::{Point2, Vector2};
 use std::f64::consts::PI;
 
 /// The Square struct represents a strategy that commands a robot to move in a square shape
 /// in a counter-clockwise. It is used for testing purposes.
 #[derive(Default)]
+#[derive(Debug)]
 pub struct Penalty {
     /// The id of the robot to move.
     idOfKicker: u8,
@@ -44,11 +45,47 @@ impl Strategy for Penalty {
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
         for robot in world.allies_bot.iter() {
+            action_wrapper.clean(*robot.0);
             if *robot.0 == self.idOfKicker {
-                action_wrapper.push(*robot.0,MoveTo::new(
-                    Point2::new(0.0,0.0),PI));
+                let ball = match &world.ball {
+                    None => {
+                        return false;
+                    }
+                    Some(b) => {
+                        let vector;
+                        if b.position_2d().x > robot.1.pose.position.x {
+                            vector = Vector2::new(-0.2, 0.0);
+                            action_wrapper.push(*robot.0,MoveTo::new(
+                                b.position_2d()+vector,2.0*PI));
+                        }
+                        else {
+                            vector = Vector2::new(0.2,0.0);
+                            action_wrapper.push(*robot.0,MoveTo::new(
+                                b.position_2d()+vector,PI));
+                        }
+                        action_wrapper.push(*robot.0,MoveTo::new(b.position_2d(),PI));
+                    }
+                };
+            } else {
+                let ball = match &world.ball {
+                    None => {
+                        return false;
+                    }
+                    Some(b) => {
+                        let vector;
+                        if robot.1.pose.position.x > 0.0 {
+                            vector = Vector2::new(-1.0, 0.0);
+                        }
+                        else {
+                            vector = Vector2::new(1.0,0.0);
+                        }
+                        action_wrapper.push(*robot.0,MoveTo::new(
+                            b.position_2d()+vector,PI));
+
+                    }
+                };
             }
         }
-        true
+        false
     }
 }

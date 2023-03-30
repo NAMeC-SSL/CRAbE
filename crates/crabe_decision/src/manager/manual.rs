@@ -1,7 +1,7 @@
 use crate::action::ActionWrapper;
 use crate::manager::Manager;
-use crate::strategy::testing::Square;
 use crate::strategy::comportement_regles::Penalty;
+use crate::strategy::testing::Square;
 
 use crate::strategy::Strategy;
 use crabe_framework::data::tool::ToolData;
@@ -22,7 +22,7 @@ impl Manual {
     /// Creates a new `Manual` instance with the desired strategies to test.
     pub fn new() -> Self {
         Self {
-            strategies: vec![Box::new(Square::new(0))],
+            strategies: vec![Box::new(Penalty::new(2))],
         }
     }
 }
