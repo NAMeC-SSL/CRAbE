@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use nalgebra::{Point2, Vector2};
 use serde::Serialize;
 use std::collections::HashMap;
+use std::time::Duration;
 
 /// The `AllyInfo` struct represents the information related to allies in the game.
 #[derive(Serialize, Clone, Default, Debug)]
@@ -87,4 +88,18 @@ impl<T: Clone> Clone for Robot<T> {
             timestamp: self.timestamp,
         }
     }
+}
+
+impl<T> Robot<T> {
+    pub fn distance(&self, point: &Point2<f64>) -> f64 {
+        return distance(&self.pose.position, point)
+    }
+
+    pub fn position_in(&self, duration: Duration) -> Point2<f64> {
+        self.pose.position + self.velocity.linear * duration.as_secs_f64()
+    }
+}
+
+fn distance(p1: &Point2<f64>, p2: &Point2<f64>) -> f64 {
+    (p2 - p1).norm()
 }

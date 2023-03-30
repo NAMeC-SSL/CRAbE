@@ -1,4 +1,4 @@
-use crate::action::move_to::{MoveTo, How};
+use crate::action::move_to::{MoveTo, MoveToStar, How};
 use crate::action::ActionWrapper;
 use crate::strategy::Strategy;
 use crabe_framework::data::tool::ToolData;
@@ -50,14 +50,14 @@ impl Strategy for Square {
         // action_wrapper.push(self.id, MoveTo::new(
         //     self.id, None, Point2::new(0.0, 0.0), How::Accurate));
 
-        action_wrapper.push(self.id, MoveTo::new(
-            self.id, None, Point2::new(-1.0, 2.0), How::Fast));
-        action_wrapper.push(self.id, MoveTo::new(
-            self.id, None, Point2::new(-4.0, 2.0), How::Fast));
-        action_wrapper.push(self.id, MoveTo::new(
-            self.id, None, Point2::new(-4.0, -2.0), How::Fast));
-        action_wrapper.push(self.id, MoveTo::new(
-            self.id, None, Point2::new(-1.0, -2.0), How::Fast));
+        action_wrapper.push(self.id, MoveToStar::new(
+            self.id, Point2::new(-1.0, 2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
+        action_wrapper.push(self.id, MoveToStar::new(
+            self.id, Point2::new(-4.0, 2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
+        action_wrapper.push(self.id, MoveToStar::new(
+            self.id, Point2::new(-4.0, -2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
+        action_wrapper.push(self.id, MoveToStar::new(
+            self.id, Point2::new(-1.0, -2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
         true
     }
 }
