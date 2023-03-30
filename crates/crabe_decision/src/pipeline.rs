@@ -8,7 +8,6 @@ use crabe_framework::config::CommonConfig;
 use crabe_framework::data::output::CommandMap;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
-use crabe_math::shape::Circle;
 
 /// The `DecisionConfig` struct is used to hold configuration options for the decision pipeline.
 #[derive(Args)]
@@ -45,7 +44,6 @@ impl DecisionComponent for DecisionPipeline {
         // TODO : Don't create ToolsData here
         let mut tool_data = ToolData::default();
 
-        tool_data.annotations.add_circle("test".to_string(),Circle { center: Point2::new(2.0, 2.0), radius: 4.0});
         self.manager
             .step(world, &mut tool_data, &mut self.action_wrapper);
 
