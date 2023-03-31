@@ -43,7 +43,6 @@ pub enum How {
 }
 
 pub struct MoveTo {
-    robot_id: u8,
     through: Point2<f64>,
     has_through: bool,
     dst: Point2<f64>,
@@ -57,9 +56,8 @@ pub struct MoveTo {
 }
 
 impl MoveTo {
-    pub fn new(robot_id: u8, through: Option<Point2<f64>>, dst: Point2<f64>, how: How) -> MoveTo {
+    pub fn new(through: Option<Point2<f64>>, dst: Point2<f64>, how: How) -> MoveTo {
         let mut moveto = MoveTo {
-            robot_id,
             dst,
             through: through.unwrap_or(dst),
             xy_speed: RampSpeed::new(0.0, 0.0, 0.0, 0.0),
@@ -197,7 +195,6 @@ impl Action for MoveTo {
 
         if !xy_ok {
             let world_speed = (robot.velocity.linear.x.powi(2) + robot.velocity.linear.y.powi(2)).sqrt();
-            dbg!(world_speed);
             let ns = self.xy_speed.new_speed(world_speed, distance);
             let target_x = dx / distance_through * ns;
             let target_y = dy / distance_through * ns;
@@ -213,7 +210,7 @@ impl Action for MoveTo {
                 self.has_through = false;
             } else {
                 if self.state != State::Done {
-                    println!("moving {} arrive at {} {}", self.robot_id, robot.pose.position.x, robot.pose.position.y);
+                    println!("moving {} arrive at {} {}", id, robot.pose.position.x, robot.pose.position.y);
                 }
                 cmd.forward_velocity = 0.0;
                 cmd.left_velocity = 0.0;
@@ -303,7 +300,6 @@ impl RampSpeed {
 pub struct MoveToStar {
     subcommand: MoveTo,
     how: How,
-    robot_id: u8,
     dst: Point2<f64>,
     internal_state: State,
     res: f64,
@@ -311,13 +307,12 @@ pub struct MoveToStar {
 }
 
 impl MoveToStar {
-    pub fn new(robot_id: u8, dst: Point2<f64>, how: How, field_length: f64, field_width: f64) -> MoveToStar {
-        let res = 0.2;
+    pub fn new(dst: Point2<f64>, how: How, field_length: f64, field_width: f64) -> MoveToStar {
+        let res = 0.1;
 
         Self {
-            subcommand: MoveTo::new(robot_id, None, dst, How::Accurate),
+            subcommand: MoveTo::new(None, dst, How::Accurate),
             how,
-            robot_id,
             dst,
             internal_state: State::Running,
             res,
@@ -337,7 +332,7 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
         path.push(current);
 
 
-        let mut min_g_score = std::f64::INFINITY;
+        let mut min_g_score = std::f64::NEG_INFINITY;
         let mut next_step = None;
 
         for &dir in directions.iter() {
@@ -349,7 +344,7 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
             {
                 let g_score = field[neighbor_row][neighbor_col].g_score;
 
-                if g_score < min_g_score {
+                if g_score > min_g_score {
                     min_g_score = g_score;
                     next_step = Some((neighbor_row, neighbor_col));
                     field[neighbor_row][neighbor_col].visited = true;
@@ -393,7 +388,7 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
 
         if robot.distance(&self.dst) < self.res * 2.0 {
             self.subcommand.update_how(How::Accurate);
-            self.subcommand.update_target(self.dst);
+            // self.subcommand.update_target(self.dst);
             if self.subcommand.state() == State::Done {
                 self.internal_state = State::Done;
             }
@@ -430,7 +425,7 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
                 cell.weight = cell.weight.max(10.0);
             }
 
-            for (_, r) in world.allies_bot.iter().filter(|(id, _)| **id != self.robot_id) {
+            for (_, r) in world.allies_bot.iter().filter(|(_id, _)| **_id != id) {
                 if r.velocity.linear.norm() > 0.5 {
                     let d1 = r.distance(&cell_pos);
                     let mut time = Duration::from_nanos((d1 * 10.0f64.powi(9)) as u64); // sumimasen wat the fuck
@@ -507,12 +502,12 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
                 // println!("Path found: {:?}", path);
 
                 // pop current pos
-                let mut current_dir = path.pop().unwrap();
+                let mut current_pos = path.pop().unwrap();
                 if path.len() > 0 {
-                    let next = path.last().unwrap();
-                    current_dir = current_dir + (next - current_dir) / 2.0;
+                    let next_pos = dbg!(path.last().unwrap());
+                    current_pos = current_pos + (next_pos - current_pos) / 2.0;
                 }
-                self.subcommand.update_through(dbg!(current_dir));
+                self.subcommand.update_through(current_pos);
 
                 return self.subcommand.compute_order(id, world, tools);
             }
