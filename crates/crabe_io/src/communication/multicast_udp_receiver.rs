@@ -3,6 +3,7 @@ use log::error;
 use std::io::Cursor;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, UdpSocket};
 use std::io;
+use std::time::Duration;
 use socket2::{Domain, Protocol, SockAddr, Socket, Type};
 
 /// A struct that handles a Multicast UDP Receiver.
@@ -72,6 +73,7 @@ impl MulticastUDPReceiver {
         socket.join_multicast_v4(&ip, &Ipv4Addr::new(0, 0, 0, 0)).expect("join_multicast_v4");
         
         // socket.set_nonblocking(true).expect("nonblocking Error");
+        socket.set_read_timeout(Some(Duration::from_secs(1))).expect("set read timeout error");
         socket.set_reuse_address(true).expect("reuse addr Error");
         #[cfg(unix)] // this is currently restricted to Unix's in socket2
         {
