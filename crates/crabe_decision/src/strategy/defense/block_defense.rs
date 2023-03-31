@@ -1,65 +1,102 @@
 use std::collections::HashMap;
-use nalgebra::{distance, Point2, Vector, Vector1, Vector2};
+use std::ops::Add;
+use nalgebra::{distance, Isometry2, Point2, Translation, Translation2, Vector2};
 use crabe_framework::data::tool::ToolData;
-use crabe_framework::data::world::{AllyInfo, EnemyInfo, Robot, World};
+use crabe_framework::data::world::{AllyInfo, Ball, EnemyInfo, Pose, Robot, RobotMap, World};
 use crate::action::move_to::MoveTo;
 use crate::action::ActionWrapper;
 use crate::strategy::Strategy;
 
 #[derive(Default)]
-pub struct BlockDefense {}
+pub struct BlockDefense {
+    defenders_ids: Vec<u8>,
+    defend_dist_mult: f64,
+}
 
 impl BlockDefense {
+    /// Base initializer, with fixed IDs for defenders
     pub fn new(_: u8) -> Self {
-        Self {}
+        Self { defenders_ids: vec![2], defend_dist_mult: 1.0 }
+    }
+
+    /// In charge of determining which allies should be defending on which enemies
+    fn assign_allies_to_enemies<'a>(allies: &'a RobotMap<AllyInfo>, enemies: &'a RobotMap<EnemyInfo>) -> HashMap<u8, &'a Robot<EnemyInfo>> {
+        let mut allies_enemies_assignment_map: HashMap<u8, &Robot<EnemyInfo>> = HashMap::new();
+        for ally in allies.values() {
+            let mut min_dist = 0.0;
+            let mut ally_rob_min_id = 0;
+            let mut enemy_to_defend: &Robot<EnemyInfo>;
+            if let Some(enn) = enemies.get(&0) {
+                enemy_to_defend = enn;
+            } else {
+                panic!("no enemies!!11!1!1!11!1!")
+            }
+
+            for enemy in enemies.values() {
+                // defend only enemies that we didn't affect yet
+                if allies_enemies_assignment_map.values().any(|&assigned_enemy| enemy.id == assigned_enemy.id) {
+                    // assign robots that are closer to the enemy
+                    let dist= distance(&ally.pose.position, &enemy.pose.position);
+                    if dist < min_dist {
+                        min_dist = dist;
+                        ally_rob_min_id = ally.id;
+                        enemy_to_defend = &enemy;
+                    }
+                }
+            }
+
+            allies_enemies_assignment_map.insert(ally.id, &enemy_to_defend);
+        }
+
+        allies_enemies_assignment_map
+    }
+
+    fn compute_defend_point(enemy: &Robot<EnemyInfo>, ball: &Ball, defend_dist_mult: f64) -> Point2<f64> {
+        let vec_before_enn =
+            Vector2::new(
+                ball.position.x - enemy.pose.position.x,
+                ball.position.y - enemy.pose.position.y,
+            ).normalize()
+        ;
+
+        // Using the vector from enemy robot to the ball, we create a Translation
+        // object that will allow to to translate a point using the given vector
+        let translation = Translation2::from(vec_before_enn);
+        // Using this translation object, we can compute the new point
+        let defend_point = translation.transform_point(&enemy.pose.position) * defend_dist_mult;
+        dbg!(defend_point)
     }
 }
 
 impl Strategy for BlockDefense {
     fn step(&mut self, world: &World, tools_data: &mut ToolData, action_wrapper: &mut ActionWrapper) -> bool {
         // > empty action_wrapper : TODO
-        let allies_enemies_assignment_map: HashMap<u8, Robot<EnemyInfo>> = self.assign_allies_to_enemies(world);
+        // -- Translation example in nalgebra
+        // let p: Point2<f64> = Point2::new(1.0, 1.0);
+        // let v: Vector2<f64> = Vector2::new(1.0, 0.0);
+        // let translation = Translation::from(v);
+        // let new_p = translation.transform_point(&p);
+        // dbg!(new_p);
+        // return false;
+        // -- new_p gets the value (2.0, 1.0)
 
+        // TODO: yummy, bye bye older actions
+        for id in &self.defenders_ids {
+            action_wrapper.clean(*id);
+        }
+        let mut my_allies = world.allies_bot.clone();
+        my_allies.retain(|ally_id, _| self.defenders_ids.contains(ally_id));
+        let allies_enemies_assignment_map= BlockDefense::assign_allies_to_enemies(&my_allies, &world.enemies_bot);
         // > compute moveto order for each robot
-        for rob_id in allies_enemies_assignment_map.keys() {
-            if let Some(ally) = world.allies_bot.get(rob_id) {
-                let enn = allies_enemies_assignment_map.get(rob_id);
-                if let Some(enn) = enn {
-                    let vec_before_enn=
-                        Vector2::new(
-                            ally.pose.position.x - enn.pose.position.x,
-                            ally.pose.position.y - enn.pose.position.y,
-                        ).normalize()
-                    ;
-                    action_wrapper.push(*rob_id, MoveTo::new(Point2::from(vec_before_enn), 0.));
-                }
+
+        if let Some(ball) = &world.ball {
+            for (ally_id, &enemy_assigned) in allies_enemies_assignment_map.iter() {
+                let defend_point = BlockDefense::compute_defend_point(enemy_assigned, &ball, self.defend_dist_mult);
+                // TODO: look towards ball
+                dbg!(enemy_assigned.id);
+                action_wrapper.push(dbg!(*ally_id), MoveTo::new(defend_point, 0.));
             }
         }
-
-        // > push the actions in action_wrapper
         false
     }
-}
-
-/// In charge of determining which allies should be defending on which enemies
-fn assign_allies_to_enemies(world: &World) -> HashMap<u8, &Robot<EnemyInfo>> {
-    let mut allies_enemies_assignment_map: HashMap<u8, &Robot<EnemyInfo>> = HashMap::new();
-    let allies = &world.allies_bot;
-    for enn in world.enemies_bot.values() {
-        // Get min distance possible of robot
-        let mut min_dist: f64 = 0.0;
-        let mut ally_rob_min_id = 0;
-        for ally in allies.values() {
-            if !allies_enemies_assignment_map.contains_key(&ally.id) {
-                let dist= distance(&ally.pose.position, &enn.pose.position);
-                if dist < min_dist {
-                    min_dist = dist;
-                    ally_rob_min_id = ally.id;
-                }
-            }
-        }
-        allies_enemies_assignment_map.insert(ally_rob_min_id, enn);
-    }
-
-    return allies_enemies_assignment_map;
 }
