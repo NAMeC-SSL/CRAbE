@@ -1,16 +1,24 @@
 use std::hash::{Hash, Hasher};
 use std::io::Write;
+use std::ops::{Deref, DerefMut};
+use std::sync::Arc;
 use log::info;
 use nalgebra::Point2;
 
 pub struct DiscreteField<T> {
-    data: Vec<Vec<T>>,
+    pub data: Vec<Vec<T>>,
     resolution: f64,
     x_len: i32,
     y_len: i32,
     x_shift: f64,
     y_shift: f64
 }
+
+fn round(x: f64, decimals: u32) -> f64 {
+    let y = 10i32.pow(decimals) as f64;
+    (x * y).round() / y
+}
+
 
 impl DiscreteField<CellData> {
     pub fn new(resolution: f64, field_length: f64, field_width: f64) -> Self {
@@ -30,7 +38,11 @@ impl DiscreteField<CellData> {
     }
 
     pub fn cell_to_coords(&self, i: i32, j: i32) -> Point2<f64> {
-        Point2::new(i as f64 * self.resolution - self.x_shift, j as f64 * self.resolution - self.y_shift)
+        Point2::new(round(i as f64 * self.resolution - self.x_shift, 3), round(j as f64 * self.resolution - self.y_shift, 3))
+    }
+
+    pub fn coords_to_cell(&self, coords: &Point2<f64>) -> (usize, usize) {
+        (((coords.x + self.x_shift) / self.resolution) as usize, ((coords.y + self.y_shift) / self.resolution) as usize)
     }
 
     pub fn apply(&mut self, f: fn(&mut CellData)) {
@@ -39,7 +51,7 @@ impl DiscreteField<CellData> {
 
     pub fn start(&mut self) -> Cursor {
         Cursor {
-            field: self,
+            field: Arc::new(self),
             pos: Default::default(),
             i: 0,
             j: 0,
@@ -51,7 +63,7 @@ impl DiscreteField<CellData> {
         let j = ((x + self.x_shift) / self.resolution) as i32;
 
         Cursor {
-            field: self,
+            field: Arc::new(self),
             pos: Default::default(),
             i,
             j
@@ -99,10 +111,6 @@ impl DiscreteField<CellData> {
                         data[j][i].weight = 10.0;
                     }
 
-                    if data[j][i].weight > 0.0 {
-                        info!("HOORAY!");
-                    }
-
                     alpha = (range - data[j][i].weight).abs() / range;
                 } else if mode == 0 {
                     if data[j][i].weight > 0.00001 && data[j][i].weight <= 10.0 {
@@ -129,22 +137,37 @@ impl DiscreteField<CellData> {
     }
 }
 
-#[derive(Debug, Default)]
+// impl Deref for DiscreteField<CellData> {
+//     type Target = DiscreteField<CellData>;
+//
+//     fn deref(&self) -> &Self::Target {
+//         self
+//     }
+// }
+//
+// impl DerefMut for DiscreteField<CellData> {
+//     fn deref_mut(&mut self) -> &mut Self::Target {
+//         &mut self
+//     }
+// }
+
+#[derive(Debug, Default, Clone)]
 pub struct CellData {
     pub weight: f64,
     pub g_score: f64,
     pub visited: bool
 }
 
+#[derive(Clone)]
 pub struct Cursor<'a> {
-    field: &'a mut DiscreteField<CellData>,
-    pub(crate) pos: Point2<f64>,
+    field: Arc<&'a mut DiscreteField<CellData>>,
+    pub pos: Point2<f64>,
     i: i32,
     j: i32
 }
 
 impl<'a> Cursor<'a> {
-    fn new(i: i32, j: i32, field: &'a DiscreteField<CellData>) -> Self {
+    fn new(i: i32, j: i32, field: Arc<&'a mut DiscreteField<CellData>>) -> Self {
         let mut c = Self {
             field,
             pos: Default::default(),
@@ -176,62 +199,62 @@ impl<'a> Cursor<'a> {
         self.pos = self.field.cell_to_coords(self.i, self.j);
     }
 
-    pub(crate) fn around(&self) -> Vec<Self> {
+    pub fn around(&self) -> Vec<Self> {
         let mut v = vec![];
 
         if self.i > 0 {
-            v.push(Cursor::new( self.i - 1, self.j, self.field));
+            v.push(Cursor::new( self.i - 1, self.j, self.field.clone()));
         }
         if self.i < self.field.y_len - 1 {
-            v.push(Cursor::new(self.i + 1, self.j, self.field));
+            v.push(Cursor::new(self.i + 1, self.j, self.field.clone()));
         }
         if self.j > 0 {
-            v.push(Cursor::new(self.i, self.j - 1, self.field));
+            v.push(Cursor::new(self.i, self.j - 1, self.field.clone()));
         }
         if self.j < self.field.x_len - 1 {
-            v.push(Cursor::new(self.i, self.j + 1, self.field));
+            v.push(Cursor::new(self.i, self.j + 1, self.field.clone()));
         }
         if self.i > 0 && self.j > 0 {
-            v.push(Cursor::new(self.i - 1, self.j - 1, self.field));
+            v.push(Cursor::new(self.i - 1, self.j - 1, self.field.clone()));
         }
         if self.i > 0 && self.j < self.field.x_len - 1 {
-            v.push(Cursor::new(self.i - 1, self.j + 1, self.field));
+            v.push(Cursor::new(self.i - 1, self.j + 1, self.field.clone()));
         }
         if self.i < self.field.y_len - 1 && self.j > 0 {
-            v.push(Cursor::new(self.i + 1, self.j - 1, self.field));
+            v.push(Cursor::new(self.i + 1, self.j - 1, self.field.clone()));
         }
         if self.i < self.field.y_len - 1 && self.j < self.field.x_len - 1 {
-            v.push(Cursor::new(self.i + 1, self.j + 1, self.field));
+            v.push(Cursor::new(self.i + 1, self.j + 1, self.field.clone()));
         }
 
         v
     }
 
-    pub fn get(&self) -> CellData {
-        self.field.data[self.i as usize][self.j as usize]
+    pub fn get(&self) -> &CellData {
+        &self.field.data[self.i as usize][self.j as usize]
     }
 
-    pub fn get_mut(&mut self) -> CellData {
-        self.field.data[self.i as usize][self.j as usize]
-    }
+    // pub fn get_mut(&mut self) -> &mut CellData {
+    //     &mut self.field.data[self.i as usize][self.j as usize]
+    // }
 }
 
-impl<'a> Iterator for Cursor<'a> {
-    type Item = &'a mut CellData;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.j += 1;
-        if self.j == self.field.x_len {
-            self.i += 1;
-            self.j = 0;
-            if self.i == self.field.y_len {
-                return None
-            }
-        }
-        self.update(self.i, self.j);
-        return Some(&mut self.field.data[self.i as usize][self.j as usize])
-    }
-}
+// impl<'a> Iterator for Cursor<'a> {
+//     type Item = &'a mut CellData;
+//
+//     fn next(&mut self) -> Option<Self::Item> {
+//         self.j += 1;
+//         if self.j == self.field.x_len {
+//             self.i += 1;
+//             self.j = 0;
+//             if self.i == self.field.y_len {
+//                 return None
+//             }
+//         }
+//         self.update(self.i, self.j);
+//         return Some(&mut self.field.data[self.i as usize][self.j as usize])
+//     }
+// }
 
 impl PartialEq for Cursor<'_> {
     fn eq(&self, other: &Self) -> bool {

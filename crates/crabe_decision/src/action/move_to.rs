@@ -69,7 +69,7 @@ impl MoveTo {
             state: State::Running,
             closest_distance: None,
             last_closest_distance: None,
-            has_through: through.is_some()
+            has_through: through.is_some(),
         };
 
         moveto.update_how(how);
@@ -192,12 +192,11 @@ impl Action for MoveTo {
 
         if distance < self.xy_hyst {
             cmd.forward_velocity = 0.0;
-            cmd.left_velocity= 0.0;
+            cmd.left_velocity = 0.0;
         }
 
         if !xy_ok {
             let world_speed = (robot.velocity.linear.x.powi(2) + robot.velocity.linear.y.powi(2)).sqrt();
-            dbg!(world_speed);
             let ns = self.xy_speed.new_speed(world_speed, distance);
             let target_x = dx / distance_through * ns;
             let target_y = dy / distance_through * ns;
@@ -286,9 +285,7 @@ impl RampSpeed {
         if (target_distance - delta_pos) > 0.0  // we can accelerate
         {                                       // acceleration
             new_speed = current_speed + current_speed * self.acceleration_factor_ * dt;
-        }
-        else
-        {  // decelaration
+        } else {  // decelaration
             new_speed = current_speed - current_speed * self.deceleration_factor_ * dt;
         }
         if new_speed < 0 as f64 {
@@ -309,7 +306,7 @@ pub struct MoveToStar {
     dst: Point2<f64>,
     internal_state: State,
     res: f64,
-    field: DiscreteField<CellData>
+    field: DiscreteField<CellData>,
 }
 
 impl MoveToStar {
@@ -328,7 +325,51 @@ impl MoveToStar {
     }
 }
 
-impl Action for MoveToStar {
+fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
+                    start: (usize, usize),
+                    end: (usize, usize),
+) -> Option<Vec<(usize, usize)>> {
+    let mut path = Vec::new();
+    let mut current = end;
+    let directions = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+    while current != start {
+        path.push(current);
+
+
+        let mut min_g_score = std::f64::INFINITY;
+        let mut next_step = None;
+
+        for &dir in directions.iter() {
+            let neighbor_row = (current.0 as i32 + dir.0) as usize;
+            let neighbor_col = (current.1 as i32 + dir.1) as usize;
+            if neighbor_row < field.len()
+                && neighbor_col < field[0].len()
+                && !field[neighbor_row][neighbor_col].visited
+            {
+                let g_score = field[neighbor_row][neighbor_col].g_score;
+
+                if g_score < min_g_score {
+                    min_g_score = g_score;
+                    next_step = Some((neighbor_row, neighbor_col));
+                    field[neighbor_row][neighbor_col].visited = true;
+                }
+            }
+        }
+
+        if let Some(step) = next_step {
+            current = step;
+        } else {
+            // No path found
+            return None;
+        }
+    }
+
+    path.push(start);
+    path.reverse();
+    Some(path)
+}
+
+    impl Action for MoveToStar {
     fn name(&self) -> String {
         "MoveToStar".to_string()
     }
@@ -339,12 +380,12 @@ impl Action for MoveToStar {
 
     fn compute_order(&mut self, id: u8, world: &World, tools: &mut ToolData) -> Command {
         if self.internal_state != State::Running {
-            return Command::default()
+            return Command::default();
         }
 
         let robot = match world.allies_bot.get(&id) {
             None => {
-                return Command::default()
+                return Command::default();
             }
             Some(r) => r
         };
@@ -368,27 +409,35 @@ impl Action for MoveToStar {
             c.visited = false;
         });
 
-        let mut c = self.field.start();
-        while let Some(ref mut cd) = c.next() {
-            // Add the cages as a zone with high weight
-            if c.pos.y >= -0.5 && c.pos.y <= 0.5 && c.pos.x <= -4.5 && c.pos.x >= -4.7
-            {
-                cd.weight = cd.weight.max(10.0);
+        let mut cell_positions = Vec::new();
+
+        for (row_nb, row) in self.field.data.iter().enumerate() {
+            for (col_nb, _cell) in row.iter().enumerate() {
+                let cell_pos = self.field.cell_to_coords(col_nb as i32, row_nb as i32);
+                cell_positions.push((row_nb, col_nb, cell_pos));
             }
-            if c.pos.y >= -0.5 && c.pos.y <= 0.5 && c.pos.x >= 4.5 && c.pos.x <= 4.7
-            {
-                cd.weight = cd.weight.max( 10.0);
+        }
+
+        for (row_nb, col_nb, cell_pos) in cell_positions {
+            // Add the cages as a zone with high weight
+            if cell_pos.y >= -0.5 && cell_pos.y <= 0.5 && cell_pos.x <= -4.5 && cell_pos.x >= -4.7 {
+                let cell = &mut self.field.data[row_nb][col_nb];
+                cell.weight = cell.weight.max(10.0);
+            }
+            if cell_pos.y >= -0.5 && cell_pos.y <= 0.5 && cell_pos.x >= 4.5 && cell_pos.x <= 4.7 {
+                let cell = &mut self.field.data[row_nb][col_nb];
+                cell.weight = cell.weight.max(10.0);
             }
 
             for (_, r) in world.allies_bot.iter().filter(|(id, _)| **id != self.robot_id) {
                 if r.velocity.linear.norm() > 0.5 {
-                    let d1 = r.distance(&c.pos);
+                    let d1 = r.distance(&cell_pos);
                     let mut time = Duration::from_nanos((d1 * 10.0f64.powi(9)) as u64); // sumimasen wat the fuck
                     if time > Duration::from_secs(1) {
                         time = Duration::from_secs(1);
                     }
                     let f2: Point2<f64> = r.position_in(time);
-                    let d2 = distance(&f2, &c.pos);
+                    let d2 = distance(&f2, &cell_pos);
                     let e = r.distance(&f2);
                     let v = (d1 + d2) * (d1 + d2);
                     let mut t = 10.0;
@@ -400,28 +449,28 @@ impl Action for MoveToStar {
                         // close to its allies (at the risk of touching it) than to pass
                         // close to the enemies (because the collision can cause a foul)
                     }
-                    cd.weight = cd.weight.max(t);
+                    let cell = &mut self.field.data[row_nb][col_nb];
+                    cell.weight = cell.weight.max(t);
                 } else {
-                    let d = r.distance(&c.pos);
+                    let d = r.distance(&cell_pos);
                     let mut t = 10.0;
                     if d > self.res {
                         t = 10.0 / (d / self.res);
                     }
-                    cd.weight = cd.weight.max(t);
-
-                    dbg!(cd);
+                    let cell = &mut self.field.data[row_nb][col_nb];
+                    cell.weight = cell.weight.max(t);
                 }
             }
 
-            for (_, r) in world.enemies_bot.iter().filter(|(id, _)| **id != self.robot_id) {
+            for (_, r) in world.enemies_bot.iter() {
                 if r.velocity.linear.norm() > 0.5 {
-                    let d1 = r.distance(&c.pos);
+                    let d1 = r.distance(&cell_pos);
                     let mut time = Duration::from_nanos((d1 * 10.0f64.powi(9)) as u64); // sumimasen wat the fuck
                     if time > Duration::from_secs(1) {
                         time = Duration::from_secs(1);
                     }
                     let f2: Point2<f64> = r.position_in(time);
-                    let d2 = distance(&f2, &c.pos);
+                    let d2 = distance(&f2, &cell_pos);
                     let e = r.distance(&f2);
                     let v = (d1 + d2) * (d1 + d2);
                     let mut t = 10.0;
@@ -429,80 +478,55 @@ impl Action for MoveToStar {
                         t = 10.0 / (0.5 * v); // 0.6 is totaly arbitrary (TODO base the coefficient on
                         // non-empirical data)
                     }
-                    cd.weight = cd.weight.max(t);
+                    let cell = &mut self.field.data[row_nb][col_nb];
+                    cell.weight = cell.weight.max(t);
                 } else {
-                    let d = r.distance(&c.pos);
+                    let d = r.distance(&cell_pos);
                     let mut t = 10.0;
                     if d > self.res {
                         t = 10.0 / (d / self.res);
                     }
-                    cd.weight = cd.weight.max(t);
-                }
-            }
-
-            // debug A* weight, eog -f test_astar.ppm to see it
-            if self.robot_id == 0 {
-                self.field.print();
-            }
-
-            let mut open_set: Vec<(f64, Cursor)> = Vec::new();
-            let dir = self.field.start().around();
-            let mut start = self.field.start_from(robot.pose.position.x, robot.pose.position.y);
-            start.get().g_score = 0.0;
-            open_set.push((0.0, start));
-
-            let mut from: HashMap<Cursor, Cursor> = HashMap::new();
-            let alpha = 0.8;
-            let beta = 1.0 - alpha;
-            while open_set.len() > 0 {
-                let i = steal_min_from_vec_by(&mut open_set, |(cost1, _), (cost2, _)| cost1.total_cmp(cost2));
-                let mut current = &i.1;
-                if distance(&self.dst, &current.pos) < self.res {
-                    // we arrive
-                    // compute path with backtracking
-                    // std::cout << "compute backtrace" << std::endl;
-                    let mut path = Vec::new();
-                    while from.iter().last().is_none() || *from.get(&current).unwrap() != *from.iter().last().unwrap().1 {
-                        path.push(current.clone());
-                        current = from.get(&current).unwrap();
-                    }
-
-                    if path.len() == 0 {
-                        error!("path has length 0");
-                        return Command::default();
-                    } else {
-                        info!("it's working hehe");
-                    }
-
-                    let mut current_dir = path.pop().unwrap().pos;
-                    if path.len() > 0 {
-                        let next = path.last().unwrap().pos;
-                        current_dir = current_dir + (next - current_dir) / 2.0;
-                    }
-
-                    self.subcommand.update_through(current_dir);
-
-                    return self.subcommand.compute_order(id, world, tools);
-                }
-
-                for x in current.around() {
-                    let g = current.get().g_score + distance(&current.pos, &x.pos);
-                    if g < x.get().g_score {
-                        from.insert(x.clone(), current.clone());
-                        x.get().g_score = g;
-                        let f = g + distance(&self.dst, &x.pos) * alpha + x.get().weight * beta;
-                        open_set.push((f, x));
-                    }
+                    let cell = &mut self.field.data[row_nb][col_nb];
+                    cell.weight = cell.weight.max(t);
                 }
             }
         }
-        self.internal_state = State::Failed;
+
+        self.field.print();
+
+
+        let src = self.field.coords_to_cell(&robot.pose.position);
+        let dst = self.field.coords_to_cell(&self.dst);
+
+        let path = reconstruct_path(&mut self.field.data, src, dst);
+
+        match path {
+            Some(p) => {
+                let mut path: Vec<Point2<f64>> = p.into_iter().map(|(x, y)| self.field.cell_to_coords(x as i32, y as i32)).collect();
+                // println!("Path found: {:?}", path);
+
+                // pop current pos
+                let mut current_dir = path.pop().unwrap();
+                if path.len() > 0 {
+                    let next = path.last().unwrap();
+                    current_dir = current_dir + (next - current_dir) / 2.0;
+                }
+                self.subcommand.update_through(dbg!(current_dir));
+
+                return self.subcommand.compute_order(id, world, tools);
+            }
+            None => {
+                println!("No path found");
+            }
+        }
+
+        // self.internal_state = State::Failed;
 
         Command::default()
     }
 }
 
-fn steal_min_from_vec<T:Ord>(v: &mut Vec<T>) -> T {
+fn steal_min_from_vec<T: Ord>(v: &mut Vec<T>) -> T {
     let mut min_i = 0;
     for i in 1..v.len() {
         if v[i] < v[min_i] {
