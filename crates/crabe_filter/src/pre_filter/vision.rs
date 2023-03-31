@@ -122,7 +122,11 @@ mod detection {
         let nanos = leftover_seconds * 1_000_000_000.0;
 
         match Utc.timestamp_opt((t_capture) as i64, nanos as u32) {
-            LocalResult::Single(dt) => dt,
+            LocalResult::Single(dt) => {
+                dbg!(dt.timestamp_nanos());
+
+                dt
+            },
             LocalResult::None => {
                 let now_utc = Utc::now();
                 error!("Invalid timestamp, using current time: {}", now_utc);
@@ -144,7 +148,7 @@ mod detection {
         let frame_info = FrameInfo {
             camera_id: detection.camera_id,
             frame_number: detection.frame_number,
-            t_capture: create_date_time(Utc::now().timestamp() as f64),
+            t_capture: Utc::now(),
         };
 
         let mut robot_detection_info = robot::RobotDetectionInfo {

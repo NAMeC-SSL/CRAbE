@@ -42,22 +42,22 @@ impl Strategy for Square {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
-        // action_wrapper.push(self.id, MoveTo::new(Point2::new(-1.0, 1.0), -PI / 4.0));
-        // action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, 1.0), -3.0 * PI / 4.0));
-        // action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, -1.0), 3.0 * PI / 4.0));
-        // action_wrapper.push(self.id, MoveTo::new(Point2::new(-1.0, -1.0), PI / 4.0));
+        action_wrapper.push(self.id, MoveTo::new(self.id, None, Point2::new(-1.0, 1.0), How::Fast));
+        action_wrapper.push(self.id, MoveTo::new(self.id, None, Point2::new(1.0, 1.0), How::Fast));
+        action_wrapper.push(self.id, MoveTo::new(self.id, None, Point2::new(1.0, -1.0), How::Fast));
+        action_wrapper.push(self.id, MoveTo::new(self.id, None, Point2::new(-1.0, -1.0), How::Fast));
 
         // action_wrapper.push(self.id, MoveTo::new(
         //     self.id, None, Point2::new(0.0, 0.0), How::Accurate));
 
-        action_wrapper.push(self.id, MoveToStar::new(
-            self.id, Point2::new(-1.0, 2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
-        action_wrapper.push(self.id, MoveToStar::new(
-            self.id, Point2::new(-4.0, 2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
-        action_wrapper.push(self.id, MoveToStar::new(
-            self.id, Point2::new(-4.0, -2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
-        action_wrapper.push(self.id, MoveToStar::new(
-            self.id, Point2::new(-1.0, -2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
+        // action_wrapper.push(self.id, MoveToStar::new(
+        //     self.id, Point2::new(-1.0, 2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
+        // action_wrapper.push(self.id, MoveToStar::new(
+        //     self.id, Point2::new(-4.0, 2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
+        // action_wrapper.push(self.id, MoveToStar::new(
+        //     self.id, Point2::new(-4.0, -2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
+        // action_wrapper.push(self.id, MoveToStar::new(
+        //     self.id, Point2::new(-1.0, -2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
         true
     }
 }
