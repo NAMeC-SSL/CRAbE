@@ -37,7 +37,7 @@ fn main() {
 
     compile_packet(
         "robot_packet",
-        &["protobuf/robot/protocol_robot_catie_2022.proto"],
+        &["protobuf/robot/base_wrapper.proto"],
         &["protobuf/robot"],
     );
 }

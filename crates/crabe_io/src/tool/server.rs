@@ -2,23 +2,23 @@ use crate::communication::WebSocketTransceiver;
 use crate::tool::config::ToolConfig;
 use crabe_framework::component::{Component, ToolComponent};
 use crabe_framework::config::CommonConfig;
+use crabe_framework::data::output::CommandMap;
 use crabe_framework::data::tool::{ToolCommands, ToolData};
 use crabe_framework::data::world::World;
 use serde::{Deserialize, Serialize};
-use std::net::{Ipv4Addr, SocketAddrV4};
-use crabe_framework::data::output::CommandMap;
 use serde_with::serde_as;
+use std::net::{Ipv4Addr, SocketAddrV4};
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct ToolMessage {
     world: World,
-    data: ToolData
+    data: ToolData,
 }
 
 #[serde_as]
 #[derive(Deserialize)]
-#[serde(rename_all ="camelCase", tag = "requestType", content="payload")]
+#[serde(rename_all = "camelCase", tag = "requestType", content = "payload")]
 enum ToolRequest {
     Commands(#[serde_as(as = "Vec<(_, _)>")] CommandMap),
 }
@@ -44,10 +44,15 @@ impl Component for ToolServer {
 }
 
 impl ToolComponent for ToolServer {
-    fn step(&mut self, world_data: &World, tool_data: &mut ToolData, commands: &mut CommandMap) -> ToolCommands {
+    fn step(
+        &mut self,
+        world_data: &World,
+        tool_data: &mut ToolData,
+        commands: &mut CommandMap,
+    ) -> ToolCommands {
         let msg = ToolMessage {
             data: tool_data.clone(),
-            world: world_data.clone()
+            world: world_data.clone(),
         };
         self.websocket.send(msg);
         if let Some(request) = self.websocket.receive() {

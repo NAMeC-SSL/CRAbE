@@ -39,7 +39,7 @@ mod detection {
                     },
                     ..Default::default()
                 });
-
+                robot.last_update = r.frame_info.t_capture;
                 robot.packets.push(r);
             })
         }
@@ -144,7 +144,7 @@ mod detection {
         let frame_info = FrameInfo {
             camera_id: detection.camera_id,
             frame_number: detection.frame_number,
-            t_capture: create_date_time(detection.t_capture),
+            t_capture: create_date_time(Utc::now().timestamp() as f64),
         };
 
         let mut robot_detection_info = robot::RobotDetectionInfo {

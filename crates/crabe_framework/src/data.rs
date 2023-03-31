@@ -1,3 +1,6 @@
+/// The `annotation` module contains data structures and functionality for managing
+/// graphical annotations to be drawn on the SSL RoboCup field viewer.
+pub mod annotation;
 /// The geometry module contains utility functions and structures related to geometry and
 /// coordinates of the SSL field.
 pub mod geometry;
@@ -11,6 +14,3 @@ pub mod tool;
 /// The world module contains the data structures for representing the state of the world
 /// in the control system. It includes information about robots, the ball, and the field.
 pub mod world;
-/// The `annotation` module contains data structures and functionality for managing
-/// graphical annotations to be drawn on the SSL RoboCup field viewer.
-pub mod annotation;

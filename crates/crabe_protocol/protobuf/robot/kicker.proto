@@ -1,0 +1,7 @@
+syntax="proto3";
+
+enum Kicker {
+    NO_KICK = 0;
+    FLAT = 1;
+    CHIP = 2;
+}

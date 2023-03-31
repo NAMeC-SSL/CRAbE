@@ -16,8 +16,8 @@ pub mod game_state;
 
 use crate::config::CommonConfig;
 use crate::data::geometry::Geometry;
-use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
+use serde::{Serialize, Serializer};
 use crate::data::world::game_data::GameData;
 use crate::data::world::game_state::{GameState, HaltedState};
 

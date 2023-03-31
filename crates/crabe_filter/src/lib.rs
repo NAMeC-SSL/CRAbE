@@ -20,11 +20,7 @@ use crabe_framework::component::{Component, FilterComponent};
 use crabe_framework::config::CommonConfig;
 use crabe_framework::data::input::InboundData;
 use crabe_framework::data::world::{TeamColor, World};
-use crabe_io::league::game_controller::GameControllerConfig;
-use crabe_io::pipeline::input::InputConfig;
-use crate::post_filter::game_controller::GameControllerPostFilter;
-use crate::pre_filter::game_controller::GameControllerPreFilter;
-
+use crate::filter::inactive::InactiveFilter;
 
 #[derive(Args)]
 pub struct FilterConfig {}
@@ -40,7 +36,7 @@ pub struct FilterPipeline {
 impl FilterPipeline {
     pub fn with_config(_config: FilterConfig, common_config: &CommonConfig, input_config: &InputConfig) -> Self {
         let mut pre_filters: Vec<Box<dyn PreFilter>> = vec![Box::new(VisionFilter::new())];
-        let filters: Vec<Box<dyn Filter>> = vec![Box::new(PassthroughFilter), Box::new(VelocityAccelerationFilter)];
+        let filters: Vec<Box<dyn Filter>> = vec![Box::new(PassthroughFilter), Box::new(VelocityAccelerationFilter), Box::new(InactiveFilter::default())];
         let mut post_filters: Vec<Box<dyn PostFilter>> = vec![
                 Box::new(RobotFilter),
                 Box::new(GeometryFilter),

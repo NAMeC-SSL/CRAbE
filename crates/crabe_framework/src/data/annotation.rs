@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+use crabe_math::shape::{Circle, Line, Rectangle};
 use nalgebra::Point2;
 use serde::{Deserialize, Serialize};
-use crabe_math::shape::{Circle, Line, Rectangle};
 use serde_with::serde_as;
+use std::collections::HashMap;
 
 #[serde_as]
 #[derive(Clone, Default, Serialize)]
@@ -10,7 +10,7 @@ use serde_with::serde_as;
 /// A structure for storing and managing named annotations to be drawn on the SSL RoboCup field viewer.
 pub struct AnnotationStore {
     #[serde_as(as = "Vec<(_, _)>")]
-    annotations: HashMap<String, Annotation>
+    annotations: HashMap<String, Annotation>,
 }
 /// An enumeration representing various annotation types that can be displayed in the SSL RoboCup field viewer.
 #[derive(Clone, Serialize)]
@@ -50,7 +50,8 @@ impl AnnotationStore {
     /// * `id`: A unique identifier for the annotation.
     /// * `rectangle`: The rectangle shape to be added as an annotation.
     pub fn add_rectangle(&mut self, id: String, rectangle: Rectangle) {
-        self.annotations.insert(id, Annotation::Rectangle(rectangle));
+        self.annotations
+            .insert(id, Annotation::Rectangle(rectangle));
     }
 
     /// Remove all annotations from the store.

@@ -57,7 +57,12 @@ pub trait DecisionComponent: Component {
 /// These tools can include things like a joystick handler or sending and
 /// receiving data for tools, such as a viewer or a control center.
 pub trait ToolComponent: Component {
-    fn step(&mut self, world_data: &World, tools_data: &mut ToolData, commands: &mut CommandMap) -> ToolCommands;
+    fn step(
+        &mut self,
+        world_data: &World,
+        tools_data: &mut ToolData,
+        commands: &mut CommandMap,
+    ) -> ToolCommands;
 }
 /// The `GuardComponent` trait defines the methods required for a component that guards the robot
 /// from potentially dangerous or unwanted actions.

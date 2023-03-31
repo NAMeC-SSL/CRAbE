@@ -1,0 +1,11 @@
+syntax="proto3";
+
+message BaseFeedback {
+    uint32 robot_id = 1; // Robot identifier
+    float motor_1_speed = 2;
+    float motor_2_speed = 3;
+    float motor_3_speed = 4;
+    float motor_4_speed = 5;
+    float voltage = 6;
+    bool ir = 7;
+}

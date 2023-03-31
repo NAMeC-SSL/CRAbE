@@ -1,0 +1,12 @@
+syntax="proto3";
+
+import "base_command.proto";
+import "base_feedback.proto";
+
+message PCToBase {
+    repeated BaseCommand commands = 1;
+}
+
+message BaseToPC {
+    repeated BaseFeedback feedbacks = 1;
+}
