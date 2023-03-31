@@ -197,6 +197,7 @@ impl Action for MoveTo {
 
         if !xy_ok {
             let world_speed = (robot.velocity.linear.x.powi(2) + robot.velocity.linear.y.powi(2)).sqrt();
+            dbg!(world_speed);
             let ns = self.xy_speed.new_speed(world_speed, distance);
             let target_x = dx / distance_through * ns;
             let target_y = dy / distance_through * ns;
@@ -232,7 +233,7 @@ impl Action for MoveTo {
         }
 
         if cmd.forward_velocity.is_nan() || cmd.left_velocity.is_nan() || cmd.angular_velocity.is_nan() {
-            error!("nan in command");
+            error!("nan in command: {:#?}", cmd);
             return Command::default();
         }
 

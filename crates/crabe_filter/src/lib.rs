@@ -20,7 +20,10 @@ use crabe_framework::component::{Component, FilterComponent};
 use crabe_framework::config::CommonConfig;
 use crabe_framework::data::input::InboundData;
 use crabe_framework::data::world::{TeamColor, World};
+use crabe_io::pipeline::input::InputConfig;
 use crate::filter::inactive::InactiveFilter;
+use crate::post_filter::game_controller::GameControllerPostFilter;
+use crate::pre_filter::game_controller::GameControllerPreFilter;
 
 #[derive(Args)]
 pub struct FilterConfig {}

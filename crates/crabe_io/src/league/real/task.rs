@@ -1,3 +1,4 @@
+use log::error;
 use crate::league::real::RealConfig;
 
 use crabe_framework::constant::MAX_ID_ROBOTS;
