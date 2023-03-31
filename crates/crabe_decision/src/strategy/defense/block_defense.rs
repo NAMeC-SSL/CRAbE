@@ -5,6 +5,7 @@ use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::{AllyInfo, Ball, EnemyInfo, Pose, Robot, RobotMap, World};
 use crate::action::move_to::MoveTo;
 use crate::action::ActionWrapper;
+use crate::action::block_enemy::BlockEnemy;
 use crate::strategy::Strategy;
 
 #[derive(Default)]
@@ -51,21 +52,6 @@ impl BlockDefense {
         allies_enemies_assignment_map
     }
 
-    fn compute_defend_point(enemy: &Robot<EnemyInfo>, ball: &Ball, defend_dist_mult: f64) -> Point2<f64> {
-        let vec_before_enn =
-            Vector2::new(
-                ball.position.x - enemy.pose.position.x,
-                ball.position.y - enemy.pose.position.y,
-            ).normalize()
-        ;
-
-        // Using the vector from enemy robot to the ball, we create a Translation
-        // object that will allow to to translate a point using the given vector
-        let translation = Translation2::from(vec_before_enn);
-        // Using this translation object, we can compute the new point
-        let defend_point = translation.transform_point(&enemy.pose.position) * defend_dist_mult;
-        dbg!(defend_point)
-    }
 }
 
 impl Strategy for BlockDefense {
@@ -88,14 +74,17 @@ impl Strategy for BlockDefense {
         my_allies.retain(|ally_id, _| self.defenders_ids.contains(ally_id));
         let allies_enemies_assignment_map= BlockDefense::assign_allies_to_enemies(&my_allies, &world.enemies_bot);
         // > compute moveto order for each robot
-
+        let mut i: u8= 0;
         if let Some(ball) = &world.ball {
             for (ally_id, &enemy_assigned) in allies_enemies_assignment_map.iter() {
-                let defend_point = BlockDefense::compute_defend_point(enemy_assigned, &ball, self.defend_dist_mult);
+                // let defend_point = BlockDefense::compute_defend_point(enemy_assigned, &ball, self.defend_dist_mult);
                 // TODO: look towards ball
                 dbg!(enemy_assigned.id);
-                action_wrapper.push(dbg!(*ally_id), MoveTo::new(defend_point, 0.));
+                // action_wrapper.push(dbg!(*ally_id), MoveTo::new(defend_point, 0.));
+                action_wrapper.push(dbg!(*ally_id), BlockEnemy::new(enemy_assigned.id));
+                i += 1;
             }
+            dbg!(i);
         }
         false
     }

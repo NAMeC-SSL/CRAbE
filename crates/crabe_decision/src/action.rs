@@ -1,5 +1,7 @@
 /// The `move_to` module contains the `MoveTo` action which moves a robot to a specific location on the field and a target orientation.
 pub mod move_to;
+/// The `block_enemy` module consists of putting our robot between the ball and an enemy robot
+pub mod block_enemy;
 /// The `order_raw` module contains the `RawOrder` action which sends a raw command to the robot.
 pub mod order_raw;
 
@@ -18,6 +20,7 @@ use crabe_framework::data::world::World;
 use enum_dispatch::enum_dispatch;
 use state::State;
 use std::collections::HashMap;
+use crate::action::block_enemy::BlockEnemy;
 
 /// The Action trait represents an action that can be performed by a robot, such as moving to a certain point.
 #[enum_dispatch(Actions)]
@@ -37,6 +40,7 @@ pub trait Action {
 pub enum Actions {
     MoveTo(MoveTo),
     RawOrder(RawOrder),
+    BlockEnemy(BlockEnemy)
 }
 
 /// The `ActionWrapper` struct represents a wrapper for a sequence of actions to be executed for each robot.
