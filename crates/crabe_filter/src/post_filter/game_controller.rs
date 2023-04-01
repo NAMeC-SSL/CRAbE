@@ -47,10 +47,17 @@ impl PostFilter for GameControllerPostFilter {
                             Command::ForceStart => {
                                 world.data.state = GameState::Running(RunningState::Run);
                             }
-                            Command::PrepareKickoffBlue => {}
-                            Command::PrepareKickoffYellow => {}
+                            Command::PrepareKickoffBlue => {
+                                world.data.state = GameState::Running(RunningState::KickOff);
+                            }
+                            Command::PrepareKickoffYellow => {
+                                world.data.state = GameState::Running(RunningState::KickOff);
+                            }
                             Command::PreparePenaltyBlue => {}
                             Command::PreparePenaltyYellow => {}
+                            Command::NormalStart => {
+                                world.data.state = GameState::Running(RunningState::KickOff);
+                            }
                             _ => {}
                         }
                     }

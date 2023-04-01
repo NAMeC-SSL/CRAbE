@@ -5,14 +5,13 @@ use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::{AllyInfo, Ball, Robot, World};
 use nalgebra::Point2;
 use std::f64::consts::PI;
-use crabe_framework::data::output::{Command, Kick as KickType, Kick};
+use crabe_framework::data::output::{Command, Kick as KickType};
 use crate::action::kick::Kick;
-use crate::action::move_to_with_kick::MoveToWithKick;
 use crate::action::order_raw::RawOrder;
 
 /// The Square struct represents a strategy that commands a robot to move in a square shape
 /// in a counter-clockwise. It is used for testing purposes.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Mbappe {
     /// The id of the robot to move.
     id: u8,
@@ -69,7 +68,7 @@ impl Strategy for Mbappe {
         //
         //     None
         // };
-        let goal_pos: Point2<f64> = Point2::new(-4.5, 0.0);
+        let goal_pos: Point2<f64> = Point2::new(4.5, 0.0);
         let ball_pos = match world.ball.clone() {
             None => {
                 return false;
@@ -93,24 +92,26 @@ impl Strategy for Mbappe {
         let robot_to_goal_angle = robot_to_goal.y.atan2(robot_to_goal.x);
         let ball_to_goal = goal_pos - ball_pos;
         let behind_ball_pos = ball_pos + ball_to_goal.normalize() * -0.4;
-        let close_behind_ball_pos = ball_pos + ball_to_goal.normalize() * -0.1;
+        let close_after_ball_pos = ball_pos + ball_to_goal.normalize() * 0.05;
 
         let robot_to_ball_distance = robot_to_ball.norm();
 
+        dbg!(&self.internal_state);
         match dbg!(&self.internal_state) {
             MbappeState::GoingBehindBall => {
                 if dbg!((behind_ball_pos - robot_pos).norm()) < 0.1 {
                     self.internal_state = MbappeState::GoingCloseBehindBall;
                 } else {
-                    action_wrapper.push(self.id, MoveTo::new(None, behind_ball_pos, robot_to_goal_angle, How::Accurate));
+                    action_wrapper.push(self.id, MoveTo::new(None, behind_ball_pos, robot_to_goal_angle, How::Intersept));
                 }
             }
             MbappeState::GoingCloseBehindBall => {
-                if dbg!(robot_to_ball_distance) < 0.098 && dbg!(robot_to_ball_angle.abs()) < 3.0 {
+                if dbg!(robot_to_ball_distance) < 0.11 && dbg!(robot_to_ball_angle.abs()) < 3.0 {
+                    println!("KICK");
                     action_wrapper.push(self.id, Kick::new(KickType::StraightKick {power: 10.0}));
                     self.internal_state = MbappeState::GoingBehindBall;
                 } else {
-                    action_wrapper.push(self.id, MoveTo::new(None, close_behind_ball_pos, robot_to_goal_angle, How::Accurate));
+                    action_wrapper.push(self.id, MoveTo::new(None, close_after_ball_pos, robot_to_goal_angle, How::Intersept));
                 }
             }
         }

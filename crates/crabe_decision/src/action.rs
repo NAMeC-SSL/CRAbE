@@ -9,9 +9,12 @@ pub mod sequencer;
 /// The state module contains the State enum which represents the current state of an action.
 pub mod state;
 
+pub mod kick;
+
 use crate::action::move_to::{MoveTo, MoveToStar};
 use crate::action::order_raw::RawOrder;
 use crate::action::sequencer::Sequencer;
+use crate::action::kick::Kick;
 use crabe_framework::data::output::{Command, CommandMap};
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
@@ -36,6 +39,7 @@ pub trait Action {
 #[enum_dispatch]
 pub enum Actions {
     MoveTo(MoveTo),
+    Kick(Kick),
     MoveToStar(MoveToStar),
     RawOrder(RawOrder),
 }

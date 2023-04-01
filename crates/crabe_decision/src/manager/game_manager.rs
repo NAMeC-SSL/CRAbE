@@ -6,6 +6,7 @@ use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::game_state::GameState;
 use crabe_framework::data::world::World;
 use crate::strategy::goalkeeper::Goalkeeper;
+use crate::strategy::mbappe::Mbappe;
 use crate::strategy::testing::Square;
 
 /// The `Manual` struct represents a decision manager that executes strategies manually
@@ -51,7 +52,7 @@ impl Manager for GameManager {
                 GameState::Stopped(_) => {}
                 GameState::Running(_) => {
                     info!("GameState::Running");
-                    self.strategy = Some(Box::new(Goalkeeper::new(0)));
+                    self.strategy = Some(Box::new(Mbappe::new(0)));
                 }
             }
         }
