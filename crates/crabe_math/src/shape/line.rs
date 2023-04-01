@@ -13,7 +13,7 @@ pub struct Line {
     pub end: Point2<f64>,
 }
 impl Line{
-    fn intersect(&self, l: Line) -> Option<Point2<f64>>{
+    pub fn intersect(&self, l: Line) -> Option<Point2<f64>>{
         let d = (self.start.x - l.start.y) * (self.end.x - self.start.x) - (l.end.x - l.start.x) * (self.end.y - self.start.y);
         
         if d == 0.{
@@ -32,7 +32,7 @@ impl Line{
         Some(Point2::new(x, y))
     }
 
-    fn new(start: Point2<f64>, end: Point2<f64>) -> Line{
+    pub fn new(start: Point2<f64>, end: Point2<f64>) -> Line{
         Line{start: start, end: end}
     }
 }

@@ -1,4 +1,6 @@
+use crabe_math::shape::{Circle, Line, Rectangle};
 use std::f64::consts::PI;
+use std::ops::Mul;
 use std::time::{Duration, Instant};
 use crate::action::move_to::{MoveTo, MoveToStar, How};
 use crate::action::{Action, ActionWrapper};
@@ -8,7 +10,6 @@ use crabe_framework::data::world::{AllyInfo, Ball, Robot, TeamColor, World};
 use nalgebra::{clamp, Point2};
 use crabe_framework::data::output::Kick;
 use crate::action::order_raw::RawOrder;
-
 
 /// The Square struct represents a strategy that commands a robot to move in a square shape
 /// in a counter-clockwise. It is used for testing purposes.
@@ -92,6 +93,37 @@ impl Strategy for Goalkeeper {
         //     self.id, Point2::new(-4.0, -2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
         // action_wrapper.push(self.id, MoveToStar::new(
         //     self.id, Point2::new(-1.0, -2.0), How::Fast, world.geometry.field.length, world.geometry.field.width));
+
+        
+        //calculate the segment between ball and a point his direction
+        let ball_dest_point = ball.position + ball.velocity.normalize().mul(100.);
+        let ball_dest_point = Point2::new(ball_dest_point.x, ball_dest_point.y);
+
+        let top_left = Point2::new(-world.geometry.field.width / 2., -world.geometry.field.length / 2.);
+        let top_right = Point2::new(-world.geometry.field.width / 2., world.geometry.field.length / 2.);
+
+
+        let ball_line = Line::new(Point2::new(ball.position.x, ball.position.y), ball_dest_point);
+        let goal_line = Line::new(top_left, top_right);
+
+
+        let end_point = ball_line.intersect(goal_line);
+        let to_ball = Point2::new(ball.position.x, ball.position.y) - robot.pose.position;
+        let a = vector_angle(to_ball);
+        let x = world.geometry.ally_goal.top_left_position.x + world.geometry.ally_goal.depth*2.0;
+        let y = match end_point {
+            None => {
+                min(max(ball.position.y, -world.geometry.ally_goal.width/2.0), world.geometry.ally_goal.width/2.0)
+            }
+            Some(p) => {
+                min(max(p.y, -world.geometry.ally_goal.width/2.0), world.geometry.ally_goal.width/2.0)
+            }
+        };
+
+        action_wrapper.push(self.id, MoveTo::new(Point2::new(x, y), a));
+    
+
+
         false
     }
 }
