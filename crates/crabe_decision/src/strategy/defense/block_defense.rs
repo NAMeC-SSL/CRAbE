@@ -30,7 +30,8 @@ impl BlockDefense {
             if let Some(enn) = enemies.get(&0) {
                 enemy_to_defend = enn;
             } else {
-                println!("no enemies!!11!1!1!11!1!")
+                println!("no enemies!!11!1!1!11!1!");
+                return allies_enemies_assignment_map;
             }
 
             for enemy in enemies.values() {
