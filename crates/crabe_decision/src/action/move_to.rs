@@ -93,7 +93,7 @@ impl MoveTo {
             }
             How::Intersept => {
                 self.xy_speed.update(0.25, 5.0, 5.0, 4.0);
-                self.angle_speed.update(0.1, 5.0, 5.0, 2.0 * PI);
+                self.angle_speed.update(0.1, 5.0, 5.0, 4.0 * PI);
                 self.xy_hyst = 0.0001;
                 self.angle_hyst = PI / 16.0;
             }
@@ -182,7 +182,7 @@ impl Action for MoveTo {
             angl_ok = true;
             cmd.angular_velocity = 0.0;
         } else {
-            cmd.angular_velocity = (dt.signum() *
+            cmd.angular_velocity = 2.0 * (dt.signum() *
                 self.angle_speed.new_speed(cmd.angular_velocity.abs() as f64, dt.abs())) as f32;
         }
 

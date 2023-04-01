@@ -62,7 +62,7 @@ impl Simulator {
                         },
                     )),
                 }),
-                kick_speed: Some(kick_speed),
+                kick_speed: Some(kick_speed * 10.0),
                 kick_angle: Some(kick_angle),
                 dribbler_speed: Some(command.dribbler),
             };

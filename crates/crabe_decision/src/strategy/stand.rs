@@ -12,20 +12,20 @@ use crate::action::order_raw::RawOrder;
 
 /// The Square struct represents a strategy that commands a robot to move in a square shape
 /// in a counter-clockwise. It is used for testing purposes.
-pub struct Goalkeeper {
+pub struct Stand {
     /// The id of the robot to move.
     id: u8,
     last_kick: Instant
 }
 
-impl Goalkeeper {
+impl Stand {
     /// Creates a new Square instance with the desired robot id.
     pub fn new(id: u8) -> Self {
         Self { id, last_kick: Instant::now() }
     }
 }
 
-impl Strategy for Goalkeeper {
+impl Strategy for Stand {
     /// Executes the Square strategy.
     ///
     /// This strategy commands the robot with the specified ID to move in a square shape in a
@@ -47,7 +47,8 @@ impl Strategy for Goalkeeper {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
-        let our_goal: Point2<f64> = Point2::new(-4.3, 0.0);
+        let mut our_goal: Point2<f64> = Point2::new(-3.3, 0.0);
+        our_goal.y += (self.id as f64 / 4.0 - 2.0);
 
         action_wrapper.clean(self.id);
 
@@ -69,13 +70,13 @@ impl Strategy for Goalkeeper {
         let robot_to_ball_angle = robot_to_ball.y.atan2(robot_to_ball.x);
 
 
-        let mut cmd = MoveTo::new(None, Point2::new(our_goal.x, clamp(ball.position.y, -world.geometry.ally_goal.width/2.0, world.geometry.ally_goal.width/2.0)), robot_to_ball_angle, How::Goal).compute_order(self.id, world, tools_data);
-        if robot_to_ball.norm() < 0.50 && self.last_kick.elapsed() > Duration::from_secs(2) {
+        let mut cmd = MoveTo::new(None, Point2::new(our_goal.x , ball.position.y + (self.id as f64 / 2.0 - 2.0)), robot_to_ball_angle, How::Goal).compute_order(self.id, world, tools_data);
+        if robot_to_ball.norm() < 0.20 && self.last_kick.elapsed() > Duration::from_secs(2) {
             println!("GOING TO BALL");
-            cmd = MoveTo::new(None, ball.position.xy(), robot_to_ball_angle, How::Goal).compute_order(self.id, world, tools_data);
+            cmd = MoveTo::new(None, ball.position.xy(), robot_to_ball_angle, How::Fast).compute_order(self.id, world, tools_data);
             self.last_kick = Instant::now();
             cmd.kick = Some(Kick::StraightKick {
-                power: 1.0
+                power: 0.5
             });
         }
 
