@@ -30,7 +30,7 @@ impl BlockDefense {
             if let Some(enn) = enemies.get(&0) {
                 enemy_to_defend = enn;
             } else {
-                panic!("no enemies!!11!1!1!11!1!")
+                println!("no enemies!!11!1!1!11!1!")
             }
 
             for enemy in enemies.values() {
