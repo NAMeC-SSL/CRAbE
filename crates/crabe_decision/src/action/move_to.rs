@@ -325,82 +325,99 @@ impl MoveToStar {
 }
 
 use std::collections::BinaryHeap;
+use std::thread::sleep;
+use std::usize;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-struct Node {
-    f_score: f64,
-    coords: (usize, usize),
-}
-
-impl Eq for Node {}
-
-
-impl PartialOrd for Node {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        other.f_score.partial_cmp(&self.f_score)
-    }
-}
-
-impl Ord for Node {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).unwrap()
-    }
-}
-
-fn reconstruct_path(field: &Vec<Vec<CellData>>, start: (usize, usize), end: (usize, usize)) -> Option<Vec<(usize, usize)>> {
+fn reconstruct_path(field: &Vec<Vec<CellData>>, end: (usize, usize)) -> Vec<(usize, usize)> {
     let mut path = Vec::new();
     let mut current = end;
 
     while let Some(parent) = field[current.0][current.1].parent {
-        dbg!(parent);
         path.push(current);
         current = parent;
     }
 
-    path.push(start);
+    path.push(current);
     path.reverse();
-    Some(path)
+    path
 }
 
-fn heuristic(a: (usize, usize), b: (usize, usize)) -> f64 {
-    (((b.0 as isize - a.0 as isize).abs() + (b.1 as isize - a.1 as isize).abs()) as f64)
+#[derive(PartialEq)]
+struct Node {
+    position: (usize, usize),
+    f_score: f64,
+}
+
+impl Eq for Node {}
+
+impl Ord for Node {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.f_score.partial_cmp(&other.f_score).unwrap_or(Ordering::Equal).reverse()
+    }
+}
+
+impl PartialOrd for Node {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 fn a_star_search(field: &mut Vec<Vec<CellData>>, start: (usize, usize), end: (usize, usize)) -> Option<Vec<(usize, usize)>> {
-    let directions = [(-1, 0), (1, 0), (0, -1), (0, 1)];
-    let mut open_list = BinaryHeap::new();
+    let mut open_set = BinaryHeap::new();
 
-    field[start.0][start.1].g_score = 0.0;
-    open_list.push(Node { f_score: field[start.0][start.1].g_score + heuristic(start, end), coords: start });
+    field[start.0][start.1].g_score = field[start.0][start.1].cost;
+    open_set.push(Node { position: start, f_score: heuristic(start, end) });
 
-    while let Some(node) = open_list.pop() {
-        error!("pop");
-        let current = node.coords;
+    while let Some(current) = open_set.pop() {
+        let current_pos = current.position;
 
-        if current == end {
-            return reconstruct_path(field, start, end);
+        if current_pos == end {
+            return Some(reconstruct_path(field, end));
         }
 
-        field[current.0][current.1].visited = true;
+        field[current_pos.0][current_pos.1].visited = true;
 
-        for &dir in directions.iter() {
-            let neighbor_row = (current.0 as i32 + dir.0) as usize;
-            let neighbor_col = (current.1 as i32 + dir.1) as usize;
+        for neighbor_pos in neighbors(current_pos, field) {
+            let neighbor = &field[neighbor_pos.0][neighbor_pos.1];
 
-            if neighbor_row < field.len() && neighbor_col < field[0].len() {
-                let tentative_g_score = field[current.0][current.1].g_score + field[neighbor_row][neighbor_col].cost;
+            if neighbor.visited {
+                continue;
+            }
 
-                if !field[neighbor_row][neighbor_col].visited  || tentative_g_score < field[neighbor_row][neighbor_col].g_score {
-                    field[neighbor_row][neighbor_col].g_score = tentative_g_score;
-                    field[neighbor_row][neighbor_col].parent = Some(current);
-                    let f_score = field[neighbor_row][neighbor_col].g_score + heuristic((neighbor_row, neighbor_col), end);
-                    open_list.push(Node { f_score, coords: (neighbor_row, neighbor_col) });
-                }
+            let tentative_g_score = &field[current_pos.0][current_pos.1].g_score + neighbor.cost;
+
+            if tentative_g_score < neighbor.g_score {
+                let neighbor = &mut field[neighbor_pos.0][neighbor_pos.1];
+                neighbor.parent = Some(current_pos);
+                neighbor.g_score = tentative_g_score;
+                open_set.push(Node { position: neighbor_pos, f_score: tentative_g_score + heuristic(neighbor_pos, end) });
             }
         }
     }
 
     None
+}
+
+fn heuristic(a: (usize, usize), b: (usize, usize)) -> f64 {
+    let dx = (a.0 as isize - b.0 as isize).abs();
+    let dy = (a.1 as isize - b.1 as isize).abs();
+    (dx + dy) as f64
+}
+
+fn neighbors(pos: (usize, usize), field: &Vec<Vec<CellData>>) -> Vec<(usize, usize)> {
+    let mut result = Vec::new();
+    let directions = [(0, 1), (1, 0), (0, -1), (-1, 0)];
+
+    for (dx, dy) in directions.iter() {
+        let new_x = (pos.0 as isize + dx) as usize;
+        let new_y = (pos.1 as isize + dy) as usize;
+
+        if new_x < field.len() && new_y < field[0].len() {
+            result.push((new_x, new_y));
+        }
+    }
+
+    result
 }
 
 
@@ -421,6 +438,7 @@ mod test {
 
         let path = a_star_search(&mut field, start, end);
 
+        assert!(path.is_some());
         dbg!(path);
     }
 }
@@ -435,6 +453,7 @@ impl Action for MoveToStar {
     }
 
     fn compute_order(&mut self, id: u8, world: &World, tools: &mut ToolData) -> Command {
+        sleep(Duration::from_millis(1));
         if self.internal_state != State::Running {
             return Command::default();
         }
