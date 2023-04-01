@@ -1,7 +1,7 @@
 use crabe_framework::data::world::game_state::{GameState, HaltedState, RunningState, StoppedState};
 use crate::data::FilterData;
 use crate::post_filter::PostFilter;
-use crabe_framework::data::world::World;
+use crabe_framework::data::world::{TeamColor, World};
 use crabe_protocol::protobuf::game_controller_packet::Referee;
 use crabe_protocol::protobuf::game_controller_packet::referee::Command;
 
@@ -20,6 +20,14 @@ impl PostFilter for GameControllerPostFilter {
         let last_game_event =  last_referee_packet.game_events.last();
 
         let referee_command = last_referee_packet.command();
+
+        if let Some(blue_team_on_positive_half) = last_referee_packet.blue_team_on_positive_half {
+            if blue_team_on_positive_half {
+               world.data.positive_half = TeamColor::Blue
+            } else {
+                world.data.positive_half = TeamColor::Yellow
+            }
+        };
 
         // from any state
         if let Command::Halt = referee_command {
