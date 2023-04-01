@@ -1,3 +1,4 @@
+use std::f64::consts::PI;
 use crate::action::move_to::{MoveTo, MoveToStar, How};
 use crate::action::ActionWrapper;
 use crate::strategy::Strategy;
@@ -42,10 +43,10 @@ impl Strategy for Square {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
-        action_wrapper.push(self.id, MoveTo::new(None, Point2::new(-1.0, 1.0), How::Fast));
-        action_wrapper.push(self.id, MoveTo::new(None, Point2::new(1.0, 1.0), How::Fast));
-        action_wrapper.push(self.id, MoveTo::new(None, Point2::new(1.0, -1.0), How::Fast));
-        action_wrapper.push(self.id, MoveTo::new(None, Point2::new(-1.0, -1.0), How::Fast));
+        action_wrapper.push(self.id, MoveTo::new(None, Point2::new(-1.0, 1.0), PI, How::Fast));
+        action_wrapper.push(self.id, MoveTo::new(None, Point2::new(1.0, 1.0), PI, How::Fast));
+        action_wrapper.push(self.id, MoveTo::new(None, Point2::new(1.0, -1.0), PI, How::Fast));
+        action_wrapper.push(self.id, MoveTo::new(None, Point2::new(-1.0, -1.0), PI, How::Fast));
 
         // action_wrapper.push(self.id, MoveTo::new(
         //     self.id, None, Point2::new(0.0, 0.0), How::Accurate));
