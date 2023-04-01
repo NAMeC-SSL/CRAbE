@@ -5,6 +5,7 @@ use crate::strategy::Strategy;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::game_state::GameState;
 use crabe_framework::data::world::World;
+use crate::strategy::defense::BlockDefense;
 use crate::strategy::goalkeeper::Goalkeeper;
 use crate::strategy::testing::Square;
 
@@ -51,7 +52,7 @@ impl Manager for GameManager {
                 GameState::Stopped(_) => {}
                 GameState::Running(_) => {
                     info!("GameState::Running");
-                    self.strategy = Some(Box::new(Goalkeeper::new(0)));
+                    self.strategy = Some(Box::new(BlockDefense::new(0)));
                 }
             }
         }

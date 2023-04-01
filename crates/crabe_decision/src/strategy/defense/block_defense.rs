@@ -82,8 +82,8 @@ impl Strategy for BlockDefense {
                 // let defend_point = BlockDefense::compute_defend_point(enemy_assigned, &ball, self.defend_dist_mult);
                 // TODO: look towards ball
                 dbg!(enemy_assigned.id);
-                // action_wrapper.push(dbg!(*ally_id), MoveTo::new(defend_point, 0.));
-                action_wrapper.push(dbg!(*ally_id), ShootToTarget::new(enemy_assigned.id));
+                // action_wrapper.push(dbg!(*ally_id), BlockEnemy::new(enemy_assigned.id));
+                action_wrapper.push(dbg!(*ally_id), ShootToTarget::new(Point2::new(4.5, 0.)));
                 i += 1;
             }
             dbg!(i);

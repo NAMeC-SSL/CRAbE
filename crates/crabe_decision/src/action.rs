@@ -24,6 +24,7 @@ use crabe_framework::data::world::World;
 use enum_dispatch::enum_dispatch;
 use state::State;
 use std::collections::HashMap;
+use crate::action::shoot_to_target::ShootToTarget;
 
 /// The Action trait represents an action that can be performed by a robot, such as moving to a certain point.
 #[enum_dispatch(Actions)]
@@ -44,7 +45,8 @@ pub enum Actions {
     MoveTo(MoveTo),
     MoveToStar(MoveToStar),
     RawOrder(RawOrder),
-    BlockEnemy(BlockEnemy)
+    BlockEnemy(BlockEnemy),
+    ShootToTarget(ShootToTarget)
 }
 
 /// The `ActionWrapper` struct represents a wrapper for a sequence of actions to be executed for each robot.

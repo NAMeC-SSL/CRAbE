@@ -23,18 +23,18 @@ impl PostFilter for GameControllerPostFilter {
 
         // from any state
         if let Command::Halt = referee_command {
-            world.data.state = GameState::Halted(HaltedState::Halt);
+            world.data.state = GameState::Running(RunningState::Run);
         }
 
-        match referee_command {
-            Command::Halt => {
-                world.data.state = GameState::Halted(HaltedState::Halt);
-            }
-            Command::Stop => {
-                world.data.state = GameState::Stopped(StoppedState::Stop);
-            }
-            _ => {}
-        }
+        // match referee_command {
+        //     Command::Halt => {
+        //         world.data.state = GameState::Halted(HaltedState::Halt);
+        //     }
+        //     Command::Stop => {
+        //         world.data.state = GameState::Stopped(StoppedState::Stop);
+        //     }
+        //     _ => {}
+        // }
 
         match &world.data.state {
             GameState::Halted(_) => {
@@ -91,5 +91,6 @@ impl PostFilter for GameControllerPostFilter {
 
         dbg!(referee_command);
         dbg!(&world.data.state);
+        world.data.state = GameState::Running(RunningState::Run);
     }
 }

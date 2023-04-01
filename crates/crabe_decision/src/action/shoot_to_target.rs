@@ -58,18 +58,28 @@ impl Action for ShootToTarget {
         if let Some(ball) = &world.ball {
             if let Some(ally) = &world.allies_bot.get(&id) {
                 let dist_to_ball = distance(&ball.position.xy(), &ally.pose.position);
+                let mut shoot_angle = ShootToTarget::look_towards(&ally.pose.position, &ball.position.xy());
+
+                if dist_to_ball <= 0.02 {
+                    // we should already be dribbling
+                    // aim towards target
+                    shoot_angle = ShootToTarget::look_towards(&ball.position.xy(), &self.shoot_target);
+                }
+
                 let mut base_command = MoveTo::new(
                     None,
                     ball.position.xy(),
-                    ShootToTarget::look_towards(&ally.pose.position, &ball.position.xy()),
-                    How::Fast
+                    shoot_angle,
+                    How::Accurate
                 );
-                let mut command =  base_command.compute_order(id, world, tools);
+                let mut command= base_command.compute_order(id, world, tools);
+
 
                 if dist_to_ball <= 0.02 {
                     // shoot if time elapsed is okay
                     if self.kick_time.elapsed() >= Duration::from_secs(2) {
                         command.kick = Option::from(Kick::StraightKick { power: 0.9 });
+                        self.kick_time = Instant::now();
                     }
                 } else if dist_to_ball <= 0.1 {
                     // dribble
@@ -78,7 +88,7 @@ impl Action for ShootToTarget {
                     base_command.update_target(ball.position.xy());
                     command = base_command.compute_order(id, world, tools);
                 }
-                // return command;
+                return command;
             }
         }
         Command::default()
