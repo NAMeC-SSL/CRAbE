@@ -3,7 +3,7 @@ use crabe_framework::data::output::Command;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::{Ball, EnemyInfo, Robot, World};
 use crate::action::Action;
-use crate::action::move_to::MoveTo;
+use crate::action::move_to::{How, MoveTo};
 use crate::action::state::State;
 
 /// The `MoveTo` struct represents an action that moves the robot to a specific location on the field, with a given target orientation.
@@ -67,8 +67,10 @@ impl Action for BlockEnemy {
                 let target = BlockEnemy::compute_defend_point(enemy_info, ball, 0.75);
                 let orientation = BlockEnemy::look_towards(&target, &ball.position.xy());
                 let mut move_to = MoveTo::new(
+                    None,
                     target,
-                    orientation
+                    orientation,
+                    How::Fast
                 );
                 return move_to.compute_order(id, world, tools);
             }

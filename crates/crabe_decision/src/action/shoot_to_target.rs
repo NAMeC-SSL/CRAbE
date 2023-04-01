@@ -49,28 +49,28 @@ impl Action for ShootToTarget {
     }
 
     fn compute_order(&mut self, id: u8, world: &World, tools: &mut ToolData) -> Command {
-        if let Some(ball) = &world.ball {
-            if let Some(&ally) = &world.allies_bot.get(&id) {
-                let dist_to_ball = distance(&ball.position.xy(), &ally.pose.position);
-                let mut command = MoveTo::new(
-                    ball.position.xy(),
-                    ShootToTarget::look_towards(&ally.pose.position, &ball.position.xy())
-                );
-
-                if dist_to_ball <= 0.02 {
-                    // shoot
-
-                    Command {
-                        forward_velocity: 0.0,
-                        left_velocity: 0.0,
-                        angular_velocity: 0.0,
-                        charge: false,
-                        kick: None,
-                        dribbler: 0.0,
-                    }
-                }
-            }
-        }
+        // if let Some(ball) = &world.ball {
+        //     if let Some(&ally) = &world.allies_bot.get(&id) {
+        //         let dist_to_ball = distance(&ball.position.xy(), &ally.pose.position);
+        //         let mut command = MoveTo::new(
+        //             ball.position.xy(),
+        //             ShootToTarget::look_towards(&ally.pose.position, &ball.position.xy())
+        //         );
+        //
+        //         if dist_to_ball <= 0.02 {
+        //             // shoot
+        //
+        //             Command {
+        //                 forward_velocity: 0.0,
+        //                 left_velocity: 0.0,
+        //                 angular_velocity: 0.0,
+        //                 charge: false,
+        //                 kick: None,
+        //                 dribbler: 0.0,
+        //             }
+        //         }
+        //     }
+        // }
         Command::default()
     }
 }
