@@ -37,8 +37,8 @@ impl DiscreteField<CellData> {
         }
     }
 
-    pub fn idxs_to_coords(&self, i: i32, j: i32) -> Point2<f64> {
-        Point2::new(round(j as f64 * self.resolution - self.x_shift, 3), round(i as f64 * self.resolution - self.y_shift, 3))
+    pub fn idxs_to_coords(&self, j: i32, i: i32) -> Point2<f64> {
+        Point2::new(round(i as f64 * self.resolution - self.x_shift, 3), round(j as f64 * self.resolution - self.y_shift, 3))
     }
 
     pub fn coords_to_idxs(&self, coords: &Point2<f64>) -> (usize, usize) {

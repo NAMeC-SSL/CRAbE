@@ -508,7 +508,7 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
                     let next_pos = path.last().unwrap();
                     current_pos = current_pos + (next_pos - current_pos) / 2.0;
                 }
-                self.subcommand.update_through(current_pos);
+                self.subcommand.update_through(dbg!(current_pos));
 
                 return self.subcommand.compute_order(id, world, tools);
             }
