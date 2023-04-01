@@ -47,28 +47,7 @@ impl Strategy for Goalkeeper {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
-        let our_goal: Point2<f64> = match world.data.positive_half {
-            TeamColor::Blue => {
-                match world.team_color {
-                    TeamColor::Blue => {
-                        Point2::new(4.5 -0.2, 0.0)
-                    }
-                    TeamColor::Yellow => {
-                        Point2::new(-4.5 -0.2, 0.0)
-                    }
-                }
-            }
-            TeamColor::Yellow => {
-                match world.team_color {
-                    TeamColor::Blue => {
-                        Point2::new(-4.3, 0.0)
-                    }
-                    TeamColor::Yellow => {
-                        Point2::new(4.3, 0.0)
-                    }
-                }
-            }
-        };
+        let our_goal: Point2<f64> = Point2::new(-4.3, 0.0);
 
         action_wrapper.clean(self.id);
 
