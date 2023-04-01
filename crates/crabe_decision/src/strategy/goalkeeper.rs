@@ -91,12 +91,12 @@ impl Strategy for Goalkeeper {
 
 
         let mut cmd = MoveTo::new(None, Point2::new(our_goal.x, clamp(ball.position.y, -world.geometry.ally_goal.width/2.0, world.geometry.ally_goal.width/2.0)), robot_to_ball_angle, How::Goal).compute_order(self.id, world, tools_data);
-        if robot_to_ball.norm() < 0.20 && self.last_kick.elapsed() > Duration::from_secs(2) {
+        if robot_to_ball.norm() < 0.50 && self.last_kick.elapsed() > Duration::from_secs(2) {
             println!("GOING TO BALL");
-            cmd = MoveTo::new(None, ball.position.xy(), robot_to_ball_angle, How::Fast).compute_order(self.id, world, tools_data);
+            cmd = MoveTo::new(None, ball.position.xy(), robot_to_ball_angle, How::Goal).compute_order(self.id, world, tools_data);
             self.last_kick = Instant::now();
             cmd.kick = Some(Kick::StraightKick {
-                power: 0.5
+                power: 1.0
             });
         }
 

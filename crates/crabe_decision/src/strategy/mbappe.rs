@@ -99,16 +99,16 @@ impl Strategy for Mbappe {
         dbg!(&self.internal_state);
         match dbg!(&self.internal_state) {
             MbappeState::GoingBehindBall => {
-                if dbg!((behind_ball_pos - robot_pos).norm()) < 0.1 {
+                if (behind_ball_pos - robot_pos).norm() < 0.1 {
                     self.internal_state = MbappeState::GoingCloseBehindBall;
                 } else {
                     action_wrapper.push(self.id, MoveTo::new(None, behind_ball_pos, robot_to_goal_angle, How::Intersept));
                 }
             }
             MbappeState::GoingCloseBehindBall => {
-                if dbg!(robot_to_ball_distance) < 0.11 && dbg!(robot_to_ball_angle.abs()) < 3.0 {
+                if dbg!(robot_to_ball_distance) < 0.11 && dbg!(robot_to_ball_angle.abs()) < PI/3.0 {
                     println!("KICK");
-                    action_wrapper.push(self.id, Kick::new(KickType::StraightKick {power: 10.0}));
+                    action_wrapper.push(self.id, Kick::new(KickType::StraightKick {power: 1.0}));
                     self.internal_state = MbappeState::GoingBehindBall;
                 } else {
                     action_wrapper.push(self.id, MoveTo::new(None, close_after_ball_pos, robot_to_goal_angle, How::Intersept));
