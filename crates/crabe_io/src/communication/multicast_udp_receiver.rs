@@ -1,7 +1,10 @@
 use crate::constant::BUFFER_SIZE;
 use log::error;
 use std::io::Cursor;
-use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, UdpSocket};
+use std::io;
+use std::time::Duration;
+use socket2::{Domain, Protocol, SockAddr, Socket, Type};
 
 /// A struct that handles a Multicast UDP Receiver.
 pub struct MulticastUDPReceiver {
@@ -10,6 +13,11 @@ pub struct MulticastUDPReceiver {
     /// A buffer that is used to receive data from the socket without allocating
     /// new heap memory.
     buffer: [u8; BUFFER_SIZE],
+}
+
+#[cfg(unix)]
+fn bind_multicast(socket: &Socket, addr: &SocketAddr) -> io::Result<()> {
+    socket.bind(&socket2::SockAddr::from(*addr))
 }
 
 impl MulticastUDPReceiver {
@@ -45,17 +53,41 @@ impl MulticastUDPReceiver {
     /// address 224.5.23.2 and port 10020, which is the default grSim vision
     /// address and port.
     pub fn new(ip: Ipv4Addr, port: u16) -> Result<Self, Box<dyn std::error::Error>> {
-        let socket = UdpSocket::bind(SocketAddrV4::new(ip, port))?;
-
-        socket.join_multicast_v4(&ip, &Ipv4Addr::UNSPECIFIED)?;
-        socket.set_nonblocking(true)?;
+        // let socket = UdpSocket::bind(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, port))?;
+        //
+        // socket.join_multicast_v4(&ip, &Ipv4Addr::UNSPECIFIED)?;
+        // socket.set_nonblocking(true)?;
+        
+        if !ip.is_multicast() {
+            return Err(Box::new(io::Error::new(
+                io::ErrorKind::Other,
+                format!("expected multicast address for binding: {}", ip),
+            )));
+        }
+        
+        let socket = Socket::new(
+            Domain::IPV4,
+            Type::DGRAM,
+            Some(Protocol::UDP),
+        ).expect("ipv4 dgram socket");
+        socket.join_multicast_v4(&ip, &Ipv4Addr::new(0, 0, 0, 0)).expect("join_multicast_v4");
+        
+        // socket.set_nonblocking(true).expect("nonblocking Error");
+        socket.set_read_timeout(Some(Duration::from_secs(1))).expect("set read timeout error");
+        socket.set_reuse_address(true).expect("reuse addr Error");
+        #[cfg(unix)] // this is currently restricted to Unix's in socket2
+        {
+            // socket.set_reuse_port(true).expect("reuse port Error");
+        }
+        let sa = SocketAddr::V4(SocketAddrV4::new(ip, port));
+        bind_multicast(&socket, &sa).expect("bind Error");
 
         Ok(Self {
-            socket,
+            socket: socket.into(),
             buffer: [0u8; BUFFER_SIZE],
         })
     }
-
+    
     /// Attempts to receive a packet of type `T` from the socket and decode it
     /// using `prost`.
     ///

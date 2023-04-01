@@ -14,7 +14,7 @@ pub mod sequencer;
 /// The state module contains the State enum which represents the current state of an action.
 pub mod state;
 
-use crate::action::move_to::MoveTo;
+use crate::action::move_to::{MoveTo, MoveToStar};
 use crate::action::order_raw::RawOrder;
 use crate::action::sequencer::Sequencer;
 use crate::action::block_enemy::BlockEnemy;
@@ -42,6 +42,7 @@ pub trait Action {
 #[enum_dispatch]
 pub enum Actions {
     MoveTo(MoveTo),
+    MoveToStar(MoveToStar),
     RawOrder(RawOrder),
     BlockEnemy(BlockEnemy)
 }

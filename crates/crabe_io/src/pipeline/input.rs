@@ -9,7 +9,7 @@ use crabe_framework::data::output::FeedbackMap;
 #[derive(Args)]
 pub struct InputConfig {
     #[arg(long)]
-    gc: bool,
+    pub gc: bool,
 
     #[command(flatten)]
     #[command(next_help_heading = "Vision")]
@@ -30,14 +30,14 @@ pub struct InputPipeline {
 }
 
 impl InputPipeline {
-    pub fn with_config(input_cfg: InputConfig, common_cfg: &CommonConfig) -> Self {
+    pub fn with_config(input_cfg: &InputConfig, common_cfg: &CommonConfig) -> Self {
         let mut tasks: Vec<Box<dyn ReceiverTask>> = vec![Box::new(Vision::with_config(
-            input_cfg.vision_cfg,
+            &input_cfg.vision_cfg,
             common_cfg,
         ))];
 
         if input_cfg.gc {
-            tasks.push(Box::new(GameController::with_config(input_cfg.gc_cfg)));
+            tasks.push(Box::new(GameController::with_config(&input_cfg.gc_cfg)));
         }
 
         Self { receivers: tasks }

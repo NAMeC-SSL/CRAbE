@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use crate::data::{FilterData, TrackedBall, TrackedRobotMap};
 use crate::filter::Filter;
 use chrono::{DateTime, Utc};
@@ -6,15 +7,15 @@ use crabe_framework::data::world::{Ball, RobotMap, World};
 pub struct VelocityAccelerationFilter;
 
 fn get_duration_secs(t1: DateTime<Utc>, t2: DateTime<Utc>) -> Option<f64> {
-    let time = t2 - t1;
+    let time = t1 - t2;
     if let Ok(duration) = time.to_std() {
-        return Some(duration.as_secs_f64());
+        return Some(duration.as_millis() as f64 / 1_000.0 as f64);
     }
 
     return None;
 }
 
-fn update_robot_vel_accel<T>(tracked_robots: &mut TrackedRobotMap<T>, robots: &RobotMap<T>) {
+fn update_robot_vel_accel<T: Debug>(tracked_robots: &mut TrackedRobotMap<T>, robots: &RobotMap<T>) {
     tracked_robots.iter_mut().for_each(|(id, tracked)| {
         if let Some(robot) = robots.get(id) {
             if let Some(secs) =
@@ -29,6 +30,8 @@ fn update_robot_vel_accel<T>(tracked_robots: &mut TrackedRobotMap<T>, robots: &R
                 tracked.data.acceleration.linear = linear_diff / secs;
                 let angular_diff = tracked.data.velocity.angular - robot.velocity.angular;
                 tracked.data.acceleration.angular = angular_diff / secs;
+            } else {
+                println!("time between frames for robot {id} is negative");
             }
         }
     })

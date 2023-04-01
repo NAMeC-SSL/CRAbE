@@ -8,10 +8,11 @@ authors = ["NAMeC"]
 
 [dependencies]
 log = "0.4.17"
-clap = { version = "4.1.13", features = ["derive"] }
+clap = { version = "4.2.0", features = ["derive"] }
 nalgebra = "0.32.2"
 ringbuffer = "0.12.0"
 chrono="0.4.24"
 crabe_protocol = { path = "../crabe_protocol" }
 crabe_framework = { path = "../crabe_framework" }
 crabe_math = { path = "../crabe_math"}
+crabe_io = { path= "../crabe_io" }

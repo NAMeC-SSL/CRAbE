@@ -168,8 +168,8 @@ fn main() {
 
     let mut system = SystemBuilder::default()
         .world(World::with_config(&cli.common))
-        .input_component(InputPipeline::with_config(cli.input_config, &cli.common))
-        .filter_component(FilterPipeline::with_config(cli.filter_config, &cli.common))
+        .input_component(InputPipeline::with_config(&cli.input_config, &cli.common))
+        .filter_component(FilterPipeline::with_config(cli.filter_config, &cli.common, &cli.input_config))
         .decision_component(DecisionPipeline::with_config(
             cli.decision_config,
             &cli.common,

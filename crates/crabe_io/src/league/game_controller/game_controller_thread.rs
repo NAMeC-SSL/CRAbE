@@ -20,12 +20,13 @@ pub struct GameController {
 }
 
 impl GameController {
-    pub fn with_config(cli: GameControllerConfig) -> Self {
+    pub fn with_config(cli: &GameControllerConfig) -> Self {
         let (tx_gc, rx_gc) = mpsc::channel::<Referee>();
         let ipv4 = Ipv4Addr::from_str(cli.gc_ip.as_str())
             .expect("Failed to create an ipv4 address with the ip");
         let mut gc =
             MulticastUDPReceiver::new(ipv4, cli.gc_port).expect("Failed to create vision receiver");
+
         let running = Arc::new(AtomicBool::new(true));
         let running_clone = Arc::clone(&running);
 
@@ -35,6 +36,8 @@ impl GameController {
                     if let Err(e) = tx_gc.send(packet) {
                         error!("Error sending GameController packet: {:?}", e);
                     }
+                } else {
+                    println!("bruh");
                 }
             }
         });

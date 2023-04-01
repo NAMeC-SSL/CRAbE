@@ -39,7 +39,7 @@ mod detection {
                     },
                     ..Default::default()
                 });
-
+                robot.last_update = r.frame_info.t_capture;
                 robot.packets.push(r);
             })
         }
@@ -117,8 +117,16 @@ mod detection {
     }
 
     fn create_date_time(t_capture: f64) -> DateTime<Utc> {
-        match Utc.timestamp_opt((t_capture) as i64, 0) {
-            LocalResult::Single(dt) => dt,
+        let seconds = t_capture as i64;
+        let leftover_seconds = t_capture - (seconds as f64);
+        let nanos = leftover_seconds * 1_000_000_000.0;
+
+        match Utc.timestamp_opt((t_capture) as i64, nanos as u32) {
+            LocalResult::Single(dt) => {
+                dbg!(dt.timestamp_nanos());
+
+                dt
+            },
             LocalResult::None => {
                 let now_utc = Utc::now();
                 error!("Invalid timestamp, using current time: {}", now_utc);
@@ -140,7 +148,7 @@ mod detection {
         let frame_info = FrameInfo {
             camera_id: detection.camera_id,
             frame_number: detection.frame_number,
-            t_capture: create_date_time(detection.t_capture),
+            t_capture: Utc::now(),
         };
 
         let mut robot_detection_info = robot::RobotDetectionInfo {

@@ -7,6 +7,7 @@ use crabe_framework::config::CommonConfig;
 use crabe_framework::data::output::CommandMap;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
+use crate::manager::game_manager::Karen;
 
 /// The `DecisionConfig` struct is used to hold configuration options for the decision pipeline.
 #[derive(Args)]

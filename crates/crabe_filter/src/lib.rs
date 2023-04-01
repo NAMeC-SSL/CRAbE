@@ -8,6 +8,7 @@ use crate::data::FilterData;
 
 use crate::filter::passthrough::PassthroughFilter;
 use crate::filter::Filter;
+use crate::filter::velocity_acceleration::VelocityAccelerationFilter;
 use crate::post_filter::ball::BallFilter;
 use crate::post_filter::geometry::GeometryFilter;
 use crate::post_filter::robot::RobotFilter;
@@ -19,6 +20,10 @@ use crabe_framework::component::{Component, FilterComponent};
 use crabe_framework::config::CommonConfig;
 use crabe_framework::data::input::InboundData;
 use crabe_framework::data::world::{TeamColor, World};
+use crabe_io::pipeline::input::InputConfig;
+use crate::filter::inactive::InactiveFilter;
+use crate::post_filter::game_controller::GameControllerPostFilter;
+use crate::pre_filter::game_controller::GameControllerPreFilter;
 
 #[derive(Args)]
 pub struct FilterConfig {}
@@ -32,20 +37,30 @@ pub struct FilterPipeline {
 }
 
 impl FilterPipeline {
-    pub fn with_config(_config: FilterConfig, common_config: &CommonConfig) -> Self {
-        Self {
-            pre_filters: vec![Box::new(VisionFilter::new())],
-            filters: vec![Box::new(PassthroughFilter)],
-            post_filters: vec![
+    pub fn with_config(_config: FilterConfig, common_config: &CommonConfig, input_config: &InputConfig) -> Self {
+        let mut pre_filters: Vec<Box<dyn PreFilter>> = vec![Box::new(VisionFilter::new())];
+        let filters: Vec<Box<dyn Filter>> = vec![Box::new(PassthroughFilter), Box::new(VelocityAccelerationFilter), Box::new(InactiveFilter::default())];
+        let mut post_filters: Vec<Box<dyn PostFilter>> = vec![
                 Box::new(RobotFilter),
                 Box::new(GeometryFilter),
                 Box::new(BallFilter),
-            ],
+            ];
+
+        if input_config.gc {
+            pre_filters.push(Box::new(GameControllerPreFilter));
+            post_filters.push(Box::new(GameControllerPostFilter));
+        }
+
+        Self {
+            pre_filters,
+            filters,
+            post_filters,
             filter_data: FilterData {
                 allies: Default::default(),
                 enemies: Default::default(),
                 ball: Default::default(),
                 geometry: Default::default(),
+                referee: Default::default()
             },
             team_color: if common_config.yellow {
                 TeamColor::Yellow
