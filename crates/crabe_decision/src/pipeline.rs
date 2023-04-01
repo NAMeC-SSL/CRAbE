@@ -7,7 +7,7 @@ use crabe_framework::config::CommonConfig;
 use crabe_framework::data::output::CommandMap;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
-use crate::manager::game_manager::Karen;
+use crate::manager::game_manager::GameManager;
 
 /// The `DecisionConfig` struct is used to hold configuration options for the decision pipeline.
 #[derive(Args)]
@@ -28,7 +28,7 @@ impl DecisionPipeline {
     pub fn with_config(_decision_cfg: DecisionConfig, _common_cfg: &CommonConfig) -> Self {
         Self {
             action_wrapper: ActionWrapper::default(),
-            manager: Box::new(Manual::new()),
+            manager: Box::new(GameManager::new()),
         }
     }
 }

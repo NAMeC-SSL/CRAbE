@@ -5,6 +5,7 @@ use crate::strategy::Strategy;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::game_state::GameState;
 use crabe_framework::data::world::World;
+use crate::strategy::goalkeeper::Goalkeeper;
 use crate::strategy::testing::Square;
 
 /// The `Manual` struct represents a decision manager that executes strategies manually
@@ -14,12 +15,12 @@ use crate::strategy::testing::Square;
 /// To add a strategy, simply create a new instance of the desired strategy and add it to the
 /// `strategies` field in the `new()` method of the `Manual` struct.
 #[derive(Default)]
-pub struct Karen { // Karen says what to do lmao
+pub struct GameManager { // Karen says what to do lmao
     last_game_state: Option<GameState>,
     strategy: Option<Box<dyn Strategy>>,
 }
 
-impl Karen {
+impl GameManager {
     /// Creates a new `Manual` instance with the desired strategies to test.
     pub fn new() -> Self {
         Self {
@@ -29,7 +30,7 @@ impl Karen {
     }
 }
 
-impl Manager for Karen {
+impl Manager for GameManager {
     /// Executes the list of strategies on the given `World` data, `ToolData`, and `ActionWrapper`.
     fn step(
         &mut self,
@@ -49,8 +50,8 @@ impl Manager for Karen {
                 GameState::Halted(_) => {}
                 GameState::Stopped(_) => {}
                 GameState::Running(_) => {
-                    info!("setting strategy to square");
-                    self.strategy = Some(Box::new(Square::new(0)));
+                    info!("GameState::Running");
+                    self.strategy = Some(Box::new(Goalkeeper::new(0)));
                 }
             }
         }
