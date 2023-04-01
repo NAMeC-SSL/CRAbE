@@ -1,6 +1,7 @@
 mod discrete_field;
 
 use std::cmp::{max, Ordering};
+use crabe_math::shape::{Circle, Line, Rectangle};
 use std::collections::{HashMap, HashSet};
 use crate::action::state::State;
 use crate::action::Action;
@@ -12,8 +13,8 @@ use std::f64::consts::PI;
 use std::io::Write;
 use std::ops::Index;
 use std::time::{Duration, Instant};
-use log::{error, info};
-use discrete_field::{DiscreteField, Cursor, CellData};
+use log::{debug, error, info};
+use discrete_field::{DiscreteField, CellData};
 
 
 fn delta_angle(a: f64, b: f64) -> f64 {
@@ -308,7 +309,7 @@ pub struct MoveToStar {
 
 impl MoveToStar {
     pub fn new(dst: Point2<f64>, how: How, field_length: f64, field_width: f64) -> MoveToStar {
-        let res = 0.2;
+        let res = 0.4;
 
         Self {
             subcommand: MoveTo::new(None, dst, How::Accurate),
@@ -321,51 +322,108 @@ impl MoveToStar {
     }
 }
 
-fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
-                    start: (usize, usize),
-                    end: (usize, usize),
-) -> Option<Vec<(usize, usize)>> {
+use std::collections::BinaryHeap;
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Node {
+    f_score: f64,
+    coords: (usize, usize),
+}
+
+impl Eq for Node {}
+
+
+impl PartialOrd for Node {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        other.f_score.partial_cmp(&self.f_score)
+    }
+}
+
+impl Ord for Node {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+fn reconstruct_path(field: &Vec<Vec<CellData>>, start: (usize, usize), end: (usize, usize)) -> Option<Vec<(usize, usize)>> {
     let mut path = Vec::new();
     let mut current = end;
-    // dbg!(end);
-    let directions = [(-1, 0), (1, 0), (0, -1), (0, 1)];
-    while current != start {
-        path.push(current);
 
-        let mut min_g_score = std::f64::INFINITY;
-        let mut next_step = None;
+    while let Some(parent) = field[current.0][current.1].parent {
+        dbg!(parent);
+        path.push(current);
+        current = parent;
+    }
+
+    path.push(start);
+    path.reverse();
+    Some(path)
+}
+
+fn heuristic(a: (usize, usize), b: (usize, usize)) -> f64 {
+    (((b.0 as isize - a.0 as isize).abs() + (b.1 as isize - a.1 as isize).abs()) as f64)
+}
+
+fn a_star_search(field: &mut Vec<Vec<CellData>>, start: (usize, usize), end: (usize, usize)) -> Option<Vec<(usize, usize)>> {
+    let directions = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+    let mut open_list = BinaryHeap::new();
+
+    field[start.0][start.1].g_score = 0.0;
+    open_list.push(Node { f_score: field[start.0][start.1].g_score + heuristic(start, end), coords: start });
+
+    while let Some(node) = open_list.pop() {
+        error!("pop");
+        let current = node.coords;
+
+        if current == end {
+            return reconstruct_path(field, start, end);
+        }
+
+        field[current.0][current.1].visited = true;
 
         for &dir in directions.iter() {
             let neighbor_row = (current.0 as i32 + dir.0) as usize;
             let neighbor_col = (current.1 as i32 + dir.1) as usize;
-            if neighbor_row < field.len()
-                && neighbor_col < field[0].len()
-                && !field[neighbor_row][neighbor_col].visited
-            {
-                let g_score = field[neighbor_row][neighbor_col].g_score;
 
-                if g_score < min_g_score {
-                    min_g_score = g_score;
-                    next_step = Some((neighbor_row, neighbor_col));
-                    field[neighbor_row][neighbor_col].visited = true;
+            if neighbor_row < field.len() && neighbor_col < field[0].len() {
+                let tentative_g_score = field[current.0][current.1].g_score + field[neighbor_row][neighbor_col].cost;
+
+                if !field[neighbor_row][neighbor_col].visited  || tentative_g_score < field[neighbor_row][neighbor_col].g_score {
+                    field[neighbor_row][neighbor_col].g_score = tentative_g_score;
+                    field[neighbor_row][neighbor_col].parent = Some(current);
+                    let f_score = field[neighbor_row][neighbor_col].g_score + heuristic((neighbor_row, neighbor_col), end);
+                    open_list.push(Node { f_score, coords: (neighbor_row, neighbor_col) });
                 }
             }
         }
-
-        if let Some(step) = next_step {
-            current = step;
-        } else {
-            // No path found
-            return None;
-        }
     }
 
-    path.push(start);
-    // path.reverse();
-    Some(path)
+    None
 }
 
-    impl Action for MoveToStar {
+
+#[cfg(test)]
+mod test {
+    use crate::action::move_to::a_star_search;
+    use crate::action::move_to::discrete_field::CellData;
+
+    #[test]
+    fn test_astar() {
+        let mut field = vec![
+            vec![CellData::default(), CellData::default(), CellData::default()],
+            vec![CellData::default(), CellData::default(), CellData::default()],
+            vec![CellData::default(), CellData::default(), CellData::default()],
+        ];
+        let start = (0, 0);
+        let end = (2, 2);
+
+        let path = a_star_search(&mut field, start, end);
+
+        dbg!(path);
+    }
+}
+
+impl Action for MoveToStar {
     fn name(&self) -> String {
         "MoveToStar".to_string()
     }
@@ -401,7 +459,7 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
         // reset field values to default
         self.field.apply(|c| {
             c.g_score = 0.0;
-            c.weight = 0.0;
+            c.cost = 0.0;
             c.visited = false;
         });
 
@@ -418,11 +476,11 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
             // Add the cages as a zone with high weight
             if cell_pos.y >= -0.5 && cell_pos.y <= 0.5 && cell_pos.x <= -4.5 && cell_pos.x >= -4.7 {
                 let cell = &mut self.field.data[row_nb][col_nb];
-                cell.weight = cell.weight.max(10.0);
+                cell.cost = cell.cost.max(10.0);
             }
             if cell_pos.y >= -0.5 && cell_pos.y <= 0.5 && cell_pos.x >= 4.5 && cell_pos.x <= 4.7 {
                 let cell = &mut self.field.data[row_nb][col_nb];
-                cell.weight = cell.weight.max(10.0);
+                cell.cost = cell.cost.max(10.0);
             }
 
             for (_, r) in world.allies_bot.iter().filter(|(_id, _)| **_id != id) {
@@ -454,7 +512,7 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
                         t = 3.0 / (d / self.res);
                     }
                     let cell = &mut self.field.data[row_nb][col_nb];
-                    cell.weight = cell.weight.max(t);
+                    cell.cost = cell.cost.max(t);
                 }
             }
 
@@ -494,30 +552,31 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
         let src = self.field.coords_to_idxs(&robot.pose.position);
         let dst = self.field.coords_to_idxs(&self.dst);
 
-        let path = reconstruct_path(&mut self.field.data, src, dst);
+        let path = a_star_search(&mut self.field.data, src, dst);
 
         match path {
             Some(p) => {
-                self.field.print_with_path(&p);
-                let mut path: Vec<Point2<f64>> = p.into_iter().map(|(x, y)| self.field.idxs_to_coords(x as i32, y as i32)).collect();
+                self.field.print_with_path(&p[1..2].to_vec());
+                let path: Vec<Point2<f64>> = p.into_iter().map(|(x, y)| self.field.idxs_to_coords(x as i32, y as i32)).collect();
                 println!("Path found: {:?}", path);
+                println!("adding point");
+                tools.annotations.remove("next");
+                // tools.annotations.add_point("next".to_string(), dbg!(path[1]));
+                tools.annotations.add_circle("next".to_string(), Circle {
+                    center: path[1],
+                    radius: 0.5
+                });
 
-                // pop current pos
-                let mut current_pos = path.pop().unwrap();
-                if path.len() > 0 {
-                    let next_pos = path.last().unwrap();
-                    current_pos = current_pos + (next_pos - current_pos) / 2.0;
-                }
-                self.subcommand.update_through(dbg!(current_pos));
-
-                return self.subcommand.compute_order(id, world, tools);
+                return Command::default();
+                self.subcommand.update_through(dbg!(path[1]));
+                return dbg!(self.subcommand.compute_order(id, world, tools));
             }
             None => {
                 println!("No path found");
             }
         }
 
-        // self.internal_state = State::Failed;
+        self.internal_state = State::Failed;
 
         Command::default()
     }
