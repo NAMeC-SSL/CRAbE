@@ -6,6 +6,7 @@ use crabe_framework::data::world::{AllyInfo, Ball, EnemyInfo, Pose, Robot, Robot
 use crate::action::move_to::MoveTo;
 use crate::action::ActionWrapper;
 use crate::action::block_enemy::BlockEnemy;
+use crate::action::shoot_to_target::ShootToTarget;
 use crate::strategy::Strategy;
 
 #[derive(Default)]
@@ -82,7 +83,7 @@ impl Strategy for BlockDefense {
                 // TODO: look towards ball
                 dbg!(enemy_assigned.id);
                 // action_wrapper.push(dbg!(*ally_id), MoveTo::new(defend_point, 0.));
-                action_wrapper.push(dbg!(*ally_id), BlockEnemy::new(enemy_assigned.id));
+                action_wrapper.push(dbg!(*ally_id), ShootToTarget::new(enemy_assigned.id));
                 i += 1;
             }
             dbg!(i);

@@ -1,10 +1,11 @@
+use std::time::{Duration, Instant};
 use nalgebra::{distance, Point2};
-use crabe_framework::data::output::Command;
+use crabe_framework::data::output::{Command, Kick};
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
 use crate::action::Action;
 use crate::action::block_enemy::BlockEnemy;
-use crate::action::move_to::MoveTo;
+use crate::action::move_to::{How, MoveTo};
 use crate::action::state::State;
 
 #[derive(Clone)]
@@ -12,14 +13,18 @@ pub struct ShootToTarget {
     /// The current state of the action.
     state: State,
     /// The target position to shoot towards.
-    shoot_target: Point2<f64>
+    shoot_target: Point2<f64>,
+    /// Last time the command has pushed a kick
+    kick_time: Instant
+
 }
 
 impl From<&mut ShootToTarget> for ShootToTarget {
     fn from(other: &mut ShootToTarget) -> ShootToTarget {
         ShootToTarget {
             state: other.state,
-            shoot_target: other.shoot_target
+            shoot_target: other.shoot_target,
+            kick_time: other.kick_time
         }
     }
 }
@@ -28,7 +33,8 @@ impl ShootToTarget {
     pub fn new(shoot_target: Point2<f64>) -> Self {
         ShootToTarget {
             state: State::Running,
-            shoot_target
+            shoot_target,
+            kick_time: Instant::now()
         }
     }
 
@@ -49,28 +55,32 @@ impl Action for ShootToTarget {
     }
 
     fn compute_order(&mut self, id: u8, world: &World, tools: &mut ToolData) -> Command {
-        // if let Some(ball) = &world.ball {
-        //     if let Some(&ally) = &world.allies_bot.get(&id) {
-        //         let dist_to_ball = distance(&ball.position.xy(), &ally.pose.position);
-        //         let mut command = MoveTo::new(
-        //             ball.position.xy(),
-        //             ShootToTarget::look_towards(&ally.pose.position, &ball.position.xy())
-        //         );
-        //
-        //         if dist_to_ball <= 0.02 {
-        //             // shoot
-        //
-        //             Command {
-        //                 forward_velocity: 0.0,
-        //                 left_velocity: 0.0,
-        //                 angular_velocity: 0.0,
-        //                 charge: false,
-        //                 kick: None,
-        //                 dribbler: 0.0,
-        //             }
-        //         }
-        //     }
-        // }
+        if let Some(ball) = &world.ball {
+            if let Some(ally) = &world.allies_bot.get(&id) {
+                let dist_to_ball = distance(&ball.position.xy(), &ally.pose.position);
+                let mut base_command = MoveTo::new(
+                    None,
+                    ball.position.xy(),
+                    ShootToTarget::look_towards(&ally.pose.position, &ball.position.xy()),
+                    How::Fast
+                );
+                let mut command =  base_command.compute_order(id, world, tools);
+
+                if dist_to_ball <= 0.02 {
+                    // shoot if time elapsed is okay
+                    if self.kick_time.elapsed() >= Duration::from_secs(2) {
+                        command.kick = Option::from(Kick::StraightKick { power: 0.9 });
+                    }
+                } else if dist_to_ball <= 0.1 {
+                    // dribble
+                    command.dribbler = 1.0;
+                } else {
+                    base_command.update_target(ball.position.xy());
+                    command = base_command.compute_order(id, world, tools);
+                }
+                // return command;
+            }
+        }
         Command::default()
     }
 }

@@ -64,7 +64,7 @@ impl Action for BlockEnemy {
         let ball_opt = &world.ball;
         if let Some(enemy_info) = enemy_info_opt {
             if let Some(ball) = ball_opt {
-                let target = BlockEnemy::compute_defend_point(enemy_info, ball, 0.75);
+                let target = BlockEnemy::compute_defend_point(enemy_info, ball, 0.25);
                 let orientation = BlockEnemy::look_towards(&target, &ball.position.xy());
                 let mut move_to = MoveTo::new(
                     None,
