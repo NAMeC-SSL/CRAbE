@@ -45,6 +45,7 @@ pub enum How {
 
 pub struct MoveTo {
     through: Point2<f64>,
+    angle: f64,
     has_through: bool,
     dst: Point2<f64>,
     xy_speed: RampSpeed,
@@ -57,9 +58,10 @@ pub struct MoveTo {
 }
 
 impl MoveTo {
-    pub fn new(through: Option<Point2<f64>>, dst: Point2<f64>, how: How) -> MoveTo {
+    pub fn new(through: Option<Point2<f64>>, dst: Point2<f64>, angle: f64, how: How) -> MoveTo {
         let mut moveto = MoveTo {
             dst,
+            angle,
             through: through.unwrap_or(dst),
             xy_speed: RampSpeed::new(0.0, 0.0, 0.0, 0.0),
             angle_speed: RampSpeed::new(0.0, 0.0, 0.0, 0.0),
@@ -176,7 +178,7 @@ impl Action for MoveTo {
             }
         }
 
-        let dt = delta_angle(robot.pose.orientation, 0.0);
+        let dt = delta_angle(robot.pose.orientation, self.angle);
         if dt.abs() < self.angle_hyst {
             angl_ok = true;
             cmd.angular_velocity = 0.0;
@@ -312,7 +314,7 @@ impl MoveToStar {
         let res = 0.4;
 
         Self {
-            subcommand: MoveTo::new(None, dst, How::Accurate),
+            subcommand: MoveTo::new(None, dst, 0.0, How::Accurate),
             how,
             dst,
             internal_state: State::Running,
