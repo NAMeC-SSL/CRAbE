@@ -1,4 +1,5 @@
 use serde::{Serialize};
+use crate::data::world::TeamColor;
 
 #[derive(Serialize, Copy, Clone, Debug, Eq, PartialEq)]
 #[serde(rename_all="camelCase")]
@@ -27,7 +28,7 @@ pub enum StoppedState {
 #[derive(Serialize, Copy, Clone, Debug, Eq, PartialEq)]
 #[serde(rename_all="camelCase")]
 pub enum RunningState {
-    KickOff,
+    KickOff(TeamColor),
     Penalty,
     FreeKick,
     Run

@@ -48,7 +48,7 @@ impl FilterPipeline {
 
         if input_config.gc {
             pre_filters.push(Box::new(GameControllerPreFilter));
-            post_filters.push(Box::new(GameControllerPostFilter));
+            post_filters.push(Box::new(GameControllerPostFilter::default()));
         }
 
         Self {
