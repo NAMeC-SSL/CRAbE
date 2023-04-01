@@ -47,6 +47,11 @@ impl BlockEnemy {
         dbg!(defend_point)
     }
 
+    fn look_towards(start: &Point2<f64>, end: &Point2<f64>) -> f64 {
+        let y = end.y - start.y;
+        let x = end.x - start.x;
+        y.atan2(x)
+    }
 }
 
 impl Action for BlockEnemy {
@@ -59,10 +64,11 @@ impl Action for BlockEnemy {
         let ball_opt = &world.ball;
         if let Some(enemy_info) = enemy_info_opt {
             if let Some(ball) = ball_opt {
-                dbg!(ball);
+                let target = BlockEnemy::compute_defend_point(enemy_info, ball, 0.75);
+                let orientation = BlockEnemy::look_towards(&target, &ball.position.xy());
                 let mut move_to = MoveTo::new(
-                    BlockEnemy::compute_defend_point(enemy_info, ball, 0.75),
-                    0.
+                    target,
+                    orientation
                 );
                 return move_to.compute_order(id, world, tools);
             }
