@@ -37,12 +37,12 @@ impl DiscreteField<CellData> {
         }
     }
 
-    pub fn cell_to_coords(&self, i: i32, j: i32) -> Point2<f64> {
-        Point2::new(round(i as f64 * self.resolution - self.x_shift, 3), round(j as f64 * self.resolution - self.y_shift, 3))
+    pub fn idxs_to_coords(&self, i: i32, j: i32) -> Point2<f64> {
+        Point2::new(round(j as f64 * self.resolution - self.x_shift, 3), round(i as f64 * self.resolution - self.y_shift, 3))
     }
 
-    pub fn coords_to_cell(&self, coords: &Point2<f64>) -> (usize, usize) {
-        (((coords.x + self.x_shift) / self.resolution) as usize, ((coords.y + self.y_shift) / self.resolution) as usize)
+    pub fn coords_to_idxs(&self, coords: &Point2<f64>) -> (usize, usize) {
+        (round((coords.y + self.y_shift) / self.resolution, 3) as usize, round((coords.x + self.x_shift) / self.resolution, 3) as usize)
     }
 
     pub fn apply(&mut self, f: fn(&mut CellData)) {
@@ -135,6 +135,74 @@ impl DiscreteField<CellData> {
             heatmap.write_all(b"\n\n").unwrap();
         }
     }
+
+    pub fn print_with_path(&self, path: &Vec<(usize, usize)>) {
+        let mode = 1;
+        let mut data = self.data.clone();
+
+        let mut heatmap = std::fs::File::create("./test_astar.ppm").unwrap();
+        heatmap.write_all(b"P3\n").unwrap();  // Portable pixel map mode
+        heatmap.write_all(format!("{} {}\n", self.x_len, self.y_len - 1).as_bytes()).unwrap();  // Size of file
+        heatmap.write_all(b"255\n").unwrap();  // Max number of color
+        let mut range = 10.0;
+        let mut alpha = 0.0;
+        for j in (0..self.y_len as usize).rev()  {
+            for i in 0..self.x_len as usize {
+                // if data[j as usize][i as usize].weight.is_nan() {
+                //     data[j as usize][i as usize].weight = 0.0;
+                // }
+                if mode == 1 {
+                    if data[j][i].weight < 0.5 {
+                        data[j][i].weight = 0.0;
+                    } else if data[j][i].weight >= 0.5 && data[j][i].weight < 1.5 {
+                        data[j][i].weight = 1.0;
+                    } else if data[j][i].weight >= 1.5 && data[j][i].weight < 2.5 {
+                        data[j][i].weight = 2.0;
+                    } else if data[j][i].weight >= 2.5 && data[j][i].weight < 3.5 {
+                        data[j][i].weight = 3.0;
+                    } else if data[j][i].weight >= 3.5 && data[j][i].weight < 4.5 {
+                        data[j][i].weight = 4.0;
+                    } else if data[j][i].weight >= 4.5 && data[j][i].weight < 5.5 {
+                        data[j][i].weight = 5.0;
+                    } else if data[j][i].weight >= 5.5 && data[j][i].weight < 6.5 {
+                        data[j][i].weight = 6.0;
+                    } else if data[j][i].weight >= 6.5 && data[j][i].weight < 7.5 {
+                        data[j][i].weight = 7.0;
+                    } else if data[j][i].weight >= 7.5 && data[j][i].weight < 8.5 {
+                        data[j][i].weight = 8.0;
+                    } else if data[j][i].weight >= 8.5 && data[j][i].weight < 9.5 {
+                        data[j][i].weight = 9.0;
+                    } else if data[j][i].weight >= 9.5 {
+                        data[j][i].weight = 10.0;
+                    }
+
+                    alpha = (range - data[j][i].weight).abs() / range;
+                } else if mode == 0 {
+                    if data[j][i].weight > 0.00001 && data[j][i].weight <= 10.0 {
+                        alpha = (range - data[j][i].weight).abs() / range;
+                    }
+                } else {
+                    println!("Incorrect mode for ppm");
+                }
+
+                let (mut R, mut G, mut B) = (0, 0, 0);
+                if data[j][i].weight >= 9.5 {
+                    R = 0;
+                    G = 0;
+                    B = 255;
+                } else {
+                    R = (alpha * 200. + (1. - alpha) * 255.0) as i32;
+                    G = (alpha * 200. + (1. - alpha) * 0.0) as i32;
+                    B = (alpha * 200. + (1. - alpha) * 0.0) as i32;
+                }
+                if path.contains(&(j, i)) {
+                    G = 255;
+                }
+                heatmap.write_all(format!("{:3} {:3} {:3} ", R, G, B).as_bytes()).unwrap();
+            }
+            heatmap.write_all(b"\n\n").unwrap();
+        }
+    }
 }
 
 // impl Deref for DiscreteField<CellData> {
@@ -196,7 +264,7 @@ impl<'a> Cursor<'a> {
         self.i = ni;
         self.j = nj;
 
-        self.pos = self.field.cell_to_coords(self.i, self.j);
+        self.pos = self.field.idxs_to_coords(self.i, self.j);
     }
 
     pub fn around(&self) -> Vec<Self> {
@@ -277,3 +345,33 @@ impl Hash for Cursor<'_> {
 //         todo!()
 //     }
 //
+
+#[cfg(test)]
+mod test {
+    use nalgebra::Point2;
+    use crate::action::move_to::discrete_field::DiscreteField;
+
+    #[test]
+    fn check_conversion() {
+        let field = DiscreteField::new(0.2, 9.0, 6.0);
+
+        let p = (1, 2);
+        let p_ = field.idxs_to_coords(p.0 as i32, p.1 as i32);
+        let c = field.coords_to_idxs(&p_);
+
+        assert!(dbg!(p) == dbg!(c));
+
+        let p = (0, 0);
+        let p_ = field.idxs_to_coords(p.0 as i32, p.1 as i32);
+        let c = field.coords_to_idxs(&p_);
+
+        assert!(dbg!(p) == dbg!(c));
+
+        let p = (5, 7);
+        let p_ = field.idxs_to_coords(p.0 as i32, p.1 as i32);
+        let c = field.coords_to_idxs(&p_);
+
+        assert!(dbg!(p) == dbg!(c));
+    }
+
+}

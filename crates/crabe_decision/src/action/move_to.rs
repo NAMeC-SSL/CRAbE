@@ -308,7 +308,7 @@ pub struct MoveToStar {
 
 impl MoveToStar {
     pub fn new(dst: Point2<f64>, how: How, field_length: f64, field_width: f64) -> MoveToStar {
-        let res = 0.1;
+        let res = 0.2;
 
         Self {
             subcommand: MoveTo::new(None, dst, How::Accurate),
@@ -327,12 +327,12 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
 ) -> Option<Vec<(usize, usize)>> {
     let mut path = Vec::new();
     let mut current = end;
+    // dbg!(end);
     let directions = [(-1, 0), (1, 0), (0, -1), (0, 1)];
     while current != start {
         path.push(current);
 
-
-        let mut min_g_score = std::f64::NEG_INFINITY;
+        let mut min_g_score = std::f64::INFINITY;
         let mut next_step = None;
 
         for &dir in directions.iter() {
@@ -344,7 +344,7 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
             {
                 let g_score = field[neighbor_row][neighbor_col].g_score;
 
-                if g_score > min_g_score {
+                if g_score < min_g_score {
                     min_g_score = g_score;
                     next_step = Some((neighbor_row, neighbor_col));
                     field[neighbor_row][neighbor_col].visited = true;
@@ -361,7 +361,7 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
     }
 
     path.push(start);
-    path.reverse();
+    // path.reverse();
     Some(path)
 }
 
@@ -409,7 +409,7 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
 
         for (row_nb, row) in self.field.data.iter().enumerate() {
             for (col_nb, _cell) in row.iter().enumerate() {
-                let cell_pos = self.field.cell_to_coords(col_nb as i32, row_nb as i32);
+                let cell_pos = self.field.idxs_to_coords(row_nb as i32, col_nb as i32);
                 cell_positions.push((row_nb, col_nb, cell_pos));
             }
         }
@@ -427,84 +427,85 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
 
             for (_, r) in world.allies_bot.iter().filter(|(_id, _)| **_id != id) {
                 if r.velocity.linear.norm() > 0.5 {
-                    let d1 = r.distance(&cell_pos);
-                    let mut time = Duration::from_nanos((d1 * 10.0f64.powi(9)) as u64); // sumimasen wat the fuck
-                    if time > Duration::from_secs(1) {
-                        time = Duration::from_secs(1);
-                    }
-                    let f2: Point2<f64> = r.position_in(time);
-                    let d2 = distance(&f2, &cell_pos);
-                    let e = r.distance(&f2);
-                    let v = (d1 + d2) * (d1 + d2);
-                    let mut t = 10.0;
-                    if d1 > self.res {
-                        t = 10.0 / (0.9 * v); // 0.9 is totally arbitrary (TODO base the
-                        // coefficient on non-empirical data)
-                        // It is remarkable that the weight of the enemies is higher than
-                        // the weight of the allies. ie a robot is more inclined to pass
-                        // close to its allies (at the risk of touching it) than to pass
-                        // close to the enemies (because the collision can cause a foul)
-                    }
-                    let cell = &mut self.field.data[row_nb][col_nb];
-                    cell.weight = cell.weight.max(t);
+                    // let d1 = r.distance(&cell_pos);
+                    // let mut time = Duration::from_nanos((d1 * 10.0f64.powi(9)) as u64); // sumimasen wat the fuck
+                    // if time > Duration::from_secs(1) {
+                    //     time = Duration::from_secs(1);
+                    // }
+                    // let f2: Point2<f64> = r.position_in(time);
+                    // let d2 = distance(&f2, &cell_pos);
+                    // let e = r.distance(&f2);
+                    // let v = (d1 + d2) * (d1 + d2);
+                    // let mut t = 10.0;
+                    // if d1 > self.res {
+                    //     t = 10.0 / (0.9 * v); // 0.9 is totally arbitrary (TODO base the
+                    //     // coefficient on non-empirical data)
+                    //     // It is remarkable that the weight of the enemies is higher than
+                    //     // the weight of the allies. ie a robot is more inclined to pass
+                    //     // close to its allies (at the risk of touching it) than to pass
+                    //     // close to the enemies (because the collision can cause a foul)
+                    // }
+                    // let cell = &mut self.field.data[row_nb][col_nb];
+                    // cell.weight = cell.weight.max(t);
                 } else {
                     let d = r.distance(&cell_pos);
                     let mut t = 10.0;
                     if d > self.res {
-                        t = 10.0 / (d / self.res);
+                        t = 3.0 / (d / self.res);
                     }
                     let cell = &mut self.field.data[row_nb][col_nb];
                     cell.weight = cell.weight.max(t);
                 }
             }
 
-            for (_, r) in world.enemies_bot.iter() {
-                if r.velocity.linear.norm() > 0.5 {
-                    let d1 = r.distance(&cell_pos);
-                    let mut time = Duration::from_nanos((d1 * 10.0f64.powi(9)) as u64); // sumimasen wat the fuck
-                    if time > Duration::from_secs(1) {
-                        time = Duration::from_secs(1);
-                    }
-                    let f2: Point2<f64> = r.position_in(time);
-                    let d2 = distance(&f2, &cell_pos);
-                    let e = r.distance(&f2);
-                    let v = (d1 + d2) * (d1 + d2);
-                    let mut t = 10.0;
-                    if d1 > self.res {
-                        t = 10.0 / (0.5 * v); // 0.6 is totaly arbitrary (TODO base the coefficient on
-                        // non-empirical data)
-                    }
-                    let cell = &mut self.field.data[row_nb][col_nb];
-                    cell.weight = cell.weight.max(t);
-                } else {
-                    let d = r.distance(&cell_pos);
-                    let mut t = 10.0;
-                    if d > self.res {
-                        t = 10.0 / (d / self.res);
-                    }
-                    let cell = &mut self.field.data[row_nb][col_nb];
-                    cell.weight = cell.weight.max(t);
-                }
-            }
+            // for (_, r) in world.enemies_bot.iter() {
+            //     if r.velocity.linear.norm() > 0.5 {
+            //         let d1 = r.distance(&cell_pos);
+            //         let mut time = Duration::from_nanos((d1 * 10.0f64.powi(9)) as u64); // sumimasen wat the fuck
+            //         if time > Duration::from_secs(1) {
+            //             time = Duration::from_secs(1);
+            //         }
+            //         let f2: Point2<f64> = r.position_in(time);
+            //         let d2 = distance(&f2, &cell_pos);
+            //         let e = r.distance(&f2);
+            //         let v = (d1 + d2) * (d1 + d2);
+            //         let mut t = 10.0;
+            //         if d1 > self.res {
+            //             t = 10.0 / (0.5 * v); // 0.6 is totaly arbitrary (TODO base the coefficient on
+            //             // non-empirical data)
+            //         }
+            //         let cell = &mut self.field.data[row_nb][col_nb];
+            //         cell.weight = cell.weight.max(t);
+            //     } else {
+            //         let d = r.distance(&cell_pos);
+            //         let mut t = 10.0;
+            //         if d > self.res {
+            //             t = 10.0 / (d / self.res);
+            //         }
+            //         let cell = &mut self.field.data[row_nb][col_nb];
+            //         cell.weight = cell.weight.max(t);
+            //     }
+            // }
         }
 
-        self.field.print();
+        // self.field.print();
 
 
-        let src = self.field.coords_to_cell(&robot.pose.position);
-        let dst = self.field.coords_to_cell(&self.dst);
+        let src = self.field.coords_to_idxs(&robot.pose.position);
+        let dst = self.field.coords_to_idxs(&self.dst);
 
         let path = reconstruct_path(&mut self.field.data, src, dst);
 
         match path {
             Some(p) => {
-                let mut path: Vec<Point2<f64>> = p.into_iter().map(|(x, y)| self.field.cell_to_coords(x as i32, y as i32)).collect();
-                // println!("Path found: {:?}", path);
+                self.field.print_with_path(&p);
+                let mut path: Vec<Point2<f64>> = p.into_iter().map(|(x, y)| self.field.idxs_to_coords(x as i32, y as i32)).collect();
+                println!("Path found: {:?}", path);
 
                 // pop current pos
                 let mut current_pos = path.pop().unwrap();
                 if path.len() > 0 {
-                    let next_pos = dbg!(path.last().unwrap());
+                    let next_pos = path.last().unwrap();
                     current_pos = current_pos + (next_pos - current_pos) / 2.0;
                 }
                 self.subcommand.update_through(current_pos);
