@@ -36,14 +36,14 @@ impl BlockEnemy {
             Vector2::new(
                 ball.position.x - enemy.pose.position.x,
                 ball.position.y - enemy.pose.position.y,
-            )
+            ) * defend_dist_mult
         ;
 
         // Using the vector from enemy robot to the ball, we create a Translation
         // object that will allow to to translate a point using the given vector
         let translation = Translation2::from(vec_before_enn);
         // Using this translation object, we can compute the new point
-        let defend_point = translation.transform_point(&enemy.pose.position) * defend_dist_mult;
+        let defend_point = translation.transform_point(&enemy.pose.position);
         dbg!(defend_point)
     }
 
@@ -59,6 +59,7 @@ impl Action for BlockEnemy {
         let ball_opt = &world.ball;
         if let Some(enemy_info) = enemy_info_opt {
             if let Some(ball) = ball_opt {
+                dbg!(ball);
                 let mut move_to = MoveTo::new(
                     BlockEnemy::compute_defend_point(enemy_info, ball, 0.75),
                     0.
