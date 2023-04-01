@@ -2,6 +2,9 @@
 pub mod move_to;
 /// The `block_enemy` module consists of putting our robot between the ball and an enemy robot
 pub mod block_enemy;
+/// Allows to shoot towards a target, by dribbling
+pub mod shoot_to_target;
+
 /// The `order_raw` module contains the `RawOrder` action which sends a raw command to the robot.
 pub mod order_raw;
 
