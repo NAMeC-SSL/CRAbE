@@ -51,7 +51,7 @@ impl Real {
 
 impl CommandSenderTask for Real {
     fn step(&mut self, commands: CommandMap) -> FeedbackMap {
-        dbg!(&commands);
+        &commands;
         if commands.len() > 16 {
             error!("Capacity oversize for the commands !");
             Default::default()

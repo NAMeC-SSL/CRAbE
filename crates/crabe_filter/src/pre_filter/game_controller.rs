@@ -19,6 +19,7 @@ impl PreFilter for GameControllerPreFilter {
         filter_data: &mut FilterData,
     ) {
         // TODO: this allocates a ton
+        dbg!(&inbound_data.gc_packet);
         filter_data.referee.extend(inbound_data.gc_packet.iter().map(|p| p.clone()));
     }
 }

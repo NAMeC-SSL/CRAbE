@@ -4,18 +4,89 @@ use crabe_framework::data::world::game_state::{GameState, HaltedState, RunningSt
 use crate::data::FilterData;
 use crate::post_filter::PostFilter;
 use crabe_framework::data::world::{TeamColor, World};
+use crabe_protocol::protobuf::game_controller_packet::game_event::Event;
 use crabe_protocol::protobuf::game_controller_packet::Referee;
 use crabe_protocol::protobuf::game_controller_packet::referee::Command;
+use crate::data::event::GameEvent;
+use crate::data::referee::RefereeCommand;
 use crate::data::referee::RefereeCommand::Stop;
 
 #[derive(Default)]
 pub struct GameControllerPostFilter {
+    previous_game_event: crabe_protocol::protobuf::game_controller_packet::GameEvent,
+    previous_event: Option<Event>,
     chrono: Option<Instant>
+}
+
+impl GameControllerPostFilter {
+    fn halt_state_branch(world: &mut World) {
+        // Halt event, all robots should stop
+        // Done: 2/2
+        // consider that timeout is equivalent to normal halt
+        world.data.state = GameState::Halted(HaltedState::Halt);
+        println!("Stop all robots");
+    }
+
+    fn stop_state_branch(previous_event_opt: &Option<Event>, world: &mut World) {
+        // TODO: 1/4
+        if let Some(previous_event) = previous_event_opt {
+            match previous_event {
+                // Goal has been marked, prepare for next kickoff phase
+                Event::Goal { .. } => {
+                    world.data.state = GameState::Stopped(StoppedState::PrepareKickoff);
+                    println!("Prepare for kickoff");
+                }
+
+
+                &_ => {}
+            }
+        } else {
+            // Particularly, it should be None when we just started the match
+            // Thus, it's a kickoff
+            world.data.state = GameState::Stopped(StoppedState::PrepareKickoff);
+        }
+    }
+
+    fn normal_start_state_branch(previous_event_opt: &Option<Event>, world: &mut World, mut chrono: Option<Instant>) {
+        if let Some(previous_event) = previous_event_opt {
+            match previous_event {
+                Event::Goal { .. } => {
+                    // Kickoff is in progress by a team, place accordingly on your side
+                    // 10s until we go into normal state
+                    if let Some(chrono) = chrono {
+                        println!("Kickoff in progress ! It lasts for 10s at most");
+                        if chrono.elapsed() > std::time::Duration::from_secs(10) {
+                            let kickoff_team = previous_event; //todo: fetch kicker team
+                            world.data.state = GameState::Running(RunningState::KickOff(TeamColor::Blue));
+                        }
+                    } else {
+                        println!("Running normally after kickoff");
+                        // start chrono
+                        chrono = Some(Instant::now());
+                        world.data.state = GameState::Running(RunningState::Run);
+                    }
+
+                }
+
+                &_ => {
+                    // Just play the game when no particular state is found
+                        // - what's your problem green ?
+                        // - me said alone ramp, me said alone ramp
+                        // - (proceeds to destroy his table)
+                    world.data.state = GameState::Running(RunningState::Run);
+                }
+            }
+        } else {
+            println!("Play by default");
+            world.data.state = GameState::Running(RunningState::Run);
+        }
+    }
 }
 
 impl PostFilter for GameControllerPostFilter {
     fn step(&mut self, filter_data: &FilterData, world: &mut World) {
 
+        // grab data
         let last_referee_packet = match filter_data.referee.last() {
             None => {
                 return;
@@ -23,118 +94,138 @@ impl PostFilter for GameControllerPostFilter {
             Some(r) => r
         };
 
-        let last_game_event =  last_referee_packet.game_events.last();
+        // Note de journal: 4h44
+        // - touche une pute :D
+        dbg!(last_referee_packet.game_events.last());
+        let ref_command = last_referee_packet.command();
 
-        let referee_command = last_referee_packet.command();
+        // dbg!(&ref_command);
+        // dbg!(&last_game_event_opt);
 
-        if let Some(blue_team_on_positive_half) = last_referee_packet.blue_team_on_positive_half {
-            if blue_team_on_positive_half {
-               world.data.positive_half = TeamColor::Blue
-            } else {
-                world.data.positive_half = TeamColor::Yellow
-            }
-        };
-
-        // from any state
-        if let Command::Halt = referee_command {
-            world.data.state = GameState::Halted(HaltedState::Halt);
-        }
-
-        match referee_command {
-            Command::Halt => {
-                world.data.state = GameState::Halted(HaltedState::Halt);
-            }
-            Command::Stop => {
-                world.data.state = GameState::Stopped(StoppedState::Stop);
-            }
+        match ref_command {
+            Command::Halt => GameControllerPostFilter::halt_state_branch(world),
+            Command::Stop => GameControllerPostFilter::stop_state_branch(&self.previous_event, world),
+            Command::NormalStart => GameControllerPostFilter::normal_start_state_branch(&self.previous_event, world, self.chrono),
             _ => {}
         }
 
-        let mut kicker_team = None;
-
-        match &world.data.state {
-            GameState::Halted(_) => {
-            }
-            GameState::Stopped(stopped_state) => {
-                match stopped_state {
-                    StoppedState::Stop => {
-                        // TODO: prepare kickoffs :(
-                        match referee_command {
-                            Command::ForceStart => {
-                                world.data.state = GameState::Running(RunningState::Run);
-                            }
-                            Command::PrepareKickoffBlue => {
-                                kicker_team = Some(TeamColor::Blue);
-                                if world.team_color == TeamColor::Blue {
-                                    world.data.state = GameState::Stopped(StoppedState::PrepareKickoff);
-                                } else {
-                                    world.data.state = GameState::Stopped(StoppedState::Stop);
-                                }
-                            }
-                            Command::PrepareKickoffYellow => {
-                                kicker_team = Some(TeamColor::Yellow);
-                                if world.team_color == TeamColor::Yellow {
-                                    world.data.state = GameState::Stopped(StoppedState::PrepareKickoff);
-                                } else {
-                                    world.data.state = GameState::Stopped(StoppedState::Stop);
-                                }
-                            }
-                            Command::PreparePenaltyBlue => {}
-                            Command::PreparePenaltyYellow => {}
-                            Command::NormalStart => {
-                                world.data.state = GameState::Running(RunningState::KickOff(kicker_team.unwrap_or(TeamColor::Blue))); // FIX THIS auto color under too
-                            }
-                            _ => {}
-                        }
-                    }
-                    StoppedState::PrepareKickoff => {
-                        if let Command::NormalStart = referee_command {
-                            world.data.state = GameState::Running(RunningState::KickOff(kicker_team.unwrap_or(TeamColor::Blue)));
-                        }
-                    }
-                    StoppedState::PreparePenalty => {
-                        if let Command::NormalStart = referee_command {
-                            world.data.state = GameState::Running(RunningState::KickOff(kicker_team.unwrap_or(TeamColor::Blue)));
-                        }
-                    }
-                    StoppedState::BallPlacement => {
-                        // TODO: what the fuck ?
-                        // if let Command::Continue {
-                        //     world.data.state = GameState::Running(RunningState::KickOff);
-                        // }
-                    }
-                }
-            }
-            GameState::Running(running_state) => {
-                match running_state {
-                    RunningState::KickOff(_) => {
-                        if let Some(ball) = &world.ball {
-                            if ball.velocity.xy().norm() > 0.3 {
-                                world.data.state = GameState::Running(RunningState::Run);
-                            }
-                        }
-                        if let Some(chrono) = &self.chrono {
-                            if chrono.elapsed() > std::time::Duration::from_secs(10) {
-                                world.data.state = GameState::Running(RunningState::Run);
-                            }
-                        } else {
-                            // start chrono
-                            self.chrono = Some(Instant::now());
-                        }
-                        // if let Command::AfterXSecondsOrIfBallMoved {
-                        //     world.data.state = GameState::Running(RunningState::Run);
-                        // }
-                    }
-                    RunningState::FreeKick => {
-                        // if let Command::AfterXSecondsOrIfBallMoved {
-                        //     world.data.state = GameState::Running(RunningState::Run);
-                        // }
-                    }
-                    _ => {}
-                }
-            }
+        // Update previous gamestate & event
+        if let Some(previous_game_event) = last_referee_packet.game_events.last() {
+            self.previous_game_event = previous_game_event.clone();
+            self.previous_event = previous_game_event.event.clone(); //todo: don't clone this, specify lifetime
         }
+        // dbg!(last_event);
 
+        let referee_command = last_referee_packet.command();
+        //
+        // if let Some(blue_team_on_positive_half) = last_referee_packet.blue_team_on_positive_half {
+        //     if blue_team_on_positive_half {
+        //        world.data.positive_half = TeamColor::Blue
+        //     } else {
+        //         world.data.positive_half = TeamColor::Yellow
+        //     }
+        // };
+        //
+        // // from any state
+        // if let Command::Halt = referee_command {
+        //     world.data.state = GameState::Halted(HaltedState::Halt);
+        // }
+        //
+        // match referee_command {
+        //     Command::Halt => {
+        //         world.data.state = GameState::Halted(HaltedState::Halt);
+        //     }
+        //     Command::Stop => {
+        //         world.data.state = GameState::Stopped(StoppedState::Stop);
+        //     }
+        //     _ => {}
+        // }
+        //
+        // let mut kicker_team = None;
+        //
+        // match &world.data.state {
+        //     GameState::Halted(_) => {
+        //     }
+        //     GameState::Stopped(stopped_state) => {
+        //         match stopped_state {
+        //             StoppedState::Stop => {
+        //                 // TODO: prepare kickoffs :(
+        //                 match referee_command {
+        //                     Command::ForceStart => {
+        //                         world.data.state = GameState::Running(RunningState::Run);
+        //                     }
+        //                     Command::PrepareKickoffBlue => {
+        //                         kicker_team = Some(TeamColor::Blue);
+        //                         if world.team_color == TeamColor::Blue {
+        //                             world.data.state = GameState::Stopped(StoppedState::PrepareKickoff);
+        //                         } else {
+        //                             world.data.state = GameState::Stopped(StoppedState::Stop);
+        //                         }
+        //                     }
+        //                     Command::PrepareKickoffYellow => {
+        //                         kicker_team = Some(TeamColor::Yellow);
+        //                         if world.team_color == TeamColor::Yellow {
+        //                             world.data.state = GameState::Stopped(StoppedState::PrepareKickoff);
+        //                         } else {
+        //                             world.data.state = GameState::Stopped(StoppedState::Stop);
+        //                         }
+        //                     }
+        //                     Command::PreparePenaltyBlue => {}
+        //                     Command::PreparePenaltyYellow => {}
+        //                     Command::NormalStart => {
+        //                         world.data.state = GameState::Running(RunningState::KickOff(kicker_team.unwrap_or(TeamColor::Blue))); // FIX THIS auto color under too
+        //                     }
+        //                     _ => {}
+        //                 }
+        //             }
+        //             StoppedState::PrepareKickoff => {
+        //                 if let Command::NormalStart = referee_command {
+        //                     world.data.state = GameState::Running(RunningState::KickOff(kicker_team.unwrap_or(TeamColor::Blue)));
+        //                 }
+        //             }
+        //             StoppedState::PreparePenalty => {
+        //                 if let Command::NormalStart = referee_command {
+        //                     world.data.state = GameState::Running(RunningState::KickOff(kicker_team.unwrap_or(TeamColor::Blue)));
+        //                 }
+        //             }
+        //             StoppedState::BallPlacement => {
+        //                 // TODO: what the fuck ?
+        //                 // if let Command::Continue {
+        //                 //     world.data.state = GameState::Running(RunningState::KickOff);
+        //                 // }
+        //             }
+        //         }
+        //     }
+        //     GameState::Running(running_state) => {
+        //         match running_state {
+        //             RunningState::KickOff(_) => {
+        //                 if let Some(ball) = &world.ball {
+        //                     if ball.velocity.xy().norm() > 0.3 {
+        //                         world.data.state = GameState::Running(RunningState::Run);
+        //                     }
+        //                 }
+        //                 if let Some(chrono) = &self.chrono {
+        //                     if chrono.elapsed() > std::time::Duration::from_secs(10) {
+        //                         world.data.state = GameState::Running(RunningState::Run);
+        //                     }
+        //                 } else {
+        //                     // start chrono
+        //                     self.chrono = Some(Instant::now());
+        //                 }
+        //                 // if let Command::AfterXSecondsOrIfBallMoved {
+        //                 //     world.data.state = GameState::Running(RunningState::Run);
+        //                 // }
+        //             }
+        //             RunningState::FreeKick => {
+        //                 // if let Command::AfterXSecondsOrIfBallMoved {
+        //                 //     world.data.state = GameState::Running(RunningState::Run);
+        //                 // }
+        //             }
+        //             _ => {}
+        //         }
+        //     }
+        // }
+        //
         dbg!(referee_command);
         dbg!(&world.data.state);
     }

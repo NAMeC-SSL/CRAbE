@@ -212,7 +212,7 @@ impl Action for MoveTo {
                 self.has_through = false;
             } else {
                 if self.state != State::Done {
-                    println!("moving {} arrive at {} {}", id, robot.pose.position.x, robot.pose.position.y);
+                    // println!("moving {} arrive at {} {}", id, robot.pose.position.x, robot.pose.position.y);
                 }
                 cmd.forward_velocity = 0.0;
                 cmd.left_velocity = 0.0;
@@ -510,7 +510,7 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
                     let next_pos = path.last().unwrap();
                     current_pos = current_pos + (next_pos - current_pos) / 2.0;
                 }
-                self.subcommand.update_through(dbg!(current_pos));
+                self.subcommand.update_through(current_pos);
 
                 return self.subcommand.compute_order(id, world, tools);
             }

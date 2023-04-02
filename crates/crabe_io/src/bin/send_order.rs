@@ -30,6 +30,6 @@ fn main() {
         .expect("Cannot create a socket UDP Receiver");
     loop {
         udp_transceiver.send::<RobotControl>(create_commands());
-        dbg!(udp_transceiver.receive::<RobotControlResponse>());
+        // dbg!(udp_transceiver.receive::<RobotControlResponse>());
     }
 }

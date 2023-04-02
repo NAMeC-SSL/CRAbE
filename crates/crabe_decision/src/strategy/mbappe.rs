@@ -96,8 +96,8 @@ impl Strategy for Mbappe {
 
         let robot_to_ball_distance = robot_to_ball.norm();
 
-        dbg!(&self.internal_state);
-        match dbg!(&self.internal_state) {
+        // dbg!(&self.internal_state);
+        match &self.internal_state {
             MbappeState::GoingBehindBall => {
                 if (behind_ball_pos - robot_pos).norm() < 0.1 {
                     self.internal_state = MbappeState::GoingCloseBehindBall;
