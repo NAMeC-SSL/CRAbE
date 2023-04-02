@@ -177,12 +177,12 @@ impl Action for MoveTo {
             }
         }
 
-        let dt = delta_angle(robot.pose.orientation, self.angle);
-        if dt.abs() < self.angle_hyst {
+        let dt = dbg!(delta_angle(robot.pose.orientation, self.angle));
+        if dt.abs() < dbg!(self.angle_hyst) {
             angl_ok = true;
             cmd.angular_velocity = 0.0;
         } else {
-            cmd.angular_velocity = 2.0 * (dt.signum() *
+            cmd.angular_velocity = 100. * 2.0 * (dt.signum() *
                 self.angle_speed.new_speed(cmd.angular_velocity.abs() as f64, dt.abs())) as f32;
         }
 
@@ -200,8 +200,8 @@ impl Action for MoveTo {
             let ns = self.xy_speed.new_speed(world_speed, distance);
             let target_x = dx / distance_through * ns;
             let target_y = dy / distance_through * ns;
-            cmd.forward_velocity = (target_x * robot.pose.orientation.cos() + target_y * robot.pose.orientation.sin()) as f32;
-            cmd.left_velocity = (-target_x * robot.pose.orientation.sin() + target_y * robot.pose.orientation.cos()) as f32;
+            cmd.forward_velocity = 100.* (target_x * robot.pose.orientation.cos() + target_y * robot.pose.orientation.sin()) as f32;
+            cmd.left_velocity =100.* (-target_x * robot.pose.orientation.sin() + target_y * robot.pose.orientation.cos()) as f32;
         }
 
         if angl_ok && xy_ok {
@@ -236,7 +236,7 @@ impl Action for MoveTo {
             return Command::default();
         }
 
-        cmd
+        dbg!(cmd)
     }
 }
 

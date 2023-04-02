@@ -120,7 +120,7 @@ impl Strategy for Goalkeeper {
             }
         };
 
-        action_wrapper.push(self.id, MoveTo::new(None, dbg!(Point2::new(x, y)), 2., How::Goal));
+        action_wrapper.push(self.id, MoveTo::new(None, dbg!(Point2::new(x, y)), a, How::Goal));
 
         false
     }
