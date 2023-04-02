@@ -110,26 +110,26 @@ impl MoveTo {
                 self.angle_hyst = PI / 8.0;
             }
             How::Accurate => {
-                self.xy_speed.update(0.01, 3.0, 1.5, 1.5);
-                self.angle_speed.update(0.05, 3.0, 3.0, PI);
+                self.xy_speed.update(1.01, 3.0, 1.5, 1.5);
+                self.angle_speed.update(1.05, 3.0, 3.0, PI);
                 self.xy_hyst = 0.01;
                 self.angle_hyst = 2.5;
             }
             How::Intersept => {
-                self.xy_speed.update(0.25, 5.0, 5.0, 4.0);
-                self.angle_speed.update(0.1, 5.0, 5.0, 4.0 * PI);
+                self.xy_speed.update(1.25, 5.0, 5.0, 4.0);
+                self.angle_speed.update(1.1, 5.0, 5.0, 4.0 * PI);
                 self.xy_hyst = 0.0001;
                 self.angle_hyst = PI / 16.0;
             }
             How::StopLimits => {
-                self.xy_speed.update(0.1, 3.0, 2.0, 1.4);
-                self.angle_speed.update(0.1, 3.0, 3.0, PI / 2.0);
+                self.xy_speed.update(1.1, 3.0, 2.0, 1.4);
+                self.angle_speed.update(1.1, 3.0, 3.0, PI / 2.0);
                 self.xy_hyst = 0.01;
                 self.angle_hyst = PI / 16.0;
             }
             How::Goal => {
-                self.xy_speed.update(0.4, 8.0, 4.0, 10.0);
-                self.angle_speed.update(0.01, 2.0 * PI, 3.0, 2.0 * PI);
+                self.xy_speed.update(1.4, 8.0, 4.0, 10.0);
+                self.angle_speed.update(1.01, 2.0 * PI, 3.0, 2.0 * PI);
                 self.xy_hyst = 0.01;
                 self.angle_hyst = 0.1;
             }
@@ -164,8 +164,6 @@ impl Action for MoveTo {
     }
 
     fn compute_order(&mut self, id: u8, world: &World, tools: &mut ToolData) -> Command {
-        let multiplicator = 1.;
-
         let robot = match world.allies_bot.get(&id) {
             None => {
                 // self.state = State::Failed;
@@ -226,8 +224,8 @@ impl Action for MoveTo {
             let ns = self.xy_speed.new_speed(world_speed, distance);
             let target_x = dx / distance_through * ns;
             let target_y = dy / distance_through * ns;
-            cmd.forward_velocity = multiplicator* (target_x * robot.pose.orientation.cos() + target_y * robot.pose.orientation.sin()) as f32;
-            cmd.left_velocity = multiplicator* (-target_x * robot.pose.orientation.sin() + target_y * robot.pose.orientation.cos()) as f32;
+            cmd.forward_velocity = (target_x * robot.pose.orientation.cos() + target_y * robot.pose.orientation.sin()) as f32;
+            cmd.left_velocity = (-target_x * robot.pose.orientation.sin() + target_y * robot.pose.orientation.cos()) as f32;
         }
 
         if angl_ok && xy_ok {
@@ -247,15 +245,15 @@ impl Action for MoveTo {
             }
         }
 
-        // if self.last_closest_distance.unwrap().elapsed() > Duration::from_secs(2) && !xy_ok {
-        //     println!("MoveTo: failed to get closer to destination point:{} => {} {}?{} arrived: {}",
-        //              robot.id, self.dst, self.dst - robot.pose.position, self.xy_hyst, xy_ok);
-        //     // println!("last distance was {} at {}s", );
-        //     println!("time elapsed is: {}s",
-        //              self.last_closest_distance.unwrap().elapsed().as_secs_f64());
-        //     cmd = Command::default();
-        //     self.state = State::Failed;
-        // }
+        if self.last_closest_distance.unwrap().elapsed() > Duration::from_secs(2) && !xy_ok {
+            println!("MoveTo: failed to get closer to destination point:{} => {} {}?{} arrived: {}",
+                     robot.id, self.dst, self.dst - robot.pose.position, self.xy_hyst, xy_ok);
+            // println!("last distance was {} at {}s", );
+            println!("time elapsed is: {}s",
+                     self.last_closest_distance.unwrap().elapsed().as_secs_f64());
+            cmd = Command::default();
+            self.state = State::Failed;
+        }
 
         if cmd.forward_velocity.is_nan() || cmd.left_velocity.is_nan() || cmd.angular_velocity.is_nan() {
             error!("nan in command: {:#?}", cmd);
