@@ -1,4 +1,5 @@
 use std::time::Instant;
+use std::u8;
 use chrono::Duration;
 use crabe_framework::data::world::game_state::{GameState, HaltedState, RunningState, StoppedState};
 use crate::data::FilterData;
@@ -18,6 +19,11 @@ pub struct GameControllerPostFilter {
     chrono: Option<Instant>
 }
 
+/// Contains all the possible actions that we may be able
+/// to execute from a referee command
+/// The job of these functions is just to change
+/// the current world state according to the command
+/// and the last event that occurred
 impl GameControllerPostFilter {
     fn halt_state_branch(world: &mut World) {
         // Halt event, all robots should stop
@@ -28,15 +34,24 @@ impl GameControllerPostFilter {
     }
 
     fn stop_state_branch(previous_event_opt: &Option<Event>, world: &mut World) {
-        // TODO: 1/4
+        // TODO: 3/4 ?
         if let Some(previous_event) = previous_event_opt {
             match previous_event {
-                // Goal has been marked, prepare for next kickoff phase
+                // Goal has been scored, prepare for next kickoff phase
                 Event::Goal { .. } => {
                     world.data.state = GameState::Stopped(StoppedState::PrepareKickoff);
                     println!("Prepare for kickoff");
                 }
 
+                Event::BallLeftFieldTouchLine { .. } => {
+                    world.data.state = GameState::Stopped(StoppedState::BallPlacement);
+                    println!("Ball got out of the field by the touch lines !");
+                }
+
+                Event::BallLeftFieldGoalLine { .. } => {
+                    world.data.state = GameState::Stopped(StoppedState::BallPlacement);
+                    println!("Ball got out of the field by the goal lines !");
+                }
 
                 &_ => {}
             }
@@ -56,7 +71,7 @@ impl GameControllerPostFilter {
                     if let Some(chrono) = chrono {
                         println!("Kickoff in progress ! It lasts for 10s at most");
                         if chrono.elapsed() > std::time::Duration::from_secs(10) {
-                            let kickoff_team = previous_event; //todo: fetch kicker team
+                            let kickoff_team = previous_event; //todo: [CRIT] fetch kicker team
                             world.data.state = GameState::Running(RunningState::KickOff(TeamColor::Blue));
                         }
                     } else {
@@ -65,14 +80,13 @@ impl GameControllerPostFilter {
                         chrono = Some(Instant::now());
                         world.data.state = GameState::Running(RunningState::Run);
                     }
-
                 }
 
                 &_ => {
                     // Just play the game when no particular state is found
-                        // - what's your problem green ?
-                        // - me said alone ramp, me said alone ramp
-                        // - (proceeds to destroy his table)
+                    // - what's your problem green ?
+                    // - me said alone ramp, me said alone ramp
+                    // - (proceeds to destroy his table)
                     world.data.state = GameState::Running(RunningState::Run);
                 }
             }
@@ -81,7 +95,43 @@ impl GameControllerPostFilter {
             world.data.state = GameState::Running(RunningState::Run);
         }
     }
+
+    fn timeout_yellow_branch(world: &mut World) {
+        world.data.state = GameState::Halted(HaltedState::Timeout);
+    }
+    fn timeout_blue_branch(world: &mut World) {
+        world.data.state = GameState::Halted(HaltedState::Timeout);
+    }
+
+    fn freekick_blue_branch(world: &mut World, mut chrono_opt: Option<Instant>) {
+        if let Some(chrono) = chrono_opt {
+            if chrono.elapsed() > std::time::Duration::from_secs(10) {
+                world.data.state = GameState::Running(RunningState::Run);
+                chrono_opt = Some(Instant::now());
+            } else {
+                world.data.state = GameState::Running(RunningState::FreeKick);
+            }
+        }
+    }
+
+    fn freekick_yellow_branch(world: &mut World, mut chrono_opt: Option<Instant>) {
+        if let Some(chrono) = chrono_opt {
+            if chrono.elapsed() > std::time::Duration::from_secs(10) {
+                world.data.state = GameState::Running(RunningState::Run);
+                chrono_opt = Some(Instant::now());
+            } else {
+                world.data.state = GameState::Running(RunningState::FreeKick);
+            }
+        }
+    }
+
+    fn ball_placement_blue_branch(world: &mut World) {
+        // todo: add chrono timeout (30s max)
+        world.data.state = GameState::Stopped(StoppedState::BallPlacement);
+    }
 }
+
+
 
 impl PostFilter for GameControllerPostFilter {
     fn step(&mut self, filter_data: &FilterData, world: &mut World) {
@@ -106,6 +156,11 @@ impl PostFilter for GameControllerPostFilter {
             Command::Halt => GameControllerPostFilter::halt_state_branch(world),
             Command::Stop => GameControllerPostFilter::stop_state_branch(&self.previous_event, world),
             Command::NormalStart => GameControllerPostFilter::normal_start_state_branch(&self.previous_event, world, self.chrono),
+            Command::TimeoutBlue => GameControllerPostFilter::timeout_blue_branch(world),
+            Command::TimeoutYellow => GameControllerPostFilter::timeout_yellow_branch(world),
+            Command::DirectFreeBlue => GameControllerPostFilter::freekick_blue_branch(world, self.chrono),
+            Command::DirectFreeYellow => GameControllerPostFilter::freekick_yellow_branch(world, self.chrono),
+            Command::BallPlacementBlue => GameControllerPostFilter::ball_placement_blue_branch(world),
             _ => {}
         }
 

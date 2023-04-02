@@ -37,7 +37,7 @@ impl GameController {
                         error!("Error sending GameController packet: {:?}", e);
                     }
                 } else {
-                    println!("bruh");
+                    println!("no referee packet");
                 }
             }
         });
