@@ -12,11 +12,23 @@ use crate::data::event::GameEvent;
 use crate::data::referee::RefereeCommand;
 use crate::data::referee::RefereeCommand::Stop;
 
-#[derive(Default)]
+#[derive(Debug)]
 pub struct GameControllerPostFilter {
     previous_game_event: crabe_protocol::protobuf::game_controller_packet::GameEvent,
     previous_event: Option<Event>,
-    chrono: Option<Instant>
+    chrono: Option<Instant>,
+    kicked_off_once: bool
+}
+
+impl Default for GameControllerPostFilter {
+    fn default() -> Self {
+        GameControllerPostFilter {
+            previous_game_event: Default::default(),
+            previous_event: None,
+            chrono: Option::from(Instant::now()),
+            kicked_off_once: false,
+        }
+    }
 }
 
 /// Contains all the possible actions that we may be able
@@ -33,7 +45,7 @@ impl GameControllerPostFilter {
         println!("Stop all robots");
     }
 
-    fn stop_state_branch(previous_event_opt: &Option<Event>, world: &mut World) {
+    fn stop_state_branch(previous_event_opt: &Option<Event>, world: &mut World, mut kicked_off_once: bool) {
         // TODO: 3/4 ?
         if let Some(previous_event) = previous_event_opt {
             match previous_event {
@@ -58,20 +70,30 @@ impl GameControllerPostFilter {
         } else {
             // Particularly, it should be None when we just started the match
             // Thus, it's a kickoff
-            world.data.state = GameState::Stopped(StoppedState::PrepareKickoff);
+            if !kicked_off_once {
+                world.data.state = GameState::Stopped(StoppedState::PrepareKickoff);
+                kicked_off_once = true;
+            } else {
+                // this one's totally arbitrary
+                // i don't understand how we can fetch a forced free kick from the commands
+                // todo: fix what's mentioned above me (fix me !)
+                world.data.state = GameState::Running(RunningState::FreeKick);
+            }
         }
     }
 
     fn normal_start_state_branch(previous_event_opt: &Option<Event>, world: &mut World, mut chrono: Option<Instant>) {
         if let Some(previous_event) = previous_event_opt {
             match previous_event {
-                Event::Goal { .. } => {
+                Event::Goal(g) => {
+                    dbg!(g.by_team);
                     // Kickoff is in progress by a team, place accordingly on your side
                     // 10s until we go into normal state
                     if let Some(chrono) = chrono {
                         println!("Kickoff in progress ! It lasts for 10s at most");
                         if chrono.elapsed() > std::time::Duration::from_secs(10) {
-                            let kickoff_team = previous_event; //todo: [CRIT] fetch kicker team
+                            // let kickoff_team = g.by_team as TeamColor;
+                            // world.data.state = GameState::Running(RunningState::KickOff(kickoff_team));
                             world.data.state = GameState::Running(RunningState::KickOff(TeamColor::Blue));
                         }
                     } else {
@@ -105,13 +127,16 @@ impl GameControllerPostFilter {
 
     fn freekick_blue_branch(world: &mut World, mut chrono_opt: Option<Instant>) {
         if let Some(chrono) = chrono_opt {
+            // if 10s have passed, game runs normally
             if chrono.elapsed() > std::time::Duration::from_secs(10) {
                 world.data.state = GameState::Running(RunningState::Run);
                 chrono_opt = Some(Instant::now());
             } else {
+                // otherwise, we are still in the FreeKick state
                 world.data.state = GameState::Running(RunningState::FreeKick);
             }
         }
+        unreachable!("Chrono is None!");
     }
 
     fn freekick_yellow_branch(world: &mut World, mut chrono_opt: Option<Instant>) {
@@ -125,9 +150,17 @@ impl GameControllerPostFilter {
         }
     }
 
-    fn ball_placement_blue_branch(world: &mut World) {
-        // todo: add chrono timeout (30s max)
-        world.data.state = GameState::Stopped(StoppedState::BallPlacement);
+    fn ball_placement_blue_branch(world: &mut World, chrono_opt: Option<Instant>) {
+        if let Some(chrono) = chrono_opt {
+            // [ALLEMAGNE] chrono check peut être enlevé si pas de ball placement auto
+            if chrono.elapsed() >= 30 {
+                world.data.state = GameState::Running(RunningState::Run);
+            } else {
+                world.data.state = GameState::Stopped(StoppedState::BallPlacement);
+            }
+        }
+        // The chrono should always be available to us
+        unreachable!();
     }
 }
 
@@ -146,21 +179,21 @@ impl PostFilter for GameControllerPostFilter {
 
         // Note de journal: 4h44
         // - touche une pute :D
-        dbg!(last_referee_packet.game_events.last());
+        // dbg!(last_referee_packet);
         let ref_command = last_referee_packet.command();
 
         // dbg!(&ref_command);
-        // dbg!(&last_game_event_opt);
+        dbg!(&self.previous_event);
 
         match ref_command {
             Command::Halt => GameControllerPostFilter::halt_state_branch(world),
-            Command::Stop => GameControllerPostFilter::stop_state_branch(&self.previous_event, world),
+            Command::Stop => GameControllerPostFilter::stop_state_branch(&self.previous_event, world, self.kicked_off_once),
             Command::NormalStart => GameControllerPostFilter::normal_start_state_branch(&self.previous_event, world, self.chrono),
             Command::TimeoutBlue => GameControllerPostFilter::timeout_blue_branch(world),
             Command::TimeoutYellow => GameControllerPostFilter::timeout_yellow_branch(world),
             Command::DirectFreeBlue => GameControllerPostFilter::freekick_blue_branch(world, self.chrono),
             Command::DirectFreeYellow => GameControllerPostFilter::freekick_yellow_branch(world, self.chrono),
-            Command::BallPlacementBlue => GameControllerPostFilter::ball_placement_blue_branch(world),
+            Command::BallPlacementBlue => GameControllerPostFilter::ball_placement_blue_branch(world, self.chrono),
             _ => {}
         }
 
@@ -169,10 +202,9 @@ impl PostFilter for GameControllerPostFilter {
             self.previous_game_event = previous_game_event.clone();
             self.previous_event = previous_game_event.event.clone(); //todo: don't clone this, specify lifetime
         }
-        // dbg!(last_event);
 
         let referee_command = last_referee_packet.command();
-        //
+
         // if let Some(blue_team_on_positive_half) = last_referee_packet.blue_team_on_positive_half {
         //     if blue_team_on_positive_half {
         //        world.data.positive_half = TeamColor::Blue
