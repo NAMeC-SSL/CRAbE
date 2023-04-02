@@ -315,5 +315,6 @@ impl PostFilter for GameControllerPostFilter {
         //
         dbg!(referee_command);
         dbg!(&world.data.state);
+        // world.data.state = GameState::Running(RunningState::Run);
     }
 }

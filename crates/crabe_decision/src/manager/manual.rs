@@ -4,6 +4,7 @@ use crate::strategy::testing::Square;
 use crate::strategy::Strategy;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
+use crate::strategy::mbappe::Mbappe;
 
 /// The `Manual` struct represents a decision manager that executes strategies manually
 /// added to its list.
@@ -21,7 +22,7 @@ impl Manual {
     pub fn new() -> Self {
         Self {
             strategies: vec![
-                Box::new(Square::new(0))
+                Box::new(Mbappe::new(3))
             ],
         }
     }

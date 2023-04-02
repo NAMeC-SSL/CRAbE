@@ -54,6 +54,8 @@ pub struct MoveTo {
     closest_distance: Option<f64>,
     last_closest_distance: Option<Instant>,
     state: State,
+    dribbler: f32,
+    last_command: Command
 }
 
 impl MoveTo {
@@ -70,42 +72,64 @@ impl MoveTo {
             closest_distance: None,
             last_closest_distance: None,
             has_through: through.is_some(),
+            last_command: Command::default(),
+            dribbler: 0.
         };
 
         moveto.update_how(how);
         moveto
     }
 
+    pub fn new_dribbling(through: Option<Point2<f64>>, dst: Point2<f64>, angle: f64, how: How) -> MoveTo {
+        let mut moveto = MoveTo {
+            dst,
+            angle,
+            through: through.unwrap_or(dst),
+            xy_speed: RampSpeed::new(0.0, 0.0, 0.0, 0.0),
+            angle_speed: RampSpeed::new(0.0, 0.0, 0.0, 0.0),
+            xy_hyst: 0.0,
+            angle_hyst: 0.0,
+            state: State::Running,
+            closest_distance: None,
+            last_closest_distance: None,
+            has_through: through.is_some(),
+            dribbler: 1.,
+            last_command: Default::default(),
+        };
+
+        moveto.update_how(how);
+        moveto
+    }
 
     fn update_how(&mut self, how: How) {
         match how {
             How::Fast => {
-                self.xy_speed.update(0.2, 4.0, 4.0, 2.0);
-                self.angle_speed.update(0.1, 4.0, 4.0, PI);
+                self.xy_speed.update(1.2, 4.0, 4.0, 2.0);
+                self.angle_speed.update(1.0, 4.0, 4.0, PI);
                 self.xy_hyst = 0.1;
                 self.angle_hyst = PI / 8.0;
             }
             How::Accurate => {
-                self.xy_speed.update(0.01, 3.0, 1.5, 1.5);
-                self.angle_speed.update(0.05, 3.0, 3.0, PI);
+                self.xy_speed.update(1.01, 3.0, 1.5, 1.5);
+                self.angle_speed.update(1.05, 3.0, 3.0, PI);
                 self.xy_hyst = 0.01;
                 self.angle_hyst = 2.5;
             }
             How::Intersept => {
-                self.xy_speed.update(0.25, 5.0, 5.0, 4.0);
-                self.angle_speed.update(0.1, 5.0, 5.0, 4.0 * PI);
+                self.xy_speed.update(1.25, 5.0, 5.0, 4.0);
+                self.angle_speed.update(1.1, 5.0, 5.0, 4.0 * PI);
                 self.xy_hyst = 0.0001;
                 self.angle_hyst = PI / 16.0;
             }
             How::StopLimits => {
-                self.xy_speed.update(0.1, 3.0, 2.0, 1.4);
-                self.angle_speed.update(0.1, 3.0, 3.0, PI / 2.0);
+                self.xy_speed.update(1.1, 3.0, 2.0, 1.4);
+                self.angle_speed.update(1.1, 3.0, 3.0, PI / 2.0);
                 self.xy_hyst = 0.01;
                 self.angle_hyst = PI / 16.0;
             }
             How::Goal => {
-                self.xy_speed.update(0.4, 8.0, 4.0, 4.0);
-                self.angle_speed.update(0.01, 2.0 * PI, 3.0, 2.0 * PI);
+                self.xy_speed.update(1.4, 8.0, 4.0, 10.0);
+                self.angle_speed.update(1.01, 2.0 * PI, 3.0, 2.0 * PI);
                 self.xy_hyst = 0.01;
                 self.angle_hyst = 0.1;
             }
@@ -155,7 +179,7 @@ impl Action for MoveTo {
         }
 
         let mut cmd = Command::default();
-
+        cmd.dribbler = self.dribbler;
         let mut angl_ok = false;
         let mut xy_ok = false;
 
@@ -177,12 +201,12 @@ impl Action for MoveTo {
             }
         }
 
-        let dt = delta_angle(robot.pose.orientation, self.angle);
+        let dt = dbg!(delta_angle(robot.pose.orientation, self.angle));
         if dt.abs() < self.angle_hyst {
             angl_ok = true;
             cmd.angular_velocity = 0.0;
         } else {
-            cmd.angular_velocity = 2.0 * (dt.signum() *
+            cmd.angular_velocity = (dt.signum() *
                 self.angle_speed.new_speed(cmd.angular_velocity.abs() as f64, dt.abs())) as f32;
         }
 
@@ -212,7 +236,7 @@ impl Action for MoveTo {
                 self.has_through = false;
             } else {
                 if self.state != State::Done {
-                    // println!("moving {} arrive at {} {}", id, robot.pose.position.x, robot.pose.position.y);
+                    println!("moving {} arrive at {} {}", id, robot.pose.position.x, robot.pose.position.y);
                 }
                 cmd.forward_velocity = 0.0;
                 cmd.left_velocity = 0.0;
@@ -233,9 +257,9 @@ impl Action for MoveTo {
 
         if cmd.forward_velocity.is_nan() || cmd.left_velocity.is_nan() || cmd.angular_velocity.is_nan() {
             error!("nan in command: {:#?}", cmd);
-            return Command::default();
+            return self.last_command;
         }
-
+        self.last_command = cmd;
         cmd
     }
 }
@@ -510,8 +534,7 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
                     let next_pos = path.last().unwrap();
                     current_pos = current_pos + (next_pos - current_pos) / 2.0;
                 }
-                self.subcommand.update_through(current_pos);
-
+                self.subcommand.update_through(dbg!(current_pos));
                 return self.subcommand.compute_order(id, world, tools);
             }
             None => {
