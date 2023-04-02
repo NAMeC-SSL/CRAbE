@@ -140,7 +140,7 @@ impl Action for MoveTo {
     }
 
     fn compute_order(&mut self, id: u8, world: &World, tools: &mut ToolData) -> Command {
-        let multiplicator = 50.;
+        let multiplicator = 20.;
 
         let robot = match world.allies_bot.get(&id) {
             None => {

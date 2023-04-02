@@ -5,9 +5,11 @@ use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::{AllyInfo, Ball, Robot, World};
 use nalgebra::Point2;
 use std::f64::consts::PI;
+use std::ops::{Sub, Mul, Add};
 use crabe_framework::data::output::{Command, Kick as KickType};
 use crate::action::kick::Kick;
 use crate::action::order_raw::RawOrder;
+use crabe_math::shape::Line;
 
 /// The Square struct represents a strategy that commands a robot to move in a square shape
 /// in a counter-clockwise. It is used for testing purposes.
@@ -106,7 +108,22 @@ impl Strategy for Mbappe {
                 }
             }
             MbappeState::GoingCloseBehindBall => {
-                if dbg!(robot_to_ball_distance) < 0.11 && dbg!(robot_to_ball_angle.abs()) < PI/3.0 {
+                let ball_dir = Point2::new(ball_pos.x, ball_pos.y).sub(robot_pos);
+                let ball_dest_point = Point2::new(ball_pos.x, ball_pos.y) + ball_dir.normalize().mul(100.);
+                let ball_dest_point = Point2::new(ball_dest_point.x, ball_dest_point.y);
+        
+                let top_left = world.geometry.enemy_goal.top_left_position;
+                let mut top_right = world.geometry.enemy_goal.top_left_position;
+                top_right.x = -top_right.x;
+        
+                let ball_line = Line::new(Point2::new(ball_pos.x, ball_pos.y), ball_dest_point);
+                let goal_line = Line::new(top_left, top_right);
+        
+                let aiming_goal = match ball_line.intersect(goal_line){
+                    None => false,
+                    Some(p) => true
+                };
+                if dbg!(robot_to_ball_distance) < 0.11 && dbg!(robot_to_ball_angle.abs()) < PI/3.0 && aiming_goal{
                     println!("KICK");
                     action_wrapper.push(self.id, Kick::new(KickType::StraightKick {power: 1.0}));
                     self.internal_state = MbappeState::GoingBehindBall;
