@@ -140,6 +140,8 @@ impl Action for MoveTo {
     }
 
     fn compute_order(&mut self, id: u8, world: &World, tools: &mut ToolData) -> Command {
+        let multiplicator = 50.;
+
         let robot = match world.allies_bot.get(&id) {
             None => {
                 // self.state = State::Failed;
@@ -182,7 +184,7 @@ impl Action for MoveTo {
             angl_ok = true;
             cmd.angular_velocity = 0.0;
         } else {
-            cmd.angular_velocity = 100. * 2.0 * (dt.signum() *
+            cmd.angular_velocity = multiplicator * 2.0 * (dt.signum() *
                 self.angle_speed.new_speed(cmd.angular_velocity.abs() as f64, dt.abs())) as f32;
         }
 
@@ -200,8 +202,8 @@ impl Action for MoveTo {
             let ns = self.xy_speed.new_speed(world_speed, distance);
             let target_x = dx / distance_through * ns;
             let target_y = dy / distance_through * ns;
-            cmd.forward_velocity = 100.* (target_x * robot.pose.orientation.cos() + target_y * robot.pose.orientation.sin()) as f32;
-            cmd.left_velocity =100.* (-target_x * robot.pose.orientation.sin() + target_y * robot.pose.orientation.cos()) as f32;
+            cmd.forward_velocity = multiplicator* (target_x * robot.pose.orientation.cos() + target_y * robot.pose.orientation.sin()) as f32;
+            cmd.left_velocity = multiplicator* (-target_x * robot.pose.orientation.sin() + target_y * robot.pose.orientation.cos()) as f32;
         }
 
         if angl_ok && xy_ok {
@@ -236,7 +238,7 @@ impl Action for MoveTo {
             return Command::default();
         }
 
-        dbg!(cmd)
+        cmd
     }
 }
 
