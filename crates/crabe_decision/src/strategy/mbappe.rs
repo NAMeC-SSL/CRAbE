@@ -112,7 +112,9 @@ impl Strategy for Mbappe {
                 let mut top_right = world.geometry.enemy_goal.top_left_position;
                 top_right.y = -top_right.y;
         
-                let ball_line = Line::new(Point2::new(ball_pos.x, ball_pos.y), robot_pos);
+                let ball_dir = ball_pos.sub(robot_pos);
+                let end_point = ball_dir.normalize().mul(20.);
+                let ball_line = Line::new(robot_pos,Point2::new(end_point.x, end_point.y) );
                 let goal_line = Line::new(top_left, top_right);
         
                 let aiming_goal = match ball_line.intersect(goal_line){
