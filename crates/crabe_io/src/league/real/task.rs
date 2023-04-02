@@ -41,7 +41,7 @@ impl Real {
                     angular_velocity: command.angular_velocity,
                     kick: kicker_cmd.into(),
                     kick_power,
-                    charge: command.charge,
+                    charge: true, //command.charge,
                     dribbler: command.dribbler,
                 });
         }
@@ -65,11 +65,14 @@ impl CommandSenderTask for Real {
     }
 
     fn close(&mut self) {
-        let mut commands: CommandMap = Default::default();
-        for id in 0..MAX_ID_ROBOTS {
-            commands.insert(id as u8, Default::default());
+        for i in 0..10 {
+            let mut commands: CommandMap = Default::default();
+            for id in 0..MAX_ID_ROBOTS {
+                commands.insert(id as u8, Default::default());
+            }
+
+            self.step(commands);
         }
 
-        self.step(commands);
     }
 }

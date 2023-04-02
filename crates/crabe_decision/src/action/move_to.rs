@@ -54,7 +54,8 @@ pub struct MoveTo {
     closest_distance: Option<f64>,
     last_closest_distance: Option<Instant>,
     state: State,
-    dribbler: f32
+    dribbler: f32,
+    last_command: Command
 }
 
 impl MoveTo {
@@ -71,6 +72,7 @@ impl MoveTo {
             closest_distance: None,
             last_closest_distance: None,
             has_through: through.is_some(),
+            last_command: Command::default(),
             dribbler: 0.
         };
 
@@ -91,7 +93,8 @@ impl MoveTo {
             closest_distance: None,
             last_closest_distance: None,
             has_through: through.is_some(),
-            dribbler: 1.
+            dribbler: 1.,
+            last_command: Default::default(),
         };
 
         moveto.update_how(how);
@@ -101,8 +104,8 @@ impl MoveTo {
     fn update_how(&mut self, how: How) {
         match how {
             How::Fast => {
-                self.xy_speed.update(0.2, 4.0, 4.0, 2.0);
-                self.angle_speed.update(0.1, 4.0, 4.0, PI);
+                self.xy_speed.update(1.2, 4.0, 4.0, 2.0);
+                self.angle_speed.update(1.0, 4.0, 4.0, PI);
                 self.xy_hyst = 0.1;
                 self.angle_hyst = PI / 8.0;
             }
@@ -161,7 +164,7 @@ impl Action for MoveTo {
     }
 
     fn compute_order(&mut self, id: u8, world: &World, tools: &mut ToolData) -> Command {
-        let multiplicator = 10.;
+        let multiplicator = 1.;
 
         let robot = match world.allies_bot.get(&id) {
             None => {
@@ -205,7 +208,7 @@ impl Action for MoveTo {
             angl_ok = true;
             cmd.angular_velocity = 0.0;
         } else {
-            cmd.angular_velocity = multiplicator * 2.0 * (dt.signum() *
+            cmd.angular_velocity = (dt.signum() *
                 self.angle_speed.new_speed(cmd.angular_velocity.abs() as f64, dt.abs())) as f32;
         }
 
@@ -244,21 +247,21 @@ impl Action for MoveTo {
             }
         }
 
-        if self.last_closest_distance.unwrap().elapsed() > Duration::from_secs(2) && !xy_ok {
-            println!("MoveTo: failed to get closer to destination point:{} => {} {}?{} arrived: {}",
-                     robot.id, self.dst, self.dst - robot.pose.position, self.xy_hyst, xy_ok);
-            // println!("last distance was {} at {}s", );
-            println!("time elapsed is: {}s",
-                     self.last_closest_distance.unwrap().elapsed().as_secs_f64());
-            cmd = Command::default();
-            self.state = State::Failed;
-        }
+        // if self.last_closest_distance.unwrap().elapsed() > Duration::from_secs(2) && !xy_ok {
+        //     println!("MoveTo: failed to get closer to destination point:{} => {} {}?{} arrived: {}",
+        //              robot.id, self.dst, self.dst - robot.pose.position, self.xy_hyst, xy_ok);
+        //     // println!("last distance was {} at {}s", );
+        //     println!("time elapsed is: {}s",
+        //              self.last_closest_distance.unwrap().elapsed().as_secs_f64());
+        //     cmd = Command::default();
+        //     self.state = State::Failed;
+        // }
 
         if cmd.forward_velocity.is_nan() || cmd.left_velocity.is_nan() || cmd.angular_velocity.is_nan() {
             error!("nan in command: {:#?}", cmd);
-            return Command::default();
+            return self.last_command;
         }
-
+        self.last_command = cmd;
         cmd
     }
 }
@@ -534,7 +537,6 @@ fn reconstruct_path(field: &mut Vec<Vec<CellData>>,
                     current_pos = current_pos + (next_pos - current_pos) / 2.0;
                 }
                 self.subcommand.update_through(dbg!(current_pos));
-
                 return self.subcommand.compute_order(id, world, tools);
             }
             None => {

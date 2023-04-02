@@ -23,7 +23,7 @@ pub struct GameManager { // Karen says what to do lmao
     strategies: Vec<Box<dyn Strategy>>,
 }
 
-const KEEPER_ID: u8 = 0;
+const KEEPER_ID: u8 = 1;
 
 impl GameManager {
     /// Creates a new `Manual` instance with the desired strategies to test.
