@@ -7,7 +7,6 @@ use crabe_framework::data::world::game_state::{GameState, RunningState, StoppedS
 use crabe_framework::data::world::World;
 use crate::strategy::goalkeeper::Goalkeeper;
 use crate::strategy::mbappe::Mbappe;
-use crate::strategy::engager::Engager;
 use crate::strategy::prepare_kickoff::PrepareKickoffStrategy;
 use crate::strategy::testing::Square;
 use crate::strategy::stand::Stand;
@@ -44,9 +43,9 @@ impl Manager for GameManager {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) {
-        // info!("{:?}", &world.data.state);
+        info!("{:?}", &world.data.state);
         if self.last_game_state.is_none() || self.last_game_state.unwrap() != world.data.state {
-            // info!("clearing strategy");
+            info!("clearing strategy");
             // clear current strategy
             self.strategies.clear();
             for id in world.allies_bot.keys() {
@@ -119,26 +118,7 @@ impl Manager for GameManager {
                             }
                         }
                         RunningState::Penalty => {}
-                        RunningState::FreeKick => {
-                            self.strategies.push(Box::new(Goalkeeper::new(KEEPER_ID)));
-
-                            let closest_robot_to_ball_id = world.allies_bot
-                                .iter()
-                                .filter(|(id, _)| **id != KEEPER_ID)
-                                .map(|(id, robot)| (id, robot, robot.distance(&world.ball.clone().unwrap_or_default().position.xy())))
-                                .min_by(|(_, _, d1), (_, _, d2)| d1.total_cmp(d2))
-                                .map(|(id, _, _)| id);
-
-                            let mut rest: Vec<u8> = world.allies_bot.iter().map(|(id, _)| *id).filter(|id| *id != KEEPER_ID).collect();
-                            if let Some(bappe_id) = closest_robot_to_ball_id {
-                                self.strategies.push(Box::new(Engager::new(*bappe_id)));
-                                rest = world.allies_bot.iter().map(|(id, _)| *id).filter(|id| *id != KEEPER_ID && *id != *bappe_id).collect();
-                            }
-
-                            for id in rest {
-                                self.strategies.push(Box::new(Stand::new(id)));
-                            }
-                        }
+                        RunningState::FreeKick => {}
                         RunningState::Run => {
                             self.strategies.push(Box::new(Goalkeeper::new(KEEPER_ID)));
 
