@@ -1,5 +1,7 @@
 /// The `move_to` module contains the `MoveTo` action which moves a robot to a specific location on the field and a target orientation.
 pub mod move_to;
+/// Places an ally between an enemy and the ball
+pub mod block_enemy;
 /// The `order_raw` module contains the `RawOrder` action which sends a raw command to the robot.
 pub mod order_raw;
 
@@ -10,6 +12,9 @@ pub mod sequencer;
 pub mod state;
 
 pub mod kick;
+
+/// Tries to grab the ball, aim and shoot towards a static target point
+pub mod shoot_to_target;
 
 use crate::action::move_to::{MoveTo, MoveToStar};
 use crate::action::order_raw::RawOrder;

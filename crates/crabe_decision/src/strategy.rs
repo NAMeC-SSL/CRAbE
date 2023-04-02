@@ -11,6 +11,7 @@ pub mod goalkeeper;
 pub mod mbappe;
 pub mod stand;
 pub mod prepare_kickoff;
+pub mod block_defense;
 
 /// The `Strategy` trait defines the interface for a behavior that one or multiple robots can adopt to achieve a certain goal.
 /// A strategy receives information about the state of the world and its own state, and issues commands to the robot

@@ -18,6 +18,7 @@ use crate::config::CommonConfig;
 use crate::data::geometry::Geometry;
 use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
+use crabe_protocol::protobuf::game_controller_packet::game_event::Event;
 use crate::data::world::game_data::GameData;
 use crate::data::world::game_state::{GameState, HaltedState};
 
@@ -41,6 +42,8 @@ pub struct World {
     pub ball: Option<Ball>,
     /// The team color of our team.
     pub team_color: TeamColor,
+    /// The most recent event that has occured during the match
+    pub previous_event: Option<Event>,
 }
 
 impl World {
@@ -58,6 +61,7 @@ impl World {
             enemies_bot: Default::default(),
             ball: None,
             team_color,
+            previous_event: Default::default(),
         }
     }
 }
