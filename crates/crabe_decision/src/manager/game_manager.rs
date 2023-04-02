@@ -141,8 +141,6 @@ impl Manager for GameManager {
                             }
                         }
                     }
-
-
                 }
             }
         }

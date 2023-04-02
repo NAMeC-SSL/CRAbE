@@ -104,7 +104,7 @@ impl MoveTo {
                 self.angle_hyst = PI / 16.0;
             }
             How::Goal => {
-                self.xy_speed.update(0.4, 8.0, 4.0, 4.0);
+                self.xy_speed.update(0.4, 8.0, 4.0, 10.0);
                 self.angle_speed.update(0.01, 2.0 * PI, 3.0, 2.0 * PI);
                 self.xy_hyst = 0.01;
                 self.angle_hyst = 0.1;
