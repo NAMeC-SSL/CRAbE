@@ -90,7 +90,7 @@ impl CommandSenderTask for Real {
                 commands.insert(id as u8, Default::default());
             }
 
-            sleep(Duration::from_secs(30));
+            sleep(Duration::from_millis(30));
             self.step(commands);
         }
 

@@ -21,7 +21,7 @@ impl Manual {
     pub fn new() -> Self {
         Self {
             strategies: vec![
-                Box::new(Square::new(2))
+                Box::new(Square::new(6))
             ],
         }
     }
