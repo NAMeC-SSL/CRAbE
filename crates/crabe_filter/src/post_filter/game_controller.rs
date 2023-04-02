@@ -134,9 +134,7 @@ impl GameControllerPostFilter {
                 // otherwise, we are still in the FreeKick state
                 world.data.state = GameState::Running(RunningState::FreeKick);
             }
-        }
-        unreachable!("Chrono is None!");
-    }
+        }    }
 
     fn freekick_yellow_branch(world: &mut World, mut chrono_opt: Option<Instant>) {
         if let Some(chrono) = chrono_opt {
@@ -159,7 +157,6 @@ impl GameControllerPostFilter {
             }
         }
         // The chrono should always be available to us
-        unreachable!();
     }
 }
 
