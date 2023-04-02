@@ -86,15 +86,14 @@ impl GameControllerPostFilter {
         if let Some(previous_event) = previous_event_opt {
             match previous_event {
                 Event::Goal(g) => {
-                    dbg!(g.by_team);
                     // Kickoff is in progress by a team, place accordingly on your side
                     // 10s until we go into normal state
                     if let Some(chrono) = chrono {
                         println!("Kickoff in progress ! It lasts for 10s at most");
                         if chrono.elapsed() > std::time::Duration::from_secs(10) {
-                            // let kickoff_team = g.by_team as TeamColor;
+                            let kickoff_team = g.by_team;
                             // world.data.state = GameState::Running(RunningState::KickOff(kickoff_team));
-                            world.data.state = GameState::Running(RunningState::KickOff(TeamColor::Blue));
+                            world.data.state = GameState::Running(RunningState::KickOff(if kickoff_team == 0 { TeamColor::Blue } else { TeamColor::Yellow }));
                         }
                     } else {
                         println!("Running normally after kickoff");
