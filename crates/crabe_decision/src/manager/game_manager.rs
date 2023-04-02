@@ -118,7 +118,17 @@ impl Manager for GameManager {
                             }
                         }
                         RunningState::Penalty => {}
-                        RunningState::FreeKick => {}
+                        RunningState::FreeKick => {
+                            let closest_robot_to_ball_id = world.allies_bot
+                                .iter()
+                                .map(|(id, robot)| (id, robot, robot.distance(&world.ball.clone().unwrap_or_default().position.xy())))
+                                .min_by(|(_, _, d1), (_, _, d2)| d1.total_cmp(d2))
+                                .map(|(id, _, _)| id);
+
+                            if let Some(id) = closest_robot_to_ball_id {
+                                self.strategies.push(Box::new(Mbappe::new(*id)));
+                            }
+                        }
                         RunningState::Run => {
                             self.strategies.push(Box::new(Goalkeeper::new(KEEPER_ID)));
 

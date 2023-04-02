@@ -116,6 +116,7 @@ impl PostFilter for GameControllerPostFilter {
                         if let Some(chrono) = &self.chrono {
                             if chrono.elapsed() > std::time::Duration::from_secs(10) {
                                 world.data.state = GameState::Running(RunningState::Run);
+                                self.chrono = None;
                             }
                         } else {
                             // start chrono
@@ -126,9 +127,20 @@ impl PostFilter for GameControllerPostFilter {
                         // }
                     }
                     RunningState::FreeKick => {
-                        // if let Command::AfterXSecondsOrIfBallMoved {
-                        //     world.data.state = GameState::Running(RunningState::Run);
-                        // }
+                        if let Some(ball) = &world.ball {
+                            if ball.velocity.xy().norm() > 0.3 {
+                                world.data.state = GameState::Running(RunningState::Run);
+                            }
+                        }
+                        if let Some(chrono) = &self.chrono {
+                            if chrono.elapsed() > std::time::Duration::from_secs(10) {
+                                world.data.state = GameState::Running(RunningState::Run);
+                                self.chrono = None;
+                            }
+                        } else {
+                            // start chrono
+                            self.chrono = Some(Instant::now());
+                        }
                     }
                     _ => {}
                 }
@@ -137,6 +149,6 @@ impl PostFilter for GameControllerPostFilter {
 
         dbg!(referee_command);
         dbg!(&world.data.state);
-        // world.data.state = GameState::Running(RunningState::Run);
+        //world.data.state = GameState::Running(RunningState::Run);
     }
 }

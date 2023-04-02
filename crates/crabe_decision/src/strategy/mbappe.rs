@@ -108,22 +108,18 @@ impl Strategy for Mbappe {
                 }
             }
             MbappeState::GoingCloseBehindBall => {
-                let ball_dir = Point2::new(ball_pos.x, ball_pos.y).sub(robot_pos);
-                let ball_dest_point = Point2::new(ball_pos.x, ball_pos.y) + ball_dir.normalize().mul(100.);
-                let ball_dest_point = Point2::new(ball_dest_point.x, ball_dest_point.y);
-        
                 let top_left = world.geometry.enemy_goal.top_left_position;
                 let mut top_right = world.geometry.enemy_goal.top_left_position;
-                top_right.x = -top_right.x;
+                top_right.y = -top_right.y;
         
-                let ball_line = Line::new(Point2::new(ball_pos.x, ball_pos.y), ball_dest_point);
+                let ball_line = Line::new(Point2::new(ball_pos.x, ball_pos.y), robot_pos);
                 let goal_line = Line::new(top_left, top_right);
         
                 let aiming_goal = match ball_line.intersect(goal_line){
-                    None => false,
+                    None => true,
                     Some(p) => true
                 };
-                if dbg!(robot_to_ball_distance) < 0.11 && dbg!(robot_to_ball_angle.abs()) < PI/3.0 && aiming_goal{
+                if dbg!(robot_to_ball_distance) < 0.11 && dbg!(robot_to_ball_angle.abs()) < PI/3.0 && dbg!(aiming_goal){
                     println!("KICK");
                     action_wrapper.push(self.id, Kick::new(KickType::StraightKick {power: 1.0}));
                     self.internal_state = MbappeState::GoingBehindBall;
@@ -132,7 +128,6 @@ impl Strategy for Mbappe {
                 }
             }
         }
-
 
         // action_wrapper.push(self.id, MoveToWithKick::new(world.ball.as_ref().unwrap().position.xy(), -PI / 4.0, Box::new(should_kick)));
         // action_wrapper.push(self.id, Kick::new(KickType::StraightKick {power: 10.0}));

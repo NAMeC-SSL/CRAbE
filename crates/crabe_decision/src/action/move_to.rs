@@ -200,12 +200,12 @@ impl Action for MoveTo {
             }
         }
 
-        let dt = dbg!(delta_angle(robot.pose.orientation, self.angle));
-        if dt.abs() < dbg!(self.angle_hyst) {
+        let dt = delta_angle(robot.pose.orientation, self.angle);
+        if dt.abs() < self.angle_hyst {
             angl_ok = true;
             cmd.angular_velocity = 0.0;
         } else {
-            cmd.angular_velocity = multiplicator * 2.0 * (dt.signum() *
+            cmd.angular_velocity = (multiplicator*4.) * 2.0 * (dt.signum() *
                 self.angle_speed.new_speed(cmd.angular_velocity.abs() as f64, dt.abs())) as f32;
         }
 
