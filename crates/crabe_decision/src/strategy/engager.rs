@@ -65,10 +65,10 @@ impl Strategy for Engager {
             Some(b) => b
         };
         
-        let cmd = MoveTo::new(None, Point2::new(-1, 0), 0., How::Kick);
+        //let cmd = MoveTo::new(None, Point2::new(-1, 0), 0., How::Kick);
 
         // action_wrapper.push(self.id, cmd);
-        action_wrapper.push(self.id, RawOrder::new(cmd));
+        //action_wrapper.push(self.id, RawOrder::new(cmd));
         false
     }
 }

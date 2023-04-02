@@ -42,8 +42,6 @@ pub struct World {
     pub ball: Option<Ball>,
     /// The team color of our team.
     pub team_color: TeamColor,
-    /// The most recent event that has occured during the match
-    pub previous_event: Option<Event>,
 }
 
 impl World {
@@ -61,7 +59,6 @@ impl World {
             enemies_bot: Default::default(),
             ball: None,
             team_color,
-            previous_event: Default::default(),
         }
     }
 }
