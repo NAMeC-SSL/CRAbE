@@ -128,7 +128,7 @@ impl Strategy for Mbappe {
                     action_wrapper.push(self.id, Kick::new(KickType::StraightKick {power: 1.0}));
                     self.internal_state = MbappeState::GoingBehindBall;
                 } else {
-                    action_wrapper.push(self.id, MoveTo::new(None, close_after_ball_pos, robot_to_goal_angle, How::Intersept));
+                    action_wrapper.push(self.id, MoveTo::new_dribbling(None, close_after_ball_pos, robot_to_goal_angle, How::Intersept));
                 }
             }
         }

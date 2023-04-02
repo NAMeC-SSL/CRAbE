@@ -54,6 +54,7 @@ pub struct MoveTo {
     closest_distance: Option<f64>,
     last_closest_distance: Option<Instant>,
     state: State,
+    dribbler: f32
 }
 
 impl MoveTo {
@@ -70,12 +71,32 @@ impl MoveTo {
             closest_distance: None,
             last_closest_distance: None,
             has_through: through.is_some(),
+            dribbler: 0.
         };
 
         moveto.update_how(how);
         moveto
     }
 
+    pub fn new_dribbling(through: Option<Point2<f64>>, dst: Point2<f64>, angle: f64, how: How) -> MoveTo {
+        let mut moveto = MoveTo {
+            dst,
+            angle,
+            through: through.unwrap_or(dst),
+            xy_speed: RampSpeed::new(0.0, 0.0, 0.0, 0.0),
+            angle_speed: RampSpeed::new(0.0, 0.0, 0.0, 0.0),
+            xy_hyst: 0.0,
+            angle_hyst: 0.0,
+            state: State::Running,
+            closest_distance: None,
+            last_closest_distance: None,
+            has_through: through.is_some(),
+            dribbler: 1.
+        };
+
+        moveto.update_how(how);
+        moveto
+    }
 
     fn update_how(&mut self, how: How) {
         match how {
@@ -140,7 +161,7 @@ impl Action for MoveTo {
     }
 
     fn compute_order(&mut self, id: u8, world: &World, tools: &mut ToolData) -> Command {
-        let multiplicator = 20.;
+        let multiplicator = 10.;
 
         let robot = match world.allies_bot.get(&id) {
             None => {
@@ -157,7 +178,7 @@ impl Action for MoveTo {
         }
 
         let mut cmd = Command::default();
-
+        cmd.dribbler = self.dribbler;
         let mut angl_ok = false;
         let mut xy_ok = false;
 
