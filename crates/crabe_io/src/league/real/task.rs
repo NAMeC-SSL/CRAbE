@@ -1,4 +1,6 @@
-use log::error;
+use std::thread::sleep;
+use std::time::Duration;
+use log::{error, info};
 use crate::league::real::RealConfig;
 
 use crabe_framework::constant::MAX_ID_ROBOTS;
@@ -23,7 +25,7 @@ impl Real {
 
     fn prepare_packet(&mut self, commands: impl Iterator<Item = (u8, Command)>) -> PcToBase {
         let mut packet = PcToBase::default();
-        for (id, command) in commands {
+        for (id,mut command) in commands {
             let (kicker_cmd, kick_power) = match command.kick {
                 None => {
                     (Kicker::NoKick, 0.0 as f32)
@@ -32,6 +34,23 @@ impl Real {
                 Some(Kick::ChipKick { power }) => (Kicker::Chip, power),
             };
 
+            let mut nan_flag = false;
+            if command.dribbler.is_nan() {
+                error!("command.dribbler was nan");
+                nan_flag = true;
+            }
+            if command.left_velocity.is_nan() {
+                error!("command.left_velocity was nan");
+                nan_flag = true;
+            }
+            if command.forward_velocity.is_nan() {
+                error!("command.forward_velocity was nan");
+                nan_flag = true;
+            }
+            if nan_flag {
+                info!("nan_flag was set, falling back on default command");
+                command = Command::default();
+            }
 
             packet.commands.push(
                 BaseCommand {
@@ -71,6 +90,7 @@ impl CommandSenderTask for Real {
                 commands.insert(id as u8, Default::default());
             }
 
+            sleep(Duration::from_secs(30));
             self.step(commands);
         }
 
