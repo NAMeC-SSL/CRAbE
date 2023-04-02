@@ -49,7 +49,7 @@ impl Strategy for Stand {
     ) -> bool {
         let mut our_goal: Point2<f64> = Point2::new(-3.3, 0.0);
         our_goal.y += (self.id as f64 / 4.0 - 2.0);
-
+        our_goal.y = clamp(our_goal.y, -world.geometry.field.width/2., world.geometry.field.width/2.);
         action_wrapper.clean(self.id);
 
         let robot = match world.allies_bot.get(&self.id) {
@@ -70,7 +70,7 @@ impl Strategy for Stand {
         let robot_to_ball_angle = robot_to_ball.y.atan2(robot_to_ball.x);
 
 
-        let mut cmd = MoveTo::new(None, Point2::new(our_goal.x , ball.position.y + (self.id as f64 / 2.0 - 2.0)), robot_to_ball_angle, How::Goal).compute_order(self.id, world, tools_data);
+        let mut cmd = MoveTo::new(None, Point2::new(our_goal.x , clamp(ball.position.y + (self.id as f64 / 2.0 - 2.0), -world.geometry.field.width/2., world.geometry.field.width/2.)), robot_to_ball_angle, How::Goal).compute_order(self.id, world, tools_data);
         if robot_to_ball.norm() < 0.20 && self.last_kick.elapsed() > Duration::from_secs(2) {
             println!("GOING TO BALL");
             cmd = MoveTo::new(None, ball.position.xy(), robot_to_ball_angle, How::Fast).compute_order(self.id, world, tools_data);
