@@ -153,7 +153,7 @@ impl GameControllerPostFilter {
     fn ball_placement_blue_branch(world: &mut World, chrono_opt: Option<Instant>) {
         if let Some(chrono) = chrono_opt {
             // [ALLEMAGNE] chrono check peut être enlevé si pas de ball placement auto
-            if chrono.elapsed() >= 30 {
+            if chrono.elapsed() >= Duration::seconds(30) {
                 world.data.state = GameState::Running(RunningState::Run);
             } else {
                 world.data.state = GameState::Stopped(StoppedState::BallPlacement);
