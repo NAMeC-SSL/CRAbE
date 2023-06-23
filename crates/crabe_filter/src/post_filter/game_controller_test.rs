@@ -4,7 +4,7 @@ use serde::de::Unexpected::Option;
 use crabe_framework::component::FilterComponent;
 use crabe_framework::config::CommonConfig;
 use crabe_framework::data::input::InboundData;
-use crabe_framework::data::world::{GameState, World};
+use crabe_framework::data::world::{GameState, HaltedState, World};
 use crabe_protocol::protobuf::game_controller_packet::{GameEvent, GameEventProposalGroup, MatchType, Referee};
 use crabe_protocol::protobuf::game_controller_packet::game_event::Event;
 use crabe_protocol::protobuf::game_controller_packet::referee::TeamInfo;
@@ -103,7 +103,7 @@ fn test_game_controller_step() {
             filter_component.step(data,&mut world);
             let mut game_controller = GameControllerPostFilter::default();
             game_controller.step(&filter_component.filter_data,&mut world);
-            assert_eq!(world.data.state, GameState::Halted);
+            assert_eq!(world.data.state, GameState::Halted(HaltedState::Halt));
 
         }
         Err(_) => {
