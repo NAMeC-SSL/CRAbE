@@ -2,6 +2,7 @@ use crate::action::ActionWrapper;
 use crate::manager::Manager;
 use crate::strategy::Strategy;
 use crate::strategy::testing::Square;
+use crate::strategy::keeper::Keep;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::game_state::{GameState, RunningState, StoppedState};
 use crabe_framework::data::world::World;
@@ -75,6 +76,7 @@ impl Manager for GameManager {
                     RunningState::Run => {
                         println!("run");
                         self.strategies.push(Box::new(Square::new(1)));
+                        self.strategies.push(Box::new(Keep::new(0)));
                     }
                 },
             }
