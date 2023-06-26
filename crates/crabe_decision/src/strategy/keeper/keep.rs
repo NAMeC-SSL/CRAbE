@@ -40,7 +40,8 @@ impl Strategy for Keep {
     ) -> bool {
         action_wrapper.clean(self.id);
         if let Some(ball) = &world.ball{
-            action_wrapper.push(self.id, MoveTo::new(Point2::new(-world.geometry.field.length/2.0+0.1, ball.position.y), -PI / 4.0));
+            let x = -world.geometry.field.length/2.0+0.1;
+            action_wrapper.push(self.id, MoveTo::new(Point2::new(x, ball.position.y), -PI / 4.0));
         }
         false
     }
