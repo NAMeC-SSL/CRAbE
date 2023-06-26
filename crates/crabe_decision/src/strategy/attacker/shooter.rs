@@ -109,10 +109,11 @@ impl Strategy for Shooter {
             ShooterState::GoingShoot => {
                 if dbg!(robot_to_ball_distance) < 0.098 && dbg!(robot_to_ball_angle.abs()) < 3.0 {
                     //action_wrapper.push(self.id, Kick::new(KickType::StraightKick {power: 10.0}));
+                    action_wrapper.push(self.id, MoveTo::new_kicking(close_behind_ball_pos, robot_to_goal_angle));
                     println!("kicik");
                     self.internal_state = ShooterState::GoingBehindBall;
                 } else {
-                    action_wrapper.push(self.id, MoveTo::new_kicking(close_behind_ball_pos, robot_to_goal_angle));
+                    action_wrapper.push(self.id, MoveTo::new(close_behind_ball_pos, robot_to_goal_angle));
                 }
             }
         }
