@@ -44,13 +44,14 @@ impl Strategy for Shooter {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
-        //action_wrapper.clean(self.id);
+        action_wrapper.clean(self.id);
         if let Some(ball) = &world.ball {
-            let target = Point3::new(-2.,0.,0.);
+            let target = Point3::new(-5.,0.,0.);
             let mut dir = ball.position.sub(target);
             dir = dir.normalize();
+            dir = dir * 0.2;
             action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x + dir.x, ball.position.y + dir.y), PI / 4.0));
-            action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x, ball.position.y), PI / 4.0));
+            //action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x, ball.position.y), PI / 4.0));
         }
         false
     }
