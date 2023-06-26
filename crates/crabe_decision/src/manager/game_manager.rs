@@ -74,7 +74,7 @@ impl Manager for GameManager {
                     }
                     RunningState::Run => {
                         println!("run");
-                        self.strategies.push(Box::new(Shooter::new(1)));
+                        self.strategies.push(Box::new(Shooter::new(0)));
                     }
                 },
             }
