@@ -50,7 +50,7 @@ impl Strategy for Shooter {
             let mut dir = ball.position.sub(target);
             dir = dir.normalize();
             action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x + dir.x, ball.position.y + dir.y), PI / 4.0));
-            action_wrapper.push(self.id, MoveTo::new(Point2::new(target.x, target.y), PI / 4.0));
+            action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x, ball.position.y), PI / 4.0));
         }
         false
     }
