@@ -112,7 +112,7 @@ impl Strategy for Shooter {
                     println!("kicik");
                     self.internal_state = ShooterState::GoingBehindBall;
                 } else {
-                    action_wrapper.push(self.id, MoveTo::new(close_behind_ball_pos, robot_to_goal_angle));
+                    action_wrapper.push(self.id, MoveTo::new_kicking(close_behind_ball_pos, robot_to_goal_angle));
                 }
             }
         }
