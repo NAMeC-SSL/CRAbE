@@ -7,18 +7,23 @@ use nalgebra::{Point2, Point3};
 use std::f64::consts::PI;
 use std::ops::Sub;
 
-/// The Square struct represents a strategy that commands a robot to move in a square shape
-/// in a counter-clockwise. It is used for testing purposes.
 #[derive(Default)]
 pub struct Shooter {
     /// The id of the robot to move.
     id: u8,
+    internal_state: ShooterState
 }
 
+#[derive(Debug, Default)]
+enum ShooterState {
+    #[default]
+    GoingBehindBall,
+    GoingShoot
+}
 impl Shooter {
     /// Creates a new Square instance with the desired robot id.
     pub fn new(id: u8) -> Self {
-        Self { id }
+        Self { id, internal_state: ShooterState::GoingBehindBall }
     }
 }
 
@@ -44,14 +49,22 @@ impl Strategy for Shooter {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
-        //action_wrapper.clean(self.id);
+        action_wrapper.clean(self.id);
         if let Some(ball) = &world.ball {
             let target = Point3::new(-world.geometry.field.length/2.,0.,0.);
             let mut dir = ball.position.sub(target);
             dir = dir.normalize();
             dir = dir * 0.2;
-            action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x + dir.x, ball.position.y + dir.y), PI / 4.0));
-            action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x, ball.position.y), PI / 4.0));
+            match &self.internal_state {
+                ShooterState::GoingBehindBall => {
+                    action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x + dir.x, ball.position.y + dir.y), PI / 4.0));
+                    self.internal_state = ShooterState::GoingShoot;
+                },
+                ShooterState::GoingShoot => {
+                    action_wrapper.push(self.id, MoveTo::new(Point2::new(ball.position.x, ball.position.y), PI / 4.0));
+                },
+            }
+            
         }
         false
     }
