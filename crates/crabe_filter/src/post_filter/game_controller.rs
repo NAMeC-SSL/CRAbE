@@ -81,9 +81,18 @@ impl GameControllerPostFilter {
                 Event::BotPushedBot(_) |
                 Event::BotHeldBallDeliberately(_) |
                 Event::BotTippedOver(_) |
-                Event::AttackerTouchedBallInDefenseArea(_) |
-                Event::BotKickedBallTooFast(_) |
-                Event::BotCrashUnique(_) |
+                Event::AttackerTouchedBallInDefenseArea(_) => {
+                    //Non stopping fouls
+                    dbg!("AttackerTouchedBallInDefenseArea");
+                }
+                Event::BotKickedBallTooFast(_) => {
+                    //Non stopping fouls
+                    dbg!("BotKickedBallTooFast");
+                }
+                Event::BotCrashUnique(_) => {
+                    //Non stopping fouls
+                    dbg!("BotCrashUnique");
+                }
                 Event::BotCrashDrawn(_) |
                 Event::DefenderTooCloseToKickPoint(_) |
                 Event::BotTooFastInStop(_) |
