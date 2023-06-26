@@ -38,8 +38,9 @@ impl Strategy for Keep {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
+        action_wrapper.clean(self.id);
         if let Some(ball) = &world.ball{
-            action_wrapper.push(self.id, MoveTo::new(Point2::new(-world.geometry.field.width/2.0, ball.position.y), -PI / 4.0));
+            action_wrapper.push(self.id, MoveTo::new(Point2::new(-world.geometry.field.length/2.0+0.1, ball.position.y), -PI / 4.0));
         }
         false
     }
