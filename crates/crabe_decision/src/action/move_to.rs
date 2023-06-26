@@ -114,7 +114,7 @@ impl Action for MoveTo {
                 angular_velocity: order.z as f32,
                 charge: false,
                 kick: None,
-                dribbler: 0.0,
+                dribbler: 1.0,
             }
         } else {
             Command::default()
