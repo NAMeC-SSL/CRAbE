@@ -1,3 +1,4 @@
+use std::time::Instant;
 use crate::data::world::TeamColor;
 use serde::Serialize;
 
@@ -22,14 +23,14 @@ pub enum StoppedState {
     Stop,
     PrepareKickoff(TeamColor),
     PreparePenalty(TeamColor),
-    BallPlacement(TeamColor),
+    BallPlacement(TeamColor, #[serde(skip)] Instant),
 }
 
 #[derive(Serialize, Copy, Clone, Debug, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum RunningState {
-    KickOff(TeamColor),
-    Penalty(TeamColor),
-    FreeKick(TeamColor),
+    KickOff(TeamColor, #[serde(skip)] Instant),
+    Penalty(TeamColor, #[serde(skip)] Instant),
+    FreeKick(TeamColor, #[serde(skip)] Instant),
     Run,
 }

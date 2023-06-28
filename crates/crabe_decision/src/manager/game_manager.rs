@@ -59,18 +59,18 @@ impl Manager for GameManager {
                     StoppedState::PreparePenalty(team) => {
                         println!("prepare penalty {:?}",team);
                     }
-                    StoppedState::BallPlacement(team) => {
+                    StoppedState::BallPlacement(team, _) => {
                         println!("ball placement {:?}",team);
                     }
                 },
                 GameState::Running(running_state) => match running_state {
-                    RunningState::KickOff(team) => {
+                    RunningState::KickOff(team, _) => {
                         println!("kickoff for {:#?}", team);
                     }
-                    RunningState::Penalty(team) => {
+                    RunningState::Penalty(team, _) => {
                         println!("penalty for {:#?}", team);
                     }
-                    RunningState::FreeKick(team) => {
+                    RunningState::FreeKick(team, _) => {
                         println!("free kick for {:#?}", team);
                     }
                     RunningState::Run => {
