@@ -10,7 +10,7 @@ use crate::post_filter::PostFilter;
 
 #[derive(Default)]
 pub struct GameControllerPostFilter {
-
+    previous_ref_command: Option<RefereeCommand>
 }
 
 impl GameControllerPostFilter {
@@ -33,8 +33,19 @@ impl GameControllerPostFilter {
         match state {
             StoppedState::Stop => {
                 match command {
+                    Some(RefereeCommand::ForceStart) => {
+                        GameState::Running(RunningState::Run)
+                    }
+
                     Some(RefereeCommand::Timeout(_team_color)) => {
                         GameState::Halted(HaltedState::Timeout)
+                    }
+
+                    Some(RefereeCommand::DirectFree(team_color)) => {
+                        GameState::Running(RunningState::FreeKick(
+                            *team_color,
+                            Instant::now()
+                        ))
                     }
 
                     Some(RefereeCommand::BallPlacement(team_color)) => {
@@ -204,12 +215,22 @@ impl PostFilter for GameControllerPostFilter {
     fn step(&mut self, filter_data: &FilterData, world: &mut World) {
         let last_referee_packet = filter_data.referee.last();
         let event = last_referee_packet.map(|r| r.game_events.last().map(|e| &e.event)).flatten();
-        let ref_command = last_referee_packet.map(|r| &r.command);
+        let new_command =  last_referee_packet.map(|r| &r.command)
+            .filter(|&ref_command| self.previous_ref_command.as_ref() != Some(ref_command));
+
         // TODO: should we put this somewhere else?
         if let Some(team_on_positive_half) = last_referee_packet.map(|r| r.positive_half).flatten() {
             world.data.positive_half = team_on_positive_half
         }
-        world.data.state = Self::handle(world.data.state, ref_command, event, world.team_color)
+        world.data.state = Self::handle(world.data.state, new_command, event, world.team_color);
         // TODO : ally and enemy
+
+
+        println!("state: {:?}", world.data.state);
+
+        if let Some(new_command) = new_command {
+            println!("new command: {:?}", new_command);
+            self.previous_ref_command = Some(new_command.clone())
+        }
     }
 }
