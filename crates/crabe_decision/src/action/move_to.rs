@@ -3,8 +3,10 @@ use crate::action::Action;
 use crabe_framework::data::output::{Command, Kick};
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::{AllyInfo, Robot, World};
-use nalgebra::{Isometry2, Point2, Vector2, Vector3};
+use nalgebra::{Isometry2, Point2, Vector2, Vector3, ComplexField};
 use std::f64::consts::PI;
+use crate::constants::{KEEPER_ID};
+
 
 /// The `MoveTo` struct represents an action that moves the robot to a specific location on the field, with a given target orientation.
 #[derive(Clone)]
@@ -97,11 +99,19 @@ impl Action for MoveTo {
     /// * `tools`: A collection of external tools used by the action, such as a viewer.
     fn compute_order(&mut self, id: u8, world: &World, _tools: &mut ToolData) -> Command {
         if let Some(robot) = world.allies_bot.get(&id) {
-            let target = if &world.data.positive_half == &world.team_color {
+            let mut target = if &world.data.positive_half == &world.team_color {
                 Point2::new(-self.target.x, self.target.y)
             }else{
                 self.target
             };
+            //prevent going in the goal zone
+            if id != KEEPER_ID{
+                dbg!(&target.y.abs(),&(&world.geometry.ally_penalty.width / 2.));
+                if &target.y.abs() < &(&world.geometry.ally_penalty.width / 2.) && &world.geometry.field.length>&0.{
+                    let penalty_y = dbg!(&world.geometry.field.length/2.) - dbg!(&world.geometry.ally_penalty.depth);
+                    target.x = target.x.clamp(-penalty_y, penalty_y);
+                }
+            }
             let ti = frame_inv(robot_frame(robot));
             let target_in_robot = ti * Point2::new(target.x, target.y);
 

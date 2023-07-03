@@ -21,3 +21,5 @@ pub mod pipeline;
 /// The strategy module contains the Strategy trait and various implementations of strategies.
 /// Strategies are behaviors that one or multiple robots can adopt in order to achieve a certain goal.
 pub mod strategy;
+
+pub mod constants;
