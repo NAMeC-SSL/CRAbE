@@ -12,9 +12,8 @@ const OBSTACLE_RADIUS: f64 = 0.7;
 const K_ATTRACTION: f64 = 1.0;
 const K_REPULSION: f64 = 1.0;
 const DIST_CHECK_FINISHED: f64 = 0.02;
-const MAX_ANGLE_ERROR: f64 = FRAC_PI_6;
+const MAX_ANGLE_ERROR: f64 = FRAC_PI_6 / 3.0; // Max 10 degrees diff allowed
 use crate::constants::{KEEPER_ID};
-
 
 /// The `MoveTo` struct represents an action that moves the robot to a specific location on the field, with a given target orientation.
 #[derive(Clone)]
