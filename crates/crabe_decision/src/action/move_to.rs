@@ -283,10 +283,12 @@ impl Action for MoveTo {
     fn compute_order(&mut self, id: u8, world: &World, _tools: &mut ToolData) -> Command {
         if let Some(robot) = world.allies_bot.get(&id) {
             let mut target = if &world.data.positive_half == &world.team_color {
-                Point2::new(-self.target.x, self.target.y)
+                //Point2::new(-self.target.x, self.target.y)
+                self.target
             }else{
                 self.target
             };
+            dbg!(target);
             //prevent going in the goal zone
             if id != KEEPER_ID{
                 if &target.y.abs() < &(&world.geometry.ally_penalty.width / 2.) && &world.geometry.field.length>&0.{

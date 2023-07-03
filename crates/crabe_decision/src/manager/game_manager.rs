@@ -68,7 +68,7 @@ impl GameManager {
             .chain(world.enemies_bot.iter().map(|(id, robot)| (id, trajectory.dist_to_point(&robot.pose.position.xy()))))
             .min_by(|(_, d1), (_, d2)| d1.total_cmp(d2))
             .map(|(_, d)| d);
-        return closest_dist < Some(0.2)
+        return closest_dist < Some(0.15)
     }
 }
 

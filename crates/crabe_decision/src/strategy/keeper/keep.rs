@@ -5,7 +5,7 @@ use crate::strategy::Strategy;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::{World, Robot, EnemyInfo, AllyInfo};
 use crabe_math::shape::Line;
-use crabe_math::vectors::vector_from_angle;
+use crabe_math::vectors::{vector_from_angle, self};
 use nalgebra::{Point2, clamp};
 use std::cmp::min;
 use std::f64::consts::PI;
@@ -42,7 +42,15 @@ impl Strategy for Keep {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
-        action_wrapper.clean(self.id);
+        action_wrapper.clean(self.id);       
+        let robot = match world.allies_bot.get(&self.id) {
+            None => {
+                return false;
+            }
+            Some(robot) => {
+                robot
+            }
+        };
         if let Some(ball) = &world.ball{
             let mut shoot_dir = Line::new(ball.position_2d(),Point2::new(-10.,ball.position.y));
             if ball.velocity.norm() > 0.{//TODO : ball velocity is equal to 0
@@ -55,8 +63,9 @@ impl Strategy for Keep {
             }
             if let Some(intersection) = world.geometry.ally_goal.front_line.intersection_line(&shoot_dir) {
                 let x = world.geometry.ally_goal.bottom_left_position.x+0.1;
+                dbg!(x);
                 let y = clamp(intersection.y, world.geometry.ally_goal.bottom_left_position.y, world.geometry.ally_goal.bottom_right_position.y);
-                action_wrapper.push(self.id, MoveTo::new(Point2::new(x, y), -PI / 4.0, 0., None, false, false));
+                action_wrapper.push(self.id, MoveTo::new(Point2::new(x, y), vectors::angle_to_point(ball.position.xy(), robot.pose.position ), 0., None, false, false));
             }
         }
         false
