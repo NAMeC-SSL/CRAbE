@@ -4,6 +4,7 @@ use crate::strategy::Strategy;
 use crate::constants::{KEEPER_ID, PIVOT_ID, DEFENDER1_ID, DEFENDER2_ID, ATTACKER1_ID, ATTACKER2_ID};
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
+use crabe_math::vectors;
 use nalgebra::Point2;
 use std::f64::consts::PI;
 
@@ -41,12 +42,37 @@ impl Strategy for PrepareKickOffAlly {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
-        action_wrapper.push(ATTACKER2_ID, MoveTo::new(Point2::new(-0.25, 2.5), -PI / 4.0, 0.0,None, false, false));
-        action_wrapper.push(DEFENDER1_ID, MoveTo::new(Point2::new(-1.5, -1.5), -PI / 4.0, 0.0,None, false, false));
-        action_wrapper.push(ATTACKER1_ID, MoveTo::new(Point2::new(-0.25, -2.5), -PI / 4.0, 0.0,None, false, false));
-        action_wrapper.push(PIVOT_ID, MoveTo::new(Point2::new(-0.2, 0.0), -PI / 4.0, 0.0,None, false, false));
-        action_wrapper.push(DEFENDER2_ID, MoveTo::new(Point2::new(-1.5, 1.5), -PI / 4.0, 0.0,None, false, false));
-        action_wrapper.push(KEEPER_ID, MoveTo::new(Point2::new(-4.0, -0.0), -PI / 4.0, 0.0,None, false, false));
+        let ball_pos = match world.ball.clone() {
+            None => {
+                return false;
+            }
+            Some(ball) => {
+                ball.position.xy()
+            }
+        };
+        if let Some(robot) = world.allies_bot.get(&ATTACKER2_ID) {
+            action_wrapper.push(ATTACKER2_ID, MoveTo::new(Point2::new(-0.25, 2.5), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
+        }
+        
+        if let Some(robot) = world.allies_bot.get(&ATTACKER1_ID) {
+            action_wrapper.push(ATTACKER1_ID, MoveTo::new(Point2::new(-0.25, -2.5), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
+        }
+
+        if let Some(robot) = world.allies_bot.get(&PIVOT_ID) {
+            action_wrapper.push(PIVOT_ID, MoveTo::new(Point2::new(-0.2, 0.0), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
+        }
+
+        if let Some(robot) = world.allies_bot.get(&DEFENDER1_ID) {
+            action_wrapper.push(DEFENDER1_ID, MoveTo::new(Point2::new(-1.5, -1.5), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
+        }
+
+        if let Some(robot) = world.allies_bot.get(&DEFENDER2_ID) {
+            action_wrapper.push(DEFENDER2_ID, MoveTo::new(Point2::new(-1.5, 1.5), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
+        }
+
+        if let Some(robot) = world.allies_bot.get(&KEEPER_ID) {
+            action_wrapper.push(KEEPER_ID, MoveTo::new(Point2::new(-4.0, -0.0), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
+        }
         true
     }
 }
