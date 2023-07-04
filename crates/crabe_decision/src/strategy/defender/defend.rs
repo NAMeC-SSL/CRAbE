@@ -3,6 +3,7 @@ use crate::action::ActionWrapper;
 use crate::strategy::Strategy;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
+use crabe_math::shape::Line;
 use crabe_math::vectors;
 use nalgebra::Point2;
 use std::f64::consts::PI;
@@ -62,9 +63,19 @@ impl Strategy for Defend {
                 ball.position.xy()
             }
         };
-        let to_ball_angle = vectors::angle_to_point(ball_pos, robot.pose.position);
-        let follow_ball = Point2::new(-3., ball_pos.y);
-        action_wrapper.push(self.id, MoveTo::new(follow_ball, to_ball_angle, 0., None,false,true));
+        let shoot_line = Line::new(ball_pos, Point2::new(-world.geometry.field.length/2.,0.));
+        let shoot_dir = shoot_line.start - shoot_line.end;
+        let bot_line_pos_side_point = Point2::new(-world.geometry.field.length/2. + world.geometry.ally_penalty.depth, -world.geometry.field.width/2.);
+        let bot_line_pos = Line::new(bot_line_pos_side_point, Point2::new(bot_line_pos_side_point.x, -bot_line_pos_side_point.y));
+        let interseption_point = shoot_line.intersection_line(&bot_line_pos);
+        let perpendicular_dir = vectors::rotate_vector(shoot_dir, PI/2.).normalize() * 0.109;
+        if let Some(interseption_position) = interseption_point{
+            let mut final_pos = interseption_position;
+            if self.left {final_pos = final_pos + perpendicular_dir;}
+            else {final_pos = final_pos - perpendicular_dir}
+            let to_ball_angle = vectors::angle_to_point(ball_pos, robot.pose.position);
+            action_wrapper.push(self.id, MoveTo::new(final_pos, to_ball_angle, 0., None,false,true));
+        }
         false
     }
 }

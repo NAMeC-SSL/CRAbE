@@ -59,7 +59,8 @@ impl GameControllerPostFilter {
         _kicked_off_once: &mut bool,
         mut _chrono: Option<Instant>,
     ) {
-        if let Some(previous_game_event) = previous_game_event_opt {
+        
+        if let Some(previous_game_event) = dbg!(previous_game_event_opt) {
             let previous_event = &previous_game_event.event;
             match previous_event {
                 //Stopped events

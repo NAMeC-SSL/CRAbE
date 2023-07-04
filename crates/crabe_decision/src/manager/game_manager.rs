@@ -61,14 +61,14 @@ impl GameManager {
             }
         };
         let trajectory = Line::new(robot.pose.position, target);
-
+        dbg!(world.allies_bot.len());
         let closest_dist = world.allies_bot
-            .iter().filter(|(id, _)| id != id)
-            .map(|(id, robot)| (id, trajectory.dist_to_point(&robot.pose.position.xy())))
+            .iter().filter(|(current_id, _)| **current_id != id)
+            .map(|(id, robot)| (id, dbg!(trajectory.dist_to_point(&robot.pose.position.xy()))))
             .chain(world.enemies_bot.iter().map(|(id, robot)| (id, trajectory.dist_to_point(&robot.pose.position.xy()))))
             .min_by(|(_, d1), (_, d2)| d1.total_cmp(d2))
             .map(|(_, d)| d);
-        return closest_dist < Some(0.15)
+        return dbg!(closest_dist) < Some(0.2)
     }
 }
 
@@ -80,6 +80,7 @@ impl Manager for GameManager {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) {
+        GameManager::bot_in_trajectory(world, 0, Point2::new(0., 0.));
         if self.last_game_state.is_none() || self.last_game_state.unwrap() != world.data.state {
             // clear current strategy
             self.strategies.clear();
