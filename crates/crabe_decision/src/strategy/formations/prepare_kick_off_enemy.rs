@@ -67,16 +67,16 @@ impl Strategy for PrepareKickOffEnemy {
             action_wrapper.push(PIVOT_ID, MoveTo::new(Point2::new(-1.0, 0.0),vectors::angle_to_point(ball_pos, robot.pose.position),0.0,None, false, false));
         }
 
-        if let Some(robot) = world.allies_bot.get(&DEFENDER1_ID) {
-            action_wrapper.push(DEFENDER1_ID, MoveTo::new(Point2::new(-0.7, -1.0), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
+        if let Some(robot) = world.allies_bot.get(&ATTACKER1_ID) {
+            action_wrapper.push(ATTACKER1_ID, MoveTo::new(Point2::new(-0.7, -1.0), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
         }
 
         if let Some(robot) = world.allies_bot.get(&ATTACKER2_ID) {
             action_wrapper.push(ATTACKER2_ID, MoveTo::new(Point2::new(-0.7, 1.0), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
         }
 
-        if let Some(robot) = world.allies_bot.get(&ATTACKER1_ID) {
-            action_wrapper.push(ATTACKER1_ID, MoveTo::new(Point2::new(-1.2, -0.7), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
+        if let Some(robot) = world.allies_bot.get(&DEFENDER1_ID) {
+            action_wrapper.push(DEFENDER1_ID, MoveTo::new(Point2::new(-1.2, -0.7), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
         }
 
         if let Some(robot) = world.allies_bot.get(&KEEPER_ID) {
