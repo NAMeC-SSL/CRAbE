@@ -20,32 +20,8 @@ impl Shooter {
     pub fn new(id: u8) -> Self {
         Self { id}
     }
-}
 
-impl Strategy for Shooter {
-    /// Executes the Square strategy.
-    ///
-    /// This strategy commands the robot with the specified ID to move in a square shape in a
-    /// counter-clockwise direction.
-    ///
-    /// # Arguments
-    ///
-    /// * world: The current state of the game world.
-    /// * tools_data: A collection of external tools used by the strategy, such as a viewer.    
-    /// * action_wrapper: An `ActionWrapper` instance used to issue actions to the robot.
-    ///
-    /// # Returns
-    ///
-    /// A boolean value indicating whether the strategy is finished or not.
-    #[allow(unused_variables)]
-    fn step(
-        &mut self,
-        world: &World,
-        tools_data: &mut ToolData,
-        action_wrapper: &mut ActionWrapper,
-    ) -> bool {
-        action_wrapper.clean(self.id);
-
+    pub fn stand(&mut self, action_wrapper: &mut ActionWrapper, world: &World) -> bool{
         let robot = match world.allies_bot.get(&self.id) {
             None => {
                 return false;
@@ -54,8 +30,25 @@ impl Strategy for Shooter {
                 robot
             }
         };
-        if let Some(bappe) = GameManager::closest_ally_to_ball(world) {
-            if bappe.id != self.id {return false}
+        let ball_pos = match world.ball.clone() {
+            None => {
+                return false;
+            }
+            Some(ball) => {
+                ball.position.xy()
+            }
+        };     
+        action_wrapper.push(self.id, MoveTo::new(robot.pose.position, vectors::angle_to_point(ball_pos, robot.pose.position), 0., None, false, true));
+        false
+    }
+    pub fn go_shoot(&mut self, action_wrapper: &mut ActionWrapper, world: &World) -> bool{
+        let robot = match world.allies_bot.get(&self.id) {
+            None => {
+                return false;
+            }
+            Some(robot) => {
+                robot
+            }
         };
         let goal_pos: Point2<f64> = Point2::new(world.geometry.field.length/2., 0.0);
         let ball_pos = match world.ball.clone() {
@@ -81,8 +74,38 @@ impl Strategy for Shooter {
             action_wrapper.push(self.id, MoveTo::new(ball_pos, vectors::angle_to_point(ball_pos, robot_pos), 1.,  None, false, false));
         }else{
             action_wrapper.push(self.id, MoveTo::new(ball_pos, vectors::angle_to_point(ball_pos, robot_pos), 0.,  None, false, false));
-        }
+        };
+        false
+    }
+}
 
+impl Strategy for Shooter {
+    /// Executes the Shooter strategy.
+    ///
+    /// # Arguments
+    ///
+    /// * world: The current state of the game world.
+    /// * tools_data: A collection of external tools used by the strategy, such as a viewer.    
+    /// * action_wrapper: An `ActionWrapper` instance used to issue actions to the robot.
+    ///
+    /// # Returns
+    ///
+    /// A boolean value indicating whether the strategy is finished or not.
+    #[allow(unused_variables)]
+    fn step(
+        &mut self,
+        world: &World,
+        tools_data: &mut ToolData,
+        action_wrapper: &mut ActionWrapper,
+    ) -> bool {
+        action_wrapper.clean(self.id);
+        if let Some(bappe) = GameManager::closest_ally_shooter_to_ball(world) {
+            if self.id != bappe.id {
+                self.stand(action_wrapper, world);
+            }else{
+                self.go_shoot(action_wrapper, world);
+            }
+        }
         false
     }
 }

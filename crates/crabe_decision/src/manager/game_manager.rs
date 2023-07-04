@@ -37,7 +37,15 @@ impl GameManager {
     pub fn closest_ally_to_ball(world: &World) -> Option<&Robot<AllyInfo>>{
         world.allies_bot
             .iter()
-            .filter(|(id, _)| **id != KEEPER_ID)
+            .map(|(id, robot)| (id, robot, robot.distance(&world.ball.clone().unwrap_or_default().position.xy())))
+            .min_by(|(_, _, d1), (_, _, d2)| d1.total_cmp(d2))
+            .map(|(_, bot, _)| bot)
+    }
+
+    pub fn closest_ally_shooter_to_ball(world: &World) -> Option<&Robot<AllyInfo>>{
+        world.allies_bot
+            .iter()
+            .filter(|(id, _)| **id != KEEPER_ID && **id != DEFENDER1_ID && **id != DEFENDER2_ID)
             .map(|(id, robot)| (id, robot, robot.distance(&world.ball.clone().unwrap_or_default().position.xy())))
             .min_by(|(_, _, d1), (_, _, d2)| d1.total_cmp(d2))
             .map(|(_, bot, _)| bot)
@@ -120,19 +128,16 @@ impl Manager for GameManager {
                             return;
                         }
                         self.strategies.push(Box::new(Keep::new(KEEPER_ID)));
-                        let rest: Vec<u8> = world.allies_bot.iter().map(|(id, _)| *id).filter(|id| *id != KEEPER_ID).collect();
-                        for id in rest {
-                            self.strategies.push(Box::new(GoToCenter::new(1)));
-                        }
                     }
                     RunningState::Penalty(team) => {
                         println!("penalty for {:#?}", team);
                         if team == world.team_color {
                             self.strategies.push(Box::new(Keep::new(KEEPER_ID)));
-                            let rest: Vec<u8> = world.allies_bot.iter().map(|(id, _)| *id).filter(|id| *id != KEEPER_ID).collect();
-                            for id in rest {
-                                self.strategies.push(Box::new(Shooter::new(id)));
-                            }
+                            self.strategies.push(Box::new(Shooter::new(PIVOT_ID)));
+                            self.strategies.push(Box::new(Shooter::new(ATTACKER1_ID)));
+                            self.strategies.push(Box::new(Shooter::new(ATTACKER2_ID)));
+                            self.strategies.push(Box::new(Defend::new(DEFENDER1_ID, true)));
+                            self.strategies.push(Box::new(Defend::new(DEFENDER2_ID, false)));
                         }else{
                             self.strategies.push(Box::new(Keep::new(KEEPER_ID)));
                         }
