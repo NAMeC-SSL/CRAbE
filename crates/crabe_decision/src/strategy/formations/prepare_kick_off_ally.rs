@@ -42,6 +42,13 @@ impl Strategy for PrepareKickOffAlly {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
+        action_wrapper.clean(KEEPER_ID);
+        action_wrapper.clean(PIVOT_ID);
+        action_wrapper.clean(ATTACKER1_ID);
+        action_wrapper.clean(ATTACKER2_ID);
+        action_wrapper.clean(DEFENDER1_ID);
+        action_wrapper.clean(DEFENDER2_ID);
+
         let ball_pos = match world.ball.clone() {
             None => {
                 return false;
@@ -53,7 +60,7 @@ impl Strategy for PrepareKickOffAlly {
         if let Some(robot) = world.allies_bot.get(&ATTACKER2_ID) {
             action_wrapper.push(ATTACKER2_ID, MoveTo::new(Point2::new(-0.25, 2.5), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
         }
-        
+
         if let Some(robot) = world.allies_bot.get(&ATTACKER1_ID) {
             action_wrapper.push(ATTACKER1_ID, MoveTo::new(Point2::new(-0.25, -2.5), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
         }
@@ -73,7 +80,7 @@ impl Strategy for PrepareKickOffAlly {
         if let Some(robot) = world.allies_bot.get(&KEEPER_ID) {
             action_wrapper.push(KEEPER_ID, MoveTo::new(Point2::new(-4.0, -0.0), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
         }
-        true
+        false
     }
 }
 

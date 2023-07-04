@@ -43,6 +43,13 @@ impl Strategy for PrepareKickOffEnemy {
         action_wrapper: &mut ActionWrapper,
         
     ) -> bool {
+        action_wrapper.clean(KEEPER_ID);
+        action_wrapper.clean(PIVOT_ID);
+        action_wrapper.clean(ATTACKER1_ID);
+        action_wrapper.clean(ATTACKER2_ID);
+        action_wrapper.clean(DEFENDER1_ID);
+        action_wrapper.clean(DEFENDER2_ID);
+
 
         let ball_pos = match world.ball.clone() {
             None => {
@@ -75,7 +82,7 @@ impl Strategy for PrepareKickOffEnemy {
         if let Some(robot) = world.allies_bot.get(&KEEPER_ID) {
             action_wrapper.push(KEEPER_ID, MoveTo::new(Point2::new(-4.0, -0.0), vectors::angle_to_point(ball_pos, robot.pose.position), 0.0,None, false, false));
         }
-        true
+        false
     }
 }
 
