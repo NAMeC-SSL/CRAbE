@@ -88,7 +88,7 @@ impl Strategy for Shooter {
                 }else {
                     action_wrapper.push(self.id, MoveTo::new(ball_pos, vectors::angle_to_point(ball_pos, robot_pos), 1.,  None, false, true));
                 }
-                if ball_avoidance || !aligne_with_goal_target{
+                if ball_avoidance || robot_to_ball.norm() > 0.4{
                     self.state = ShooterState::PlaceForShoot;
                 }
             },

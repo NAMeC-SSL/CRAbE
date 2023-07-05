@@ -108,7 +108,7 @@ impl Manager for GameManager {
             self.strategies.clear();
             action_wrapper.clear();
 
-            match world.data.state {
+            match GameState::Running(RunningState::Run) {
                 GameState::Halted(_) => {
                     println!("halted");
                 }
