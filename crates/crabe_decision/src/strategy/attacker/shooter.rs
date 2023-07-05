@@ -80,7 +80,7 @@ impl Strategy for Shooter {
                 let dist_to_ball = robot_to_ball.norm();
                 let robot_current_dir = vectors::vector_from_angle(robot.pose.orientation);
                 let dot_with_ball = robot_current_dir.normalize().dot(&robot_to_ball.normalize());
-                if (dist_to_ball < 0.115 && dot_with_ball > 0.9) || robot.has_ball{//TODO replace with IR (robot.has_ball)
+                if (dbg!(dist_to_ball) < 0.115 && dbg!(dot_with_ball) > 0.9) || robot.has_ball{//TODO replace with IR (robot.has_ball)
                     let kick: Option<Kick> = if aligne_with_goal_target {
                         Some(Kick::StraightKick {  power: 4. }) 
                     }else {None};
