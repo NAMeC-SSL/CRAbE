@@ -6,7 +6,7 @@ use crabe_framework::data::output::{Command, Kick};
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::{World, AllyInfo, Robot};
 use nalgebra::{distance, Point2, Rotation2, Vector2, Isometry2, Vector3};
-use std::ops::{Div};
+use std::ops::{Div, Add};
 
 const OBSTACLE_RADIUS: f64 = 0.7;
 const K_ATTRACTION: f64 = 1.0;
@@ -124,8 +124,14 @@ impl MoveTo {
     }
 
     pub fn dumb_moveto(&mut self, robot: &Robot<AllyInfo>, _world: &World, target: Point2<f64>) -> Command {
+        let calculated_target = if (target - robot.pose.position).norm()>0.4{
+            let dir = (target-robot.pose.position).normalize()*2.;
+            robot.pose.position.add(dir)
+        }else{
+            target
+        };
         let ti = frame_inv(robot_frame(robot));
-        let target_in_robot = ti * Point2::new(target.x, target.y);
+        let target_in_robot = ti * Point2::new(calculated_target.x, calculated_target.y);
         let wanted_orientation = self.orientation.rem_euclid(2. * PI);
         let curent_orientation = robot.pose.orientation.rem_euclid(2. * PI);
         let mut error_orientation = wanted_orientation - curent_orientation;
@@ -138,12 +144,14 @@ impl MoveTo {
         if arrived {
             self.state = State::Done;
         }
-        let order = Vector3::new(
+        let mut order = Vector3::new(
             GOTO_SPEED * error_x,
             GOTO_SPEED * error_y,
             GOTO_ROTATION * error_orientation,
         );
-
+        if order.z.abs()>0.3{
+            order.z = order.z.signum() * 10.;//10 is just big number (he's clamped in the guards)
+        };
         let dribble = self.dribble.clamp(0., 1.);
 
         Command {
