@@ -51,23 +51,21 @@ impl Strategy for Keep {
         if let Some(ball) = &world.ball{
             let ball_pos = ball.position_2d();
             let mut shoot_dir = Line::new(ball_pos,Point2::new(-10.,ball.position.y));
-            if ball.velocity.norm() > 0.{
-                let ball_dir = ball.position + ball.velocity * 1000.;
-                shoot_dir.end = ball_dir.xy();
-            }
-            else if let Some(closest_enemy) = GameManager::closest_enemy_to_ball(world){
+            let mut y_to_follow = ball.position.y;
+            // if dbg!(ball.velocity.norm()) > 0.{
+            //     let ball_dir = ball.position + ball.velocity * 1000.;
+            //     shoot_dir.end = ball_dir.xy();
+            // }
+            if let Some(closest_enemy) = GameManager::closest_enemy_to_ball(world){
                 let enemy_dir = closest_enemy.pose.position + vector_from_angle(closest_enemy.pose.orientation) * 1000.;
                 shoot_dir.end = enemy_dir.xy();
+                if let Some(intersection) = world.geometry.ally_goal.front_line.intersection_line(&shoot_dir) {
+                    y_to_follow = intersection.y;
+                }
             }
-            if let Some(intersection) = world.geometry.ally_goal.front_line.intersection_line(&shoot_dir) {
-                let x = world.geometry.ally_goal.bottom_left_position.x+0.1;
-                let y = clamp(intersection.y, world.geometry.ally_goal.bottom_left_position.y, world.geometry.ally_goal.bottom_right_position.y);
-                action_wrapper.push(self.id, MoveTo::new(Point2::new(x, y), vectors::angle_to_point(ball.position.xy(), robot.pose.position ), 0., None, false, false));
-            }
-            else {
-                let goal_center = Point2::new(-world.geometry.field.length/2.,0.);
-                action_wrapper.push(self.id, MoveTo::new(goal_center, vectors::angle_to_point(ball.position.xy(), robot.pose.position ), 0., None, false, false));
-            }
+            let x = world.geometry.ally_goal.bottom_left_position.x+0.1;
+            let y = clamp(y_to_follow, world.geometry.ally_goal.bottom_left_position.y, world.geometry.ally_goal.bottom_right_position.y);
+            action_wrapper.push(self.id, MoveTo::new(Point2::new(x, y), vectors::angle_to_point(ball.position.xy(), robot.pose.position ), 0., None, false, false));
          } else {
             let goal_center = Point2::new(-world.geometry.field.length/2.,0.);
             action_wrapper.push(self.id, MoveTo::new(goal_center, vectors::angle_to_point(Point2::new(0.,0.), robot.pose.position ), 0., None, false, false));
