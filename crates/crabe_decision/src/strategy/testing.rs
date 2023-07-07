@@ -11,4 +11,7 @@ pub use self::square::Square;
 mod robots_formation;
 pub use self::robots_formation::RobotsFormation;
 mod follow_ball;
+mod test_moveto;
+
 pub use self::follow_ball::FollowBall;
+pub use self::test_moveto::TestMoveTo;
