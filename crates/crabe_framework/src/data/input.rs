@@ -2,6 +2,7 @@ use crate::data::output::FeedbackMap;
 use crabe_protocol::protobuf::game_controller_packet::Referee;
 use crabe_protocol::protobuf::vision_packet::SslWrapperPacket;
 use std::fmt::Debug;
+use crabe_protocol::protobuf::tracker_vision_packet::TrackerWrapperPacket;
 
 /// Represents the data received by the software from external sources and
 /// passed through the filters.
@@ -16,4 +17,6 @@ pub struct InboundData {
     /// Simulator or USB Packet that provides feedback from the robot,
     /// such as odometry or infrared data.
     pub feedback: FeedbackMap,
+    /// Tracker packet
+    pub tracker_packet: Vec<TrackerWrapperPacket>,
 }

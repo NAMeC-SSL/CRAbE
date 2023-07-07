@@ -12,4 +12,6 @@ pub struct CommonConfig {
     /// Specifies whether to activate the game-controller of the Robocup SSL.
     #[arg(long)]
     pub gc: bool,
+    #[arg(long)]
+    pub tracker: bool,
 }

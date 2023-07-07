@@ -40,4 +40,10 @@ fn main() {
         &["protobuf/robot/base_wrapper.proto"],
         &["protobuf/robot"],
     );
+
+    compile_packet(
+        "tracker_vision_packet",
+        &["protobuf/vision/messages_robocup_ssl_wrapper_tracked.proto"],
+        &["protobuf/vision"],
+    )
 }

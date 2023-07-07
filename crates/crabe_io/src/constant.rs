@@ -6,3 +6,4 @@ pub const VISION_PORT_REAL: u16 = 10006;
 pub const VISION_PORT_SIM: u16 = 10020;
 pub const SIM_PORT_BLUE: u16 = 10301;
 pub const SIM_PORT_YELLOW: u16 = 10302;
+pub const TRACKED_PORT: u16 = 10010;

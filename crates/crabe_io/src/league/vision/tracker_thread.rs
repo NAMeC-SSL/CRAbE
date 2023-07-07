@@ -1,5 +1,5 @@
 use crate::communication::MulticastUDPReceiver;
-use crate::constant::{VISION_PORT_REAL, VISION_PORT_SIM};
+use crate::constant::{TRACKED_PORT, VISION_PORT_REAL, VISION_PORT_SIM};
 use crate::league::vision::VisionConfig;
 use crate::pipeline::input::ReceiverTask;
 use crabe_framework::config::CommonConfig;
@@ -13,30 +13,27 @@ use std::sync::mpsc::Receiver;
 use std::sync::{mpsc, Arc};
 use std::thread;
 use std::thread::JoinHandle;
+use crabe_protocol::protobuf::tracker_vision_packet::TrackerWrapperPacket;
 
 // TODO: Document
-pub struct Vision {
-    rx_vision: Receiver<SslWrapperPacket>,
+pub struct TrackerVision {
+    rx_tracker: Receiver<TrackerWrapperPacket>,
     handle: Option<JoinHandle<()>>,
     running: Arc<AtomicBool>,
 }
 
-impl Vision {
+impl TrackerVision {
     pub fn with_config(vision_cfg: &VisionConfig, common_cfg: &CommonConfig) -> Self {
-        let port = if let Some(port) = vision_cfg.vision_port {
+        let port = if let Some(port) = vision_cfg.tracker_port {
             port
         } else {
-            if common_cfg.real {
-                VISION_PORT_REAL
-            } else {
-                VISION_PORT_SIM
-            }
+            TRACKED_PORT
         };
 
-        let (tx_vision, rx_vision) = mpsc::channel::<SslWrapperPacket>();
-        let ipv4 = Ipv4Addr::from_str(vision_cfg.vision_ip.as_str())
+        let (tx_tracker, rx_tracker) = mpsc::channel::<TrackerWrapperPacket>();
+        let ipv4 = Ipv4Addr::from_str(vision_cfg.tracker_ip.as_str())
             .expect("Failed to create an ipv4 address with the ip");
-        let mut vision =
+        let mut tracker =
             MulticastUDPReceiver::new(ipv4, port).expect("Failed to create vision receiver");
 
         let running = Arc::new(AtomicBool::new(true));
@@ -44,33 +41,33 @@ impl Vision {
 
         let handle = thread::spawn(move || {
             while running_clone.load(Ordering::Relaxed) {
-                if let Some(packet) = vision.receive() {
-                    if let Err(e) = tx_vision.send(packet) {
-                        error!("Error sending Vision packet: {:?}", e);
+                if let Some(packet) = tracker.receive() {
+                    if let Err(e) = tx_tracker.send(packet) {
+                        error!("Error sending Tracker packet: {:?}", e);
                     }
                 }
             }
         });
 
         Self {
-            rx_vision,
+            rx_tracker,
             handle: Some(handle),
             running,
         }
     }
 }
 
-impl ReceiverTask for Vision {
+impl ReceiverTask for TrackerVision {
     fn fetch(&mut self, input: &mut InboundData) {
-        input.vision_packet.extend(self.rx_vision.try_iter());
+        input.tracker_packet.extend(self.rx_tracker.try_iter());
     }
 
     fn close(&mut self) {
         self.running.store(false, Ordering::Relaxed);
         if let Some(handle) = self.handle.take() {
             match handle.join() {
-                Ok(_) => info!("Vision Thread finished successfully"),
-                Err(e) => println!("Vision thread finished with an error: {:?}", e),
+                Ok(_) => info!("Tracker Thread finished successfully"),
+                Err(e) => println!("Tracker thread finished with an error: {:?}", e),
             }
         }
     }

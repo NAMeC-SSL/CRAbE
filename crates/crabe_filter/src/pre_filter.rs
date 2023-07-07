@@ -5,6 +5,7 @@ use crabe_framework::data::world::TeamColor;
 pub mod common;
 pub mod game_controller;
 pub mod vision;
+pub mod tracker;
 
 pub trait PreFilter {
     fn step(

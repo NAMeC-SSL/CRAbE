@@ -23,7 +23,9 @@ use crabe_framework::config::CommonConfig;
 use crabe_framework::data::input::InboundData;
 use crabe_framework::data::world::{TeamColor, World};
 use filter::velocity_acceleration::VelocityAccelerationFilter;
-use crate::filter::field_side::FieldSideFilter;
+use crate::post_filter::autoref::AutoRefFilter;
+use crate::post_filter::field_side::FieldSideFilter;
+use crate::pre_filter::tracker::TrackerFilter;
 
 #[derive(Args)]
 pub struct FilterConfig {
@@ -48,21 +50,26 @@ pub struct FilterPipeline {
 impl FilterPipeline {
     pub fn with_config(config: FilterConfig, common_config: &CommonConfig) -> Self {
         let mut pre_filters: Vec<Box<dyn PreFilter>> = vec![Box::new(VisionFilter::new())];
-        let mut filters: Vec<Box<dyn Filter>> = vec![
-            Box::new(PassthroughFilter),
-            Box::new(VelocityAccelerationFilter),
-            Box::<InactiveFilter>::default(),
-        ];
-
-        if let Some(field_side) = config.field_side {
-            filters.push(Box::new(FieldSideFilter::new(field_side)))
-        }
+        let mut filters: Vec<Box<dyn Filter>> = vec![];
 
         let mut post_filters: Vec<Box<dyn PostFilter>> = vec![
-            Box::new(RobotFilter),
             Box::new(GeometryFilter),
-            Box::new(BallFilter),
         ];
+
+        if common_config.tracker {
+            pre_filters.push(Box::new(TrackerFilter));
+            post_filters.push(Box::new(AutoRefFilter));
+        } else {
+            post_filters.push(Box::new(RobotFilter));
+            filters.push(Box::new(PassthroughFilter));
+            filters.push(Box::new(VelocityAccelerationFilter));
+            filters.push(Box::<InactiveFilter>::default());
+            post_filters.push(Box::new(BallFilter));
+        }
+
+        if let Some(field_side) = config.field_side {
+            post_filters.push(Box::new(FieldSideFilter::new(field_side)));
+        }
 
         if common_config.gc {
             pre_filters.push(Box::new(GameControllerPreFilter));
@@ -79,6 +86,7 @@ impl FilterPipeline {
                 ball: Default::default(),
                 geometry: Default::default(),
                 referee: Default::default(),
+                tracker: vec![],
             },
             team_color: if common_config.yellow {
                 TeamColor::Yellow

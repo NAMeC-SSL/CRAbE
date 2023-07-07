@@ -20,7 +20,7 @@ pub struct GameController {
 }
 
 impl GameController {
-    pub fn with_config(cli: GameControllerConfig) -> Self {
+    pub fn with_config(cli: &GameControllerConfig) -> Self {
         let (tx_gc, rx_gc) = mpsc::channel::<Referee>();
         let ipv4 = Ipv4Addr::from_str(cli.gc_ip.as_str())
             .expect("Failed to create an ipv4 address with the ip");

@@ -1,5 +1,5 @@
 use crate::league::game_controller::{GameController, GameControllerConfig};
-use crate::league::vision::{Vision, VisionConfig};
+use crate::league::vision::{TrackerVision, Vision, VisionConfig};
 use clap::Args;
 use crabe_framework::component::{Component, InputComponent};
 use crabe_framework::config::CommonConfig;
@@ -29,12 +29,12 @@ pub struct InputPipeline {
 impl InputPipeline {
     pub fn with_config(input_cfg: InputConfig, common_cfg: &CommonConfig) -> Self {
         let mut tasks: Vec<Box<dyn ReceiverTask>> = vec![Box::new(Vision::with_config(
-            input_cfg.vision_cfg,
+            &input_cfg.vision_cfg,
             common_cfg,
-        ))];
+        )),  Box::new(TrackerVision::with_config(&input_cfg.vision_cfg, common_cfg))];
 
         if common_cfg.gc {
-            tasks.push(Box::new(GameController::with_config(input_cfg.gc_cfg)));
+            tasks.push(Box::new(GameController::with_config(&input_cfg.gc_cfg)));
         }
 
         Self { receivers: tasks }

@@ -10,6 +10,7 @@ use crabe_framework::data::world::{AllyInfo, Ball, EnemyInfo, Robot};
 use ringbuffer::ConstGenericRingBuffer;
 use std::collections::HashMap;
 use std::time::Instant;
+use crabe_protocol::protobuf::tracker_vision_packet::TrackerWrapperPacket;
 
 #[derive(Clone, Debug)]
 pub struct FrameInfo {
@@ -26,6 +27,7 @@ pub struct FilterData {
     pub ball: Option<TrackedBall>,
     pub geometry: CamGeometry,
     pub referee: Vec<Referee>,
+    pub tracker: Vec<TrackerWrapperPacket>
 }
 
 pub struct TrackedRobot<T> {
