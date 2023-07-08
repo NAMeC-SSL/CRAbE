@@ -73,6 +73,8 @@ pub struct Robot<T> {
     pub acceleration: RobotAcceleration,
     /// The timestamp indicating when this information was last updated.
     pub timestamp: DateTime<Utc>,
+    /// The position where the robot wants to go
+    pub intended_pose: Pose,
 }
 
 impl<T: Clone> Clone for Robot<T> {
@@ -85,6 +87,7 @@ impl<T: Clone> Clone for Robot<T> {
             velocity: self.velocity.clone(),
             acceleration: self.acceleration.clone(),
             timestamp: self.timestamp,
+            intended_pose: self.intended_pose.clone(),
         }
     }
 }

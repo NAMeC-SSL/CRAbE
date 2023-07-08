@@ -62,7 +62,7 @@ impl Sequencer {
     /// * `id`: The id of the robot for which the orders are computed.
     /// * `world`: The current state of the world.
     /// * `tools`: A collection of external tools used by the action, such as a viewer.
-    pub fn compute_order(&mut self, id: u8, world: &World, tools: &mut ToolData) -> Command {
+    pub fn compute_order(&mut self, id: u8, world: &mut World, tools: &mut ToolData) -> Command {
         if self.state == State::Failed || self.actions.is_empty() {
             return Command::default();
         }

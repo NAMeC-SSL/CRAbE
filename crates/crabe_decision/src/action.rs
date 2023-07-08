@@ -27,12 +27,13 @@ pub trait Action {
     /// Returns the current state of the action.
     fn state(&mut self) -> State;
     /// Computes the next command to be executed by the robot.
-    fn compute_order(&mut self, id: u8, world: &World, tools: &mut ToolData) -> Command;
+    fn compute_order(&mut self, id: u8, world: &mut World, tools: &mut ToolData) -> Command;
     /// Cancel the action.
     fn cancel(&mut self) {}
 }
 
 /// The Actions enum is used to define the various actions that can be taken by a robot and implement the Action
+#[derive()]
 #[enum_dispatch]
 pub enum Actions {
     MoveTo(MoveTo),
@@ -88,7 +89,7 @@ impl ActionWrapper {
     ///
     /// * `world`: The current state of the world.
     /// * `tools`: A collection of external tools used by the action, such as a viewer.    .
-    pub fn compute(&mut self, world: &World, tools: &mut ToolData) -> CommandMap {
+    pub fn compute(&mut self, world: &mut World, tools: &mut ToolData) -> CommandMap {
         let mut command_map = CommandMap::default();
         self.actions.iter_mut().for_each(|(id, action)| {
             command_map.insert(*id, action.compute_order(*id, world, tools));

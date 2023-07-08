@@ -40,7 +40,7 @@ impl Component for DecisionPipeline {
 
 impl DecisionComponent for DecisionPipeline {
     /// Runs a single step of the decision-making pipeline using the given `World` data.
-    fn step(&mut self, world: &World) -> (CommandMap, ToolData) {
+    fn step(&mut self, world: &mut World) -> (CommandMap, ToolData) {
         // TODO : Don't create ToolsData here
         let mut tool_data = ToolData::default();
         self.manager

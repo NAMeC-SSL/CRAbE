@@ -17,6 +17,7 @@ fn robot_passthrough<'a, T: 'a + Default>(
                 velocity: Default::default(),
                 acceleration: Default::default(),
                 timestamp: packet.frame_info.t_capture,
+                intended_pose: Pose::new(packet.position, packet.orientation),
             }
         }
     })

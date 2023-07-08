@@ -49,7 +49,7 @@ pub trait FilterComponent: Component {
 /// The `DecisionComponent` trait defines the methods required for a component that makes decisions
 /// for a SSL robot fleet based on the filtered input data.
 pub trait DecisionComponent: Component {
-    fn step(&mut self, data: &World) -> (CommandMap, ToolData);
+    fn step(&mut self, data: &mut World) -> (CommandMap, ToolData);
 }
 
 /// The `ToolComponent` trait defines the methods required for a component that manages and

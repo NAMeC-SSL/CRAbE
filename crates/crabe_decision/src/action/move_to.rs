@@ -4,7 +4,7 @@ use crate::action::Action;
 use crate::manager::game_manager::GameManager;
 use crabe_framework::data::output::{Command, Kick};
 use crabe_framework::data::tool::ToolData;
-use crabe_framework::data::world::{World, AllyInfo, Robot};
+use crabe_framework::data::world::{World, AllyInfo, Robot, Pose};
 use nalgebra::{distance, Point2, Rotation2, Vector2, Isometry2, Vector3};
 use std::ops::{Div};
 
@@ -137,7 +137,6 @@ impl MoveTo {
     }
 
     pub fn compute_moveto_vector(&mut self, robot: &Robot<AllyInfo>, world: &World, target: Point2<f64>) -> Command {
-        
         let dist_to_target = distance(&robot.pose.position, &target);
         if dist_to_target <= DIST_CHECK_FINISHED {
             self.state = State::Done;
@@ -244,27 +243,39 @@ impl Action for MoveTo {
     /// * `id`: The id of the robot for which the orders are computed.
     /// * `world`: The current state of the world.
     /// * `tools`: A collection of external tools used by the action, such as a viewer.
-    fn compute_order(&mut self, id: u8, world: &World, _tools: &mut ToolData) -> Command {
-        if let Some(robot) = world.allies_bot.get(&id) {
-            let mut target = self.target.clone();
-            if id != KEEPER_ID{
-                if &target.y.abs() < &(&world.geometry.ally_penalty.width / 2.) && &world.geometry.field.length>&0.{
-                    let mut penalty_y = &world.geometry.field.length/2. - &world.geometry.ally_penalty.depth;
-                    penalty_y -= OFFSET_Y_GOAL_AREA;
-                    target.x = target.x.clamp(-penalty_y, penalty_y);
-                }
+    fn compute_order(&mut self, id: u8, world: &mut World, _tools: &mut ToolData) -> Command {
+        let robot = match world.allies_bot.get(&id) {
+            None => {
+                return Command::default();
             }
-            if target.x.abs() > &world.geometry.field.length/2.{
-                target.x = world.geometry.field.length/2. * target.x.signum();
+            Some(robot) => {
+                robot
             }
-            if target.y.abs() > &world.geometry.field.width/2.{
-                target.y = world.geometry.field.width/2. * target.y.signum();
+        };
+        let mut target = self.target.clone();
+        if id != KEEPER_ID{
+            if &target.y.abs() < &(&world.geometry.ally_penalty.width / 2.) && &world.geometry.field.length>&0.{
+                let mut penalty_y = &world.geometry.field.length/2. - &world.geometry.ally_penalty.depth;
+                penalty_y -= OFFSET_Y_GOAL_AREA;
+                target.x = target.x.clamp(-penalty_y, penalty_y);
             }
-
-            self.compute_moveto_vector(robot, world, target)
-
-        } else {
-            Command::default()
-        }        
+        }
+        if target.x.abs() > &world.geometry.field.length/2.{
+            target.x = world.geometry.field.length/2. * target.x.signum();
+        }
+        if target.y.abs() > &world.geometry.field.width/2.{
+            target.y = world.geometry.field.width/2. * target.y.signum();
+        }
+        let res = self.compute_moveto_vector(robot, world, target);
+        let mut robot = match world.allies_bot.get_mut(&id) {
+            None => {
+                return Command::default();
+            }
+            Some(robot) => {
+                robot
+            }
+        };
+        robot.intended_pose = Pose::new(target, self.orientation);
+        res
     }
 }

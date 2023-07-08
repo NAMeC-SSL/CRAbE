@@ -42,7 +42,7 @@ impl Action for RawOrder {
     }
 
     /// Computes the command to be executed and updates the state of the action to "Done".
-    fn compute_order(&mut self, _id: u8, _world: &World, _tools: &mut ToolData) -> Command {
+    fn compute_order(&mut self, _id: u8, _world: &mut World, _tools: &mut ToolData) -> Command {
         self.state = State::Done;
         self.command
     }
