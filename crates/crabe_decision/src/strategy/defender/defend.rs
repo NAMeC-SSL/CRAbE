@@ -70,7 +70,7 @@ impl Strategy for Defend {
         let bot_line_pos_side_point = Point2::new(-world.geometry.field.length/2. + world.geometry.ally_penalty.depth, -world.geometry.field.width/2.);
         let bot_line_pos = Line::new(bot_line_pos_side_point, Point2::new(bot_line_pos_side_point.x, -bot_line_pos_side_point.y));
         let interseption_point = shoot_line.intersection_line(&bot_line_pos);
-        let perpendicular_dir = (vectors::rotate_vector(shoot_dir, PI/2.).normalize()) * 0.12;
+        let perpendicular_dir = (vectors::rotate_vector(shoot_dir, PI/2.).normalize()) * 0.;
         let to_ball_angle = vectors::angle_to_point(ball_pos, robot.pose.position);
         if ball_pos.x < -world.geometry.field.length/2. +world.geometry.ally_penalty.depth{
             //idk what to do

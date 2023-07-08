@@ -147,7 +147,9 @@ impl Manager for GameManager {
                         }
                     }
                     StoppedState::BallPlacement(team) => {
+                        self.strategies.push(Box::new(Goal::new(KEEPER_ID)));
                         self.strategies.push(Box::new(GoOutFromBall::new()));
+
                         println!("ball placement {:?}",team);
                     }
                 },
@@ -162,6 +164,9 @@ impl Manager for GameManager {
                             self.strategies.push(Box::new(Defender::new(DEFENDER1_ID, true)));
                             self.strategies.push(Box::new(Defender::new(DEFENDER2_ID, false)));
                         } else {
+                            self.strategies.push(Box::new(Goal::new(KEEPER_ID)));
+                            self.strategies.push(Box::new(Defender::new(DEFENDER1_ID, true)));
+                            self.strategies.push(Box::new(Defender::new(DEFENDER2_ID, false)));
                             self.strategies.push(Box::new(GoOutFromBall::new()));
                         }
                     }

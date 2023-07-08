@@ -21,7 +21,7 @@ const GOTO_SPEED: f64 = 1.5;
 const GOTO_ROTATION: f64 = 3.15;
 /// The error tolerance for arriving at the target position.
 const ERR_TOLERANCE: f64 = 0.115;
-const OFFSET_Y_GOAL_AREA: f64 = 0.10;
+const OFFSET_Y_GOAL_AREA: f64 = 0.18;
 use crate::constants::{KEEPER_ID};
 
 
@@ -91,12 +91,10 @@ impl MoveTo {
     fn attractive_force(&self, q: &Point2<f64>, q_d: &Point2<f64>) -> Vector2<f64> {
         let base_force = -K_ATTRACTION * (q - q_d);
         let dist_to_target = distance(q, q_d);
-        if dist_to_target >= 0.5 {
-            base_force * 1.5
-        } else if dist_to_target >= 0.08 {
-            base_force * 3.0
+        if dist_to_target <= 0.5 {
+            base_force * 1.312654
         } else {
-            base_force
+            base_force *3.
         }
     }
 
@@ -129,9 +127,9 @@ impl MoveTo {
             error_orientation = -error_orientation;
         }
         if error_orientation >= 0. {
-            error_orientation = 1.0;
+            error_orientation = 1.5;
         } else {
-            error_orientation = -1.0;
+            error_orientation = -1.5;
         }
         error_orientation as f32
     }
