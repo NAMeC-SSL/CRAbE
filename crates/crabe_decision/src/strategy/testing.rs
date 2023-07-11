@@ -14,3 +14,5 @@ mod go_to_position;
 pub use self::robots_formation::RobotsFormation;
 mod follow_ball;
 pub use self::follow_ball::FollowBall;
+mod circlerotation;
+pub use self::circlerotation::CircleRotation;

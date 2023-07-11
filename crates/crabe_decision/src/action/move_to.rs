@@ -129,9 +129,9 @@ impl MoveTo {
             error_orientation = -error_orientation;
         }
         if error_orientation >= 0. {
-            error_orientation = 1.0;
+            error_orientation = 3.0;
         } else {
-            error_orientation = -1.0;
+            error_orientation = -3.0;
         }
         error_orientation as f32
     }

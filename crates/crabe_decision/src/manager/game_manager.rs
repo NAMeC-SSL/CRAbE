@@ -5,10 +5,10 @@ use crate::strategy::attacker::{Attacker};
 use crate::strategy::defender::{Defender};
 use crate::strategy::keeper::{Keep, PenaltyPrepKeeper, Goal};
 use crate::strategy::formations::{PrepareKickOffAlly, PrepareKickOffEnemy, PrepareFreeKickEnemy, PreparePenaltyEnemy, GoOutFromBall};
-use crate::strategy::testing::FollowBall;
+use crate::strategy::testing::{FollowBall, CircleRotation};
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::game_state::{GameState, RunningState, StoppedState};
-use crabe_math::shape::Line;
+use crabe_math::shape::{Line, Circle};
 use nalgebra::Point2;
 use crabe_framework::data::world::{World, Robot, AllyInfo, EnemyInfo, HaltedState};
 use crate::constants::{KEEPER_ID, ATTACKER1_ID, ATTACKER2_ID, DEFENDER1_ID, DEFENDER2_ID, PIVOT_ID};
@@ -195,12 +195,13 @@ impl Manager for GameManager {
                     }
                     RunningState::Run => {
                         println!("run");
-                        self.strategies.push(Box::new(Goal::new(KEEPER_ID)));
-                        self.strategies.push(Box::new(Attacker::new(PIVOT_ID)));
-                        self.strategies.push(Box::new(Attacker::new(ATTACKER1_ID)));
-                        self.strategies.push(Box::new(Attacker::new(ATTACKER2_ID)));
-                        self.strategies.push(Box::new(Defender::new(DEFENDER1_ID, true)));
-                        self.strategies.push(Box::new(Defender::new(DEFENDER2_ID, false)));
+                        // self.strategies.push(Box::new(Goal::new(KEEPER_ID)));
+                        // self.strategies.push(Box::new(Attacker::new(PIVOT_ID)));
+                        // self.strategies.push(Box::new(Attacker::new(ATTACKER1_ID)));
+                        // self.strategies.push(Box::new(Attacker::new(ATTACKER2_ID)));
+                        // self.strategies.push(Box::new(Defender::new(DEFENDER1_ID, true)));
+                        // self.strategies.push(Box::new(Defender::new(DEFENDER2_ID, false)));
+                        self.strategies.push(Box::new(CircleRotation::new(KEEPER_ID, Circle::new(Point2::new(0.,0.), 1.))));
                         //let rest: Vec<u8> = world.allies_bot.iter().map(|(id, _)| *id).filter(|id| *id != KEEPER_ID).collect();
                         // for id in rest {
                         //     self.strategies.push(Box::new(Attacker::new(id)));
