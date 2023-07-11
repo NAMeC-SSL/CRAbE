@@ -49,7 +49,6 @@ impl Strategy for CircleRotation {
         let mut itt: f64 = 0.;
         for id in self.ids.iter(){
             let relative_elapsed = elapsed  + (PI*2./self.ids.len() as f64) * itt;
-            dbg!(relative_elapsed, id);
             let sin = f64::sin(relative_elapsed);
             let cos = f64::cos(relative_elapsed);
             action_wrapper.clean(*id);
