@@ -275,7 +275,7 @@ impl Action for MoveTo {
                 robot
             }
         };
-        robot.intended_pose = Pose::new(target, self.orientation);
+        robot.intended_pose = Pose::new(target.clone(), self.orientation);
         res
     }
 }

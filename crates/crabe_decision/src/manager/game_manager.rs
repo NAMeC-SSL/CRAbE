@@ -1,7 +1,7 @@
 use crate::action::ActionWrapper;
 use crate::manager::Manager;
 use crate::strategy::Strategy;
-use crate::strategy::attacker::{Attacker};
+use crate::strategy::attacker::{Attacker, Receiver, Passer};
 use crate::strategy::defender::{Defender};
 use crate::strategy::keeper::{Keep, PenaltyPrepKeeper, Goal};
 use crate::strategy::formations::{PrepareKickOffAlly, PrepareKickOffEnemy, PrepareFreeKickEnemy, PreparePenaltyEnemy, GoOutFromBall};
@@ -195,12 +195,16 @@ impl Manager for GameManager {
                     }
                     RunningState::Run => {
                         println!("run");
-                        self.strategies.push(Box::new(Goal::new(KEEPER_ID)));
-                        self.strategies.push(Box::new(Attacker::new(PIVOT_ID)));
-                        self.strategies.push(Box::new(Attacker::new(ATTACKER1_ID)));
-                        self.strategies.push(Box::new(Attacker::new(ATTACKER2_ID)));
-                        self.strategies.push(Box::new(Defender::new(DEFENDER1_ID, true)));
-                        self.strategies.push(Box::new(Defender::new(DEFENDER2_ID, false)));
+                        // self.strategies.push(Box::new(Goal::new(KEEPER_ID)));
+                        // self.strategies.push(Box::new(Attacker::new(PIVOT_ID)));
+                        // self.strategies.push(Box::new(Attacker::new(ATTACKER1_ID)));
+                        // self.strategies.push(Box::new(Attacker::new(ATTACKER2_ID)));
+                        // self.strategies.push(Box::new(Defender::new(DEFENDER1_ID, true)));
+                        // self.strategies.push(Box::new(Defender::new(DEFENDER2_ID, false)));
+
+                        self.strategies.push(Box::new(Receiver::new(0, 1)));
+                        self.strategies.push(Box::new(Passer::new(1)));
+
                         //let rest: Vec<u8> = world.allies_bot.iter().map(|(id, _)| *id).filter(|id| *id != KEEPER_ID).collect();
                         // for id in rest {
                         //     self.strategies.push(Box::new(Attacker::new(id)));

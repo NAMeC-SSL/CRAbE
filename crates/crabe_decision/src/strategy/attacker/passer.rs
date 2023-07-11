@@ -1,26 +1,27 @@
+use std::ops::Mul;
+
 use crate::action::move_to::MoveTo;
 use crate::action::ActionWrapper;
-use crate::constants::{PIVOT_ID, ATTACKER1_ID, ATTACKER2_ID};
-use crate::manager::game_manager::GameManager;
 use crate::strategy::Strategy;
 use crabe_framework::data::output::Kick;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
-use nalgebra::{Point2};
-use std::ops::{Add, Mul};
-use crabe_math::vectors::{self, vector_from_angle};
-use crabe_math::shape::Line;
+use crabe_math::vectors::{self};
 
-#[derive(Default)]
 pub struct Passer {
     /// The id of the robot to move.
-    id: u8
+    id: u8,
+    state: PasserState
 }
 impl Passer {
     /// Creates a new Square instance with the desired robot id.
     pub fn new(id: u8) -> Self {
-        Self { id}
+        Self { id, state: PasserState::PlaceForPass}
     }
+}
+enum PasserState{
+    PlaceForPass,
+    Pass
 }
 
 impl Strategy for Passer {
@@ -61,15 +62,29 @@ impl Strategy for Passer {
             Some(ball) => {
                 ball.position.xy()
             }
-        };     
-        let mut y = 0.;
-        if self.id == ATTACKER1_ID{
-            y = -2.;
-        }else if self.id == ATTACKER2_ID{
-            y = 2.;
-        }
-        let x = ball_pos.x;
-        action_wrapper.push(self.id, MoveTo::new(Point2::new(x,y), vectors::angle_to_point(ball_pos, robot.pose.position), 0., None, false, true));
+        };
+        let robot_pos = robot.pose.position;
+        let robot_to_ball = ball_pos - robot_pos;
+        let robot_current_dir = vectors::vector_from_angle(robot.pose.orientation);
+        let dot_with_ball = robot_current_dir.normalize().dot(&robot_to_ball.normalize());
+        match self.state {
+            PasserState::PlaceForPass => {
+                if dot_with_ball > 0.9{
+                    self.state = PasserState::Pass
+                }
+                action_wrapper.push(self.id, MoveTo::new(ball_pos + (robot_pos - ball_pos).normalize().mul(0.3), vectors::angle_to_point(ball_pos, robot_pos), 0., None, false, false));
+            },
+            PasserState::Pass => {
+                let dist_to_ball = robot_to_ball.norm();
+                let kick: Option<Kick> = if dist_to_ball < 0.125 && dot_with_ball > 0.9{
+                    Some(Kick::StraightKick {  power: 4. }) 
+                }else {None};
+                action_wrapper.push(self.id, MoveTo::new(ball_pos, vectors::angle_to_point(ball_pos, robot_pos), 1.,  kick, false, true));
+                if dot_with_ball < 0.9  || dist_to_ball > 0.4{
+                    self.state = PasserState::PlaceForPass;
+                }
+            }
+        };
         false
     }
 

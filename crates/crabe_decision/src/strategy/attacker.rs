@@ -7,3 +7,5 @@ mod attacker;
 pub use self::attacker::Attacker;
 mod passer;
 pub use self::passer::Passer;
+mod receiver;
+pub use self::receiver::Receiver;

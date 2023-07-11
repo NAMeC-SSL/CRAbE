@@ -54,6 +54,17 @@ impl AnnotationStore {
             .insert(id, Annotation::Rectangle(rectangle));
     }
 
+    /// Add a Line annotation to be displayed in the field viewer.
+    ///
+    /// # Arguments
+    ///
+    /// * `id`: A unique identifier for the annotation.
+    /// * `line`: The Line shape to be added as an annotation.
+    pub fn add_line(&mut self, id: String, line: Line) {
+        self.annotations
+            .insert(id, Annotation::Line(line));
+    }
+
     /// Remove all annotations from the store.
     pub fn clear(&mut self) {
         self.annotations.clear();

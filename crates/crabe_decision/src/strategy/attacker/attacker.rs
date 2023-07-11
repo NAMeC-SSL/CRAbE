@@ -63,7 +63,7 @@ impl Strategy for Attacker {
                     }
                 }
             }
-        } 
+        }
         self.strategy.step(world, tools_data, action_wrapper)
     }
     fn name(&self) -> &'static str {

@@ -88,6 +88,24 @@ impl Line{
         let closest_point = self.start + t * line_direction;
         (*point - closest_point).norm()
     }
+    pub fn get_closest_point(&self, point: &Point2<f64>) -> Point2<f64> {
+        let line_vec = self.end - self.start;
+        let point_vec = *point - self.start;
+        let line_length_squared = line_vec.magnitude_squared();
+        let dot_product = line_vec.dot(&point_vec);
+        
+        let t = dot_product / line_length_squared;
+        
+        if t < 0. {
+            return self.start;
+        }else if t>1. {
+            return self.end;
+        }
+        
+        let closest_point = self.start + line_vec * t;
+        
+        closest_point
+    }
 }
 
 fn ccw(a: Point2<f64>, b: Point2<f64>, c: Point2<f64>) -> bool {
