@@ -23,6 +23,7 @@ pub struct BallPlacement {
 
 impl BallPlacement {
     /// Creates a new BallPlacement instance with the desired robot id.
+    /// Add a point in arguments where the robot have to place the ball
     pub fn new(id: u8, point: Point2<f64>) -> Self {
         Self {id, point, state: PlacerState::TakeBall, time: Instant::now()}
     }
@@ -37,7 +38,7 @@ enum PlacerState{
 impl Strategy for BallPlacement {
     /// Executes the BallPlacement strategy.
     ///
-    /// This strategy commands all the robots to move in position for
+    /// This strategy commands one robot to place the ball at the point specified
     ///
     /// # Arguments
     ///
@@ -99,7 +100,6 @@ impl Strategy for BallPlacement {
                 action_wrapper.push(self.id, MoveTo::new(behind_ball_pos, vectors::angle_to_point(self.point, robot_pos), 0., None, false, false));
             },
             PlacerState::Place => {
-                println!("place");
                 action_wrapper.push(self.id, MoveTo::new(self.point - (self.point - ball_pos).normalize().mul(0.1), vectors::angle_to_point(self.point, robot_pos), 1.0,None, false, false));
                 if ball_avoidance || robot_to_ball.norm() > 0.4 || dot_with_target < 0.93{
                     self.state = PlacerState::TakeBall;
