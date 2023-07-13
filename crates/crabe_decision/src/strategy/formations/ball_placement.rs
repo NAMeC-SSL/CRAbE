@@ -2,7 +2,6 @@ use crate::action::move_to::MoveTo;
 use crate::action::ActionWrapper;
 use crate::manager::game_manager::GameManager;
 use crate::strategy::Strategy;
-use crate::constants::{KEEPER_ID, PIVOT_ID, DEFENDER1_ID, DEFENDER2_ID, ATTACKER1_ID, ATTACKER2_ID};
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
 use crabe_math::vectors::{self, vector_from_angle};
@@ -90,7 +89,7 @@ impl Strategy for BallPlacement {
                     self.state = PlacerState::Place
                 }
                 if ball_avoidance {
-                    let perp_dir=(vectors::rotate_vector((ball_pos - behind_ball_pos), PI/2.)).mul(0.3);
+                    let perp_dir=(vectors::rotate_vector(ball_pos - behind_ball_pos, PI/2.)).mul(0.3);
                     let side = -(perp_dir.dot(&robot_to_ball)).signum();
                     behind_ball_pos = behind_ball_pos+perp_dir*side;
                     if GameManager::ball_in_trajectory(world, self.id, behind_ball_pos){
