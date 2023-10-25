@@ -98,7 +98,7 @@ mod detection {
 
         pub struct BallDetectionInfo<'a> {
             pub detected: &'a [SslDetectionBall],
-            pub tracked: &'a mut TrackedBall,
+            pub tracked: &'a mut Option<TrackedBall>,
         }
 
         pub fn detect_balls(detection: &mut BallDetectionInfo, frame: &FrameInfo) {
@@ -112,7 +112,7 @@ mod detection {
                 confidence: b.confidence as f64,
             });
 
-            detection.tracked.packets.extend(ball_packets);
+            detection.tracked.get_or_insert(Default::default()).packets.extend(ball_packets);
         }
     }
 

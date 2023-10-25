@@ -12,7 +12,10 @@ mod team;
 pub use self::team::{Team, TeamColor};
 
 mod game_state;
+mod game_data;
+
 pub use self::game_state::GameState;
+pub use self::game_data::GameData;
 
 use crate::config::CommonConfig;
 use crate::data::geometry::Geometry;
@@ -26,7 +29,7 @@ use serde::Serialize;
 #[serde(rename_all = "camelCase")]
 pub struct World {
     /// The current state of the game.
-    pub state: GameState,
+    pub data: GameData,
     /// The geometry of the field, including its dimensions and the positions of goals and other areas.
     pub geometry: Geometry,
     /// A map of all the ally robots in the game, identified by their unique ID.
@@ -50,7 +53,7 @@ impl World {
             TeamColor::Blue
         };
         Self {
-            state: GameState::new(team_color),
+            data: GameData::new(team_color),
             geometry: Default::default(),
             allies_bot: Default::default(),
             enemies_bot: Default::default(),

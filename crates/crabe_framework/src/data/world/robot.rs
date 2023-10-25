@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use nalgebra::{Point2, Vector2};
+use nalgebra::{distance, Point2, Vector2};
 use serde::Serialize;
 use std::collections::HashMap;
 
@@ -73,6 +73,18 @@ pub struct Robot<T> {
     pub acceleration: RobotAcceleration,
     /// The timestamp indicating when this information was last updated.
     pub timestamp: DateTime<Utc>,
+}
+
+impl<T> Robot<T> {
+    /// Returns the distance from the center of this robot's position
+    /// to the given Point2 object
+    /// # Args
+    /// - point: The point to measure the distance of this robot to
+    /// # Notes
+    /// Is just a shorthand to use the nalgebra distance() function on robots
+    pub fn distance(&self, point: &Point2<f64>) -> f64 {
+        distance(&self.pose.position, point)
+    }
 }
 
 impl<T: Clone> Clone for Robot<T> {

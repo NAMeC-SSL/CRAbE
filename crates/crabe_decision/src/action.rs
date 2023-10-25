@@ -74,6 +74,13 @@ impl ActionWrapper {
         }
     }
 
+    /// Clears the sequence of actions to be executed of all robot.
+    pub fn clear(&mut self) {
+        self.actions.iter_mut().for_each(|(_, sequencer)| {
+            sequencer.clear();
+        })
+    }
+
     /// Computes the sequence of actions to be executed for each robot and returns a
     /// `CommandMap` containing the commands to be sent to each robot.
     ///

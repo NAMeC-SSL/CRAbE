@@ -1,6 +1,7 @@
 pub mod inactive;
 pub mod passthrough;
 pub mod velocity_acceleration;
+pub mod field_side;
 
 use crate::data::FilterData;
 use crabe_framework::data::world::World;
