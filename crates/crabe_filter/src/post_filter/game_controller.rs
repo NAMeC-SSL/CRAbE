@@ -227,7 +227,16 @@ impl GameControllerPostFilter {
 
     fn prepare_penalty_branch(world: &mut World, mut _chrono_opt: Option<Instant>, team:TeamColor) {
         //TODO : the penalty comportement is complex, maybe we're missing a penalty RunningState
-        world.data.state = GameState::Stopped(StoppedState::PreparePenalty(team));
+        
+        if let Some(chrono) = _chrono_opt {
+            if chrono.elapsed() >= std::time::Duration::from_secs(10) {
+                world.data.state = GameState::Running(RunningState::Penalty(team));
+            }
+            return
+        } else {
+            world.data.state = GameState::Stopped(StoppedState::PreparePenalty(team));
+            _chrono_opt = Some(Instant::now());
+        }
     }
 
     fn prepare_kickoff_branch(world: &mut World, mut _chrono_opt: Option<Instant>, team: TeamColor) {
