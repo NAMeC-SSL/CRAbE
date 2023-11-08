@@ -1,9 +1,10 @@
 use crate::action::move_to::MoveTo;
 use crate::action::ActionWrapper;
 use crate::strategy::Strategy;
+use crabe_framework::constant;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
-use nalgebra::Point2;
+use nalgebra::{Field, Point2};
 use std::f64::consts::PI;
 
 #[derive(Default)]
@@ -30,12 +31,16 @@ impl Strategy for GoToMiddle {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
-        for id in &self.ids {
-            action_wrapper.push(*id, MoveTo::new(Point2::new(0.0, 0.0), PI));
+        let goal_width = world.geometry.ally_goal.width;
+        let num_robots = self.ids.len();
+        let spacing_between_robots = 1;
+
+        for id in 0..num_robots {
+            let y_position = goal_width
+                + spacing_between_robots as f64 * (id as f64 - (num_robots - 1) as f64 / 2.0);
+            action_wrapper.push(id as u8, MoveTo::new(Point2::new(0.5, y_position), PI));
+            action_wrapper.push(id as u8, MoveTo::new(Point2::new(-4.5, y_position), PI));
         }
-        // action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, 1.0), 0));
-        // action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, -1.0), 0));
-        // action_wrapper.push(self.id, MoveTo::new(Point2::new(-1.0, -1.0), 0));
         true
     }
 }

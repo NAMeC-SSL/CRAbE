@@ -13,15 +13,13 @@ use crabe_framework::data::world::World;
 /// `strategies` field in the `new()` method of the `Manual` struct.
 #[derive(Default)]
 pub struct Manual {
-    ids: Vec<u8>,
     strategies: Vec<Box<dyn Strategy>>,
 }
 
 impl Manual {
     pub fn new() -> Self {
-        let ids = vec![0, 1, 2, 3, 4];
+        let ids: Vec<u8> = vec![0, 1, 2, 3, 4];
         Self {
-            ids: ids.clone(),
             strategies: vec![Box::new(GoToMiddle::new(ids))],
         }
     }
