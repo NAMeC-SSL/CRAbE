@@ -1,6 +1,6 @@
 use crate::action::ActionWrapper;
 use crate::manager::Manager;
-use crate::strategy::testing::Square;
+use crate::strategy::testing::GoToMiddle;
 use crate::strategy::Strategy;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
@@ -13,14 +13,16 @@ use crabe_framework::data::world::World;
 /// `strategies` field in the `new()` method of the `Manual` struct.
 #[derive(Default)]
 pub struct Manual {
+    ids: Vec<u8>,
     strategies: Vec<Box<dyn Strategy>>,
 }
 
 impl Manual {
-    /// Creates a new `Manual` instance with the desired strategies to test.
     pub fn new() -> Self {
+        let ids = vec![0, 1, 2, 3, 4];
         Self {
-            strategies: vec![Box::new(Square::new(0))],
+            ids: ids.clone(),
+            strategies: vec![Box::new(GoToMiddle::new(ids))],
         }
     }
 }
