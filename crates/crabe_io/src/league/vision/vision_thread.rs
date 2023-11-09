@@ -62,8 +62,7 @@ impl Vision {
 
 impl ReceiverTask for Vision {
     fn fetch(&mut self, input: &mut InboundData) {
-        dbg!(&self.rx_vision.try_iter().collect::<Vec<_>>());
-        //input.vision_packet.extend(Vec::new().iter())//dbg!(self.rx_vision.try_iter()));
+        input.vision_packet.extend(self.rx_vision.try_iter())
     }
 
     fn close(&mut self) {
