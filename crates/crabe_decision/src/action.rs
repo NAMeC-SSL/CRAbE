@@ -1,3 +1,7 @@
+/// The `move_to` module contains the `MoveTo` action which moves a robot to a specific location on the field and a target orientation
+/// while trying to avoid any obstacle.
+pub mod move_to_avoid;
+
 /// The `move_to` module contains the `MoveTo` action which moves a robot to a specific location on the field and a target orientation.
 pub mod move_to;
 /// The `order_raw` module contains the `RawOrder` action which sends a raw command to the robot.
@@ -9,6 +13,7 @@ pub mod sequencer;
 /// The state module contains the State enum which represents the current state of an action.
 pub mod state;
 
+use crate::action::move_to_avoid::MoveToAvoid;
 use crate::action::move_to::MoveTo;
 use crate::action::order_raw::RawOrder;
 use crate::action::sequencer::Sequencer;
@@ -37,6 +42,7 @@ pub trait Action {
 pub enum Actions {
     MoveTo(MoveTo),
     RawOrder(RawOrder),
+    MoveToAvoid(MoveToAvoid),
 }
 
 /// The `ActionWrapper` struct represents a wrapper for a sequence of actions to be executed for each robot.

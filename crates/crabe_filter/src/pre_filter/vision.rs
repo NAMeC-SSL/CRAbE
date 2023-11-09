@@ -172,7 +172,7 @@ mod geometry {
 
     pub fn handle_geometry(geometry: &SslGeometryData, filter_data: &mut FilterData) {
         let mut cam_geometry = CamGeometry {
-            field_length: geometry.field.field_length as f64 / 1000.0,
+            field_length: dbg!(geometry.field.field_length as f64 / 1000.0),
             field_width: geometry.field.field_width as f64 / 1000.0,
             goal_width: geometry.field.goal_width as f64 / 1000.0,
             goal_depth: geometry.field.goal_depth as f64 / 1000.0,

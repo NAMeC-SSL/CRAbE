@@ -5,6 +5,7 @@ use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
 use nalgebra::Point2;
 use std::f64::consts::PI;
+use crate::action::move_to_avoid::MoveToAvoid;
 
 /// The Square struct represents a strategy that commands a robot to move in a square shape
 /// in a counter-clockwise. It is used for testing purposes.
@@ -47,10 +48,12 @@ impl Strategy for Square {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
-        action_wrapper.push(self.id, MoveTo::new(Point2::new(-1.0, 1.0), -PI / 4.0));
-        action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, 1.0), -3.0 * PI / 4.0));
-        action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, -1.0), 3.0 * PI / 4.0));
-        action_wrapper.push(self.id, MoveTo::new(Point2::new(-1.0, -1.0), PI / 4.0));
+        for i in 0..3 {
+            action_wrapper.push(self.id, MoveToAvoid::new(Point2::new(-1.0, 1.0), 0f64, (*world).clone()));
+            action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, 1.0), 0f64));
+            action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, -1.0), 0f64));
+            action_wrapper.push(self.id, MoveTo::new(Point2::new(-1.0, -1.0), 0f64));
+        }
         true
     }
 }
