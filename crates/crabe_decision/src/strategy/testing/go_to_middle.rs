@@ -31,6 +31,7 @@ impl Strategy for GoToMiddle {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
+        action_wrapper.clear_all();
         let goal_width = world.geometry.ally_goal.width;
         let num_robots = self.ids.len();
         let spacing_between_robots = 1;
@@ -38,9 +39,9 @@ impl Strategy for GoToMiddle {
         for id in 0..num_robots {
             let y_position = goal_width
                 + spacing_between_robots as f64 * (id as f64 - (num_robots - 1) as f64 / 2.0);
-            action_wrapper.push(id as u8, MoveTo::new(Point2::new(0.5, y_position), PI));
+            // action_wrapper.push(id as u8, MoveTo::new(Point2::new(-0.5, y_position), PI));
             action_wrapper.push(id as u8, MoveTo::new(Point2::new(-4.5, y_position), PI));
         }
-        true
+        false
     }
 }

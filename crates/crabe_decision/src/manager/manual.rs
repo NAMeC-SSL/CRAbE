@@ -18,7 +18,7 @@ pub struct Manual {
 
 impl Manual {
     pub fn new() -> Self {
-        let ids: Vec<u8> = vec![0, 1, 2, 3, 4];
+        let ids: Vec<u8> = vec![1,4];
         Self {
             strategies: vec![Box::new(GoToMiddle::new(ids))],
         }
