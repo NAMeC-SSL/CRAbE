@@ -122,7 +122,7 @@ pub struct SslGeometryFieldSize {
     #[prost(int32, required, tag = "1")]
     pub field_length: i32,
     /// Field width (distance between touch lines) in mm
-    #[prost(int32, required, tag = "2")]b
+    #[prost(int32, required, tag = "2")]
     pub field_width: i32,
     /// Goal width (distance between inner edges of goal posts) in mm
     #[prost(int32, required, tag = "3")]
