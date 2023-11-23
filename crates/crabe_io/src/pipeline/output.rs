@@ -31,12 +31,11 @@ pub struct OutputPipeline {
 
 impl OutputPipeline {
     pub fn with_config(output_cfg: OutputConfig, common_cfg: &CommonConfig) -> OutputPipeline {
-        let command_task: Box<dyn CommandSenderTask>;
-        if common_cfg.real {
-            command_task = Box::new(Real::with_config(output_cfg.real_cfg));
+        let command_task: Box<dyn CommandSenderTask> = if common_cfg.real {
+            Box::new(Real::with_config(output_cfg.real_cfg))
         } else {
-            command_task = Box::new(Simulator::with_config(output_cfg.simulator_cfg, common_cfg));
-        }
+            Box::new(Simulator::with_config(output_cfg.simulator_cfg, common_cfg))
+        };
 
         OutputPipeline { command_task }
     }

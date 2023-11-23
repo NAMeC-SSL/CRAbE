@@ -48,7 +48,7 @@ impl MulticastUDPReceiver {
     pub fn new(ip: Ipv4Addr, port: u16) -> Result<Self, Box<dyn std::error::Error>> {
         let socket = Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP))?;
         socket.set_reuse_address(true)?;
-        socket.set_nonblocking(true)?;
+        //socket.set_nonblocking(false)?;
         socket.bind(&SocketAddrV4::new(ip, port).into())?;
         socket.join_multicast_v4(&ip, &Ipv4Addr::UNSPECIFIED)?;
         Ok(Self {

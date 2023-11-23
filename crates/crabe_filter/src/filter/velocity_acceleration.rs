@@ -11,15 +11,13 @@ fn get_duration_secs(t1: DateTime<Utc>, t2: DateTime<Utc>) -> Option<f64> {
         return Some(duration.as_secs_f64());
     }
 
-    return None;
+    None
 }
 
 fn update_robot_vel_accel<T>(tracked_robots: &mut TrackedRobotMap<T>, robots: &RobotMap<T>) {
     tracked_robots.iter_mut().for_each(|(id, tracked)| {
         if let Some(robot) = robots.get(id) {
-            if let Some(secs) =
-                get_duration_secs(tracked.data.timestamp.clone(), robot.timestamp.clone())
-            {
+            if let Some(secs) = get_duration_secs(tracked.data.timestamp, robot.timestamp) {
                 let distance = tracked.data.pose.position - robot.pose.position;
                 let angle = tracked.data.pose.orientation - robot.pose.orientation;
                 tracked.data.velocity.linear = distance / secs;
@@ -35,7 +33,7 @@ fn update_robot_vel_accel<T>(tracked_robots: &mut TrackedRobotMap<T>, robots: &R
 }
 
 fn update_ball_vel_accel(tracked: &mut TrackedBall, ball: &Ball) {
-    if let Some(secs) = get_duration_secs(tracked.data.timestamp.clone(), ball.timestamp.clone()) {
+    if let Some(secs) = get_duration_secs(tracked.data.timestamp, ball.timestamp) {
         let distance = tracked.data.position - ball.position;
         tracked.data.velocity = distance / secs;
         let vel_diff = tracked.data.velocity - ball.velocity;

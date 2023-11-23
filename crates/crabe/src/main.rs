@@ -141,9 +141,9 @@ impl System {
             self.filter_component.step(receive_data, &mut self.world);
             let (mut command_map, mut tool_data) = self.decision_component.step(&self.world);
             self.tool_component
-                .step(&mut self.world, &mut tool_data, &mut command_map);
+                .step(&self.world, &mut tool_data, &mut command_map);
             self.guard_component
-                .step(&mut self.world, &mut command_map, &mut ToolCommands);
+                .step(&self.world, &mut command_map, &mut ToolCommands);
             feedback = self.output_component.step(command_map, ToolCommands);
             thread::sleep(_refresh_rate);
         }

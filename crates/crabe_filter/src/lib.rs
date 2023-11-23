@@ -38,7 +38,7 @@ impl FilterPipeline {
             pre_filters: vec![Box::new(VisionFilter::new())],
             filters: vec![
                 Box::new(PassthroughFilter),
-                Box::new(InactiveFilter::default()),
+                Box::<InactiveFilter>::default(),
             ],
             post_filters: vec![
                 Box::new(RobotFilter),

@@ -25,7 +25,7 @@ impl Real {
         let mut packet = PcToBase::default();
         for (id, command) in commands {
             let (kicker_cmd, kick_power) = match command.kick {
-                None => (Kicker::NoKick, 0.0 as f32),
+                None => (Kicker::NoKick, 0.0_f32),
                 Some(Kick::StraightKick { power }) => (Kicker::Flat, power),
                 Some(Kick::ChipKick { power }) => (Kicker::Chip, power),
             };

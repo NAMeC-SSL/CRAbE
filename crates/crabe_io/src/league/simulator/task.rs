@@ -27,12 +27,10 @@ impl Simulator {
         let port;
         if let Some(sim_port) = simulator_cfg.simulator_port {
             port = sim_port
+        } else if common_cfg.yellow {
+            port = SIM_PORT_YELLOW;
         } else {
-            if common_cfg.yellow {
-                port = SIM_PORT_YELLOW;
-            } else {
-                port = SIM_PORT_BLUE;
-            }
+            port = SIM_PORT_BLUE;
         }
 
         let socket =
@@ -99,7 +97,7 @@ impl CommandSenderTask for Simulator {
     fn step(&mut self, commands: CommandMap) -> FeedbackMap {
         let packet = self.prepare_packet(commands.into_iter());
         self.socket.send(packet);
-        return self.fetch();
+        self.fetch()
     }
 
     fn close(&mut self) {

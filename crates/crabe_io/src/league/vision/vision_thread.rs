@@ -25,12 +25,10 @@ impl Vision {
     pub fn with_config(vision_cfg: VisionConfig, common_cfg: &CommonConfig) -> Self {
         let port = if let Some(port) = vision_cfg.vision_port {
             port
+        } else if common_cfg.real {
+            VISION_PORT_REAL
         } else {
-            if common_cfg.real {
-                VISION_PORT_REAL
-            } else {
-                VISION_PORT_SIM
-            }
+            VISION_PORT_SIM
         };
 
         let (tx_vision, rx_vision) = mpsc::channel::<SslWrapperPacket>();
