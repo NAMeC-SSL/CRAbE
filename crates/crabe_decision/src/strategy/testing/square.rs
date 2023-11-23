@@ -49,7 +49,7 @@ impl Strategy for Square {
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
         for i in 0..3 {
-            action_wrapper.push(self.id, MoveToAvoid::new(Point2::new(-1.0, 1.0), 0f64, (*world).clone()));
+            // action_wrapper.push(self.id, MoveToAvoid::new(Point2::new(-2.0, 1.0), 0f64, (*world).clone()));
             action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, 1.0), 0f64));
             action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, -1.0), 0f64));
             action_wrapper.push(self.id, MoveTo::new(Point2::new(-1.0, -1.0), 0f64));

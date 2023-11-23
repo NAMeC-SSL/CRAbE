@@ -117,6 +117,7 @@ impl Action for MoveTo {
                 dribbler: 0.0,
             }
         } else {
+            print!("Defualt cmd!");
             Command::default()
         }
     }

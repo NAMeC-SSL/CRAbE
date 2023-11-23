@@ -67,7 +67,7 @@ fn geometry_to_goal(cam_geometry: &CamGeometry, positive: bool) -> Goal {
 
 impl PostFilter for GeometryFilter {
     fn step(&mut self, filter_data: &FilterData, world: &mut World) {
-        let cam_geometry = dbg!(&filter_data.geometry);
+        let cam_geometry = &filter_data.geometry;
 
         let geometry = Geometry {
             boundary_width: cam_geometry.boundary_width,
