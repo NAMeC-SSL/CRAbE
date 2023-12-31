@@ -21,7 +21,7 @@ use std::thread;
 use std::time::Duration;
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, about = "Central AI of NAMeC - runs by default in sim", long_about)]
 pub struct Cli {
     #[command(flatten)]
     #[command(next_help_heading = "Common")]
@@ -52,113 +52,6 @@ pub struct Cli {
     pub output_config: OutputConfig,
 }
 
-#[derive(Default)]
-pub struct SystemBuilder {
-    input_component: Option<Box<dyn InputComponent>>,
-    filter_component: Option<Box<dyn FilterComponent>>,
-    decision_component: Option<Box<dyn DecisionComponent>>,
-    tool_component: Option<Box<dyn ToolComponent>>,
-    guard_component: Option<Box<dyn GuardComponent>>,
-    output_component: Option<Box<dyn OutputComponent>>,
-    world: Option<World>,
-}
-
-impl SystemBuilder {
-    fn input_component(mut self, input: impl InputComponent + 'static) -> Self {
-        self.input_component = Some(Box::new(input));
-        self
-    }
-
-    fn filter_component(mut self, filter: impl FilterComponent + 'static) -> Self {
-        self.filter_component = Some(Box::new(filter));
-        self
-    }
-
-    fn decision_component(mut self, decision: impl DecisionComponent + 'static) -> Self {
-        self.decision_component = Some(Box::new(decision));
-        self
-    }
-
-    fn tool_component(mut self, tool: impl ToolComponent + 'static) -> Self {
-        self.tool_component = Some(Box::new(tool));
-        self
-    }
-
-    fn guard_component(mut self, guard: impl GuardComponent + 'static) -> Self {
-        self.guard_component = Some(Box::new(guard));
-        self
-    }
-
-    fn output_component(mut self, output: impl OutputComponent + 'static) -> Self {
-        self.output_component = Some(Box::new(output));
-        self
-    }
-
-    fn world(mut self, world: World) -> Self {
-        self.world = Some(world);
-        self
-    }
-
-    fn build(self) -> System {
-        let running = Arc::new(AtomicBool::new(true));
-        let running_ctrlc = Arc::clone(&running);
-        ctrlc::set_handler(move || {
-            running_ctrlc.store(false, Ordering::Relaxed);
-        })
-        .expect("Failed to set Ctrl-C handler");
-
-        System {
-            input_component: self.input_component.expect("missing input component"),
-            filter_component: self.filter_component.expect("missing filter component"),
-            decision_component: self.decision_component.expect("missing decision component"),
-            tool_component: self.tool_component.expect("missing tool component"),
-            guard_component: self.guard_component.expect("missing guard component"),
-            output_component: self.output_component.expect("missing output component"),
-            running,
-            world: self.world.expect("missing world"),
-        }
-    }
-}
-
-pub struct System {
-    input_component: Box<dyn InputComponent>,
-    filter_component: Box<dyn FilterComponent>,
-    decision_component: Box<dyn DecisionComponent>,
-    tool_component: Box<dyn ToolComponent>,
-    guard_component: Box<dyn GuardComponent>,
-    output_component: Box<dyn OutputComponent>,
-    running: Arc<AtomicBool>,
-    world: World,
-}
-
-impl System {
-    // TODO: Use refresh rate
-    pub fn run(&mut self, _refresh_rate: Duration) {
-        let mut feedback: FeedbackMap = Default::default();
-
-        while self.running.load(Ordering::SeqCst) {
-            let receive_data = self.input_component.step(&mut feedback);
-            self.filter_component.step(receive_data, &mut self.world);
-            let (mut command_map, mut tool_data) = self.decision_component.step(&self.world);
-            self.tool_component
-                .step(&self.world, &mut tool_data, &mut command_map);
-            self.guard_component
-                .step(&self.world, &mut command_map, &mut ToolCommands);
-            feedback = self.output_component.step(command_map, ToolCommands);
-            thread::sleep(_refresh_rate);
-        }
-    }
-
-    pub fn close(self) {
-        self.input_component.close();
-        self.filter_component.close();
-        self.decision_component.close();
-        self.guard_component.close();
-        self.output_component.close();
-        self.tool_component.close();
-    }
-}
-
 fn main() {
     let cli = Cli::parse();
     let env = Env::default()
@@ -166,19 +59,41 @@ fn main() {
         .write_style_or("CRABE_LOG_STYLE", "always");
     env_logger::init_from_env(env);
 
-    let mut system = SystemBuilder::default()
-        .world(World::with_config(&cli.common))
-        .input_component(InputPipeline::with_config(cli.input_config, &cli.common))
-        .filter_component(FilterPipeline::with_config(cli.filter_config, &cli.common))
-        .decision_component(DecisionPipeline::with_config(
-            cli.decision_config,
-            &cli.common,
-        ))
-        .tool_component(ToolServer::with_config(cli.tool_config, &cli.common))
-        .guard_component(GuardPipeline::with_config(cli.guard_config, &cli.common))
-        .output_component(OutputPipeline::with_config(cli.output_config, &cli.common))
-        .build();
+    let mut world = World::with_config(&cli.common);
+    let mut input_component = InputPipeline::with_config(cli.input_config, &cli.common);
+    let mut filter_component = FilterPipeline::with_config(cli.filter_config, &cli.common);
+    let mut decision_component = DecisionPipeline::with_config(
+        cli.decision_config,
+        &cli.common,
+    );
+    let mut tool_component = ToolServer::with_config(cli.tool_config, &cli.common);
+    let mut guard_component = GuardPipeline::with_config(cli.guard_config, &cli.common);
+    let mut output_component = OutputPipeline::with_config(cli.output_config, &cli.common);
 
-    system.run(Duration::from_millis(16));
-    system.close();
+    let refresh_rate = Duration::from_millis(16);
+    let mut feedback: FeedbackMap = Default::default();
+
+    let running = {
+        let running = Arc::new(AtomicBool::new(true));
+        let running_ctrlc = Arc::clone(&running);
+        ctrlc::set_handler(move || {
+            running_ctrlc.store(false, Ordering::Relaxed);
+        })
+            .expect("Failed to set Ctrl-C handler");
+        running
+    };
+
+    while running.load(Ordering::SeqCst) {
+        let receive_data = input_component.step(&mut feedback);
+        filter_component.step(receive_data, &mut world);
+        dbg!(&world.allies_bot);
+
+        let (mut command_map, mut tool_data) = decision_component.step(&world);
+        tool_component
+            .step(&world, &mut tool_data, &mut command_map);
+        guard_component
+            .step(&world, &mut command_map, &mut ToolCommands);
+        feedback = output_component.step(command_map, ToolCommands);
+        thread::sleep(refresh_rate);
+    }
 }
