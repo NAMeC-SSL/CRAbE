@@ -9,4 +9,7 @@ pub struct CommonConfig {
     /// Whether robots are operating in the real world or in simulation.
     #[arg(short, long)]
     pub real: bool,
+    /// Indicates whether to activate the game controller for the RoboCup SSL.
+    #[arg(short, long)]
+    pub gc: bool,
 }

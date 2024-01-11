@@ -1,5 +1,7 @@
 use crate::data::world::{Team, TeamColor};
 use serde::Serialize;
+use crate::data::world::game_state::GameState;
+use crate::data::world::game_state::HaltedState::Halt;
 
 /// The `GameData` struct represents the state of the SSL game, including the teams and which team is on the positive half of the field.
 #[derive(Serialize, Clone, Debug)]
@@ -11,6 +13,8 @@ pub struct GameData {
     pub enemy: Team,
     /// The color of the team that is on the positive half of the field.
     pub positive_half: TeamColor,
+    /// The state of the game
+    pub state: GameState,
 }
 
 impl GameData {
@@ -20,6 +24,7 @@ impl GameData {
             ally: Team::with_color(team_color),
             enemy: Team::with_color(team_color.opposite()),
             positive_half: team_color.opposite(),
+            state: GameState::Halted(Halt),
         }
     }
 }

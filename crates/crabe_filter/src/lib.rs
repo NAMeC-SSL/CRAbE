@@ -50,6 +50,7 @@ impl FilterPipeline {
                 enemies: Default::default(),
                 ball: Default::default(),
                 geometry: Default::default(),
+                referee: Default::default(),
             },
             team_color: if common_config.yellow {
                 TeamColor::Yellow
@@ -65,10 +66,10 @@ impl Component for FilterPipeline {
 }
 
 impl FilterComponent for FilterPipeline {
-    fn step(&mut self, inbound_data: InboundData, world: &mut World) {
+    fn step(&mut self, mut inbound_data: InboundData, world: &mut World) {
         self.pre_filters
             .iter_mut()
-            .for_each(|f| f.step(&inbound_data, &self.team_color, &mut self.filter_data));
+            .for_each(|f| f.step(&mut inbound_data, &self.team_color, &mut self.filter_data));
 
         self.filters
             .iter_mut()

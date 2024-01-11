@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// The `TeamColor` enum represents the color of a team in the SSL game, either blue or yellow.
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Serialize, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum TeamColor {
     Blue,

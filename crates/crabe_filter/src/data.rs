@@ -8,6 +8,7 @@ use crabe_framework::data::world::{AllyInfo, Ball, EnemyInfo, Robot};
 use ringbuffer::ConstGenericRingBuffer;
 use std::collections::HashMap;
 use std::time::Instant;
+use crate::data::referee::Referee;
 
 #[derive(Clone, Debug)]
 pub struct FrameInfo {
@@ -16,6 +17,8 @@ pub struct FrameInfo {
     pub t_capture: DateTime<Utc>,
 }
 
+pub mod referee;
+
 pub type TrackedRobotMap<T> = HashMap<u8, TrackedRobot<T>>;
 
 pub struct FilterData {
@@ -23,6 +26,7 @@ pub struct FilterData {
     pub enemies: TrackedRobotMap<EnemyInfo>,
     pub ball: TrackedBall,
     pub geometry: CamGeometry,
+    pub referee: Vec<Referee>,
 }
 
 pub struct TrackedRobot<T> {
