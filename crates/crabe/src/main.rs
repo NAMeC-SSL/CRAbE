@@ -18,7 +18,8 @@ use env_logger::Env;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
+use log::info;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -137,6 +138,7 @@ impl System {
         let mut feedback: FeedbackMap = Default::default();
 
         while self.running.load(Ordering::SeqCst) {
+            let timer = Instant::now();
             let receive_data = self.input_component.step(&mut feedback);
             self.filter_component.step(receive_data, &mut self.world);
             let (mut command_map, mut tool_data) = self.decision_component.step(&self.world);
@@ -145,7 +147,13 @@ impl System {
             self.guard_component
                 .step(&self.world, &mut command_map, &mut ToolCommands);
             feedback = self.output_component.step(command_map, ToolCommands);
-            thread::sleep(_refresh_rate);
+            // info!("Execution time : {} μs", &timer.elapsed().as_micros());
+            let elapsed = timer.elapsed();
+            if elapsed <= _refresh_rate {
+                let sleep_time = Duration::from(_refresh_rate - timer.elapsed());
+                thread::sleep(sleep_time);
+            }
+            // info!("Actual refresh time : {} μs", &timer.elapsed().as_micros());
         }
     }
 
