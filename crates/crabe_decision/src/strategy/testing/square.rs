@@ -46,11 +46,12 @@ impl Strategy for Square {
         world: &World,
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
-    ) -> bool {
+    ) -> bool {        
+
         action_wrapper.push(self.id, MoveTo::new(Point2::new(-1.0, 1.0), -PI / 4.0));
         action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, 1.0), -3.0 * PI / 4.0));
         action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, -1.0), 3.0 * PI / 4.0));
         action_wrapper.push(self.id, MoveTo::new(Point2::new(-1.0, -1.0), PI / 4.0));
-        true
+        false
     }
 }
