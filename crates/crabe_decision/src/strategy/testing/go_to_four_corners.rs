@@ -2,7 +2,8 @@ use crate::action::move_to::MoveTo;
 use crate::action::ActionWrapper;
 use crate::strategy::Strategy;
 use crabe_framework::data::tool::ToolData;
-use crabe_framework::data::world::World;
+use crabe_framework::data::world::{Team, TeamColor, World};
+use crabe_protocol::protobuf::simulation_packet;
 use nalgebra::Point2;
 use std::f64::consts::PI;
 
@@ -30,17 +31,10 @@ impl Strategy for GoToFourCorners {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
-        action_wrapper.push(
-            self.id,
-            MoveTo::new(
-                Point2::new(world.geometry.boundary_width, world.geometry.field.width),
-                -PI / 4.0,
-            ),
-        );
-        // action_wrapper.push(self.id, MoveTo::new(Point2::new(-1.0, 1.0), -PI / 4.0));
-        // action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, 1.0), -3.0 * PI / 4.0));
-        // action_wrapper.push(self.id, MoveTo::new(Point2::new(1.0, -1.0), 3.0 * PI / 4.0));
-        // action_wrapper.push(self.id, MoveTo::new(Point2::new(-1.0, -1.0), PI / 4.0));
+        action_wrapper.push(self.id, MoveTo::new(Point2::new(-6., 4.5), -PI / 4.0));
+        action_wrapper.push(self.id, MoveTo::new(Point2::new(0., 4.5), -PI / 4.0));
+        action_wrapper.push(self.id, MoveTo::new(Point2::new(0., -4.5), -PI / 4.0));
+        action_wrapper.push(self.id, MoveTo::new(Point2::new(-6., -4.5), -PI / 4.0));
         true
     }
 }
