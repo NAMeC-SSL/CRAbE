@@ -3,3 +3,6 @@
 /// for use in a game.
 mod square;
 pub use self::square::Square;
+
+mod test_vision_moveto;
+pub use self::test_vision_moveto::TestVisionMoveTo;
