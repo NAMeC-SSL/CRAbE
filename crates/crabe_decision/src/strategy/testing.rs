@@ -3,5 +3,5 @@
 /// for use in a game.
 // mod square;
 // pub use self::square::Square;
-mod go_to_middle;
-pub use self::go_to_middle::GoToMiddle;
+mod circular_rotation;
+pub use self::circular_rotation::CircularRotation;

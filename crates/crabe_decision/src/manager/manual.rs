@@ -1,6 +1,6 @@
 use crate::action::ActionWrapper;
 use crate::manager::Manager;
-use crate::strategy::testing::GoToMiddle;
+use crate::strategy::testing::CircularRotation;
 use crate::strategy::Strategy;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
@@ -18,9 +18,9 @@ pub struct Manual {
 
 impl Manual {
     pub fn new() -> Self {
-        let ids: Vec<u8> = vec![1,4];
+        let ids: Vec<u8> = vec![1, 4];
         Self {
-            strategies: vec![Box::new(GoToMiddle::new(ids))],
+            strategies: vec![Box::new(CircularRotation::new(ids))],
         }
     }
 }
