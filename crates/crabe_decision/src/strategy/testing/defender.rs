@@ -28,21 +28,23 @@ impl Defender {
         world: &World,
         x: f64
     ) -> Point2<f64> {
-        let pen_pos = world.geometry.ally_penalty.top_left_position;
-        let offset = 0.3;
-        let penx = pen_pos.x;
-        let peny = pen_pos.y-offset;
-        let width = world.geometry.ally_penalty.width+offset;
-        let depth = world.geometry.ally_penalty.depth+offset;
-        let tot_length = depth * 2. + width;
-        let dist_along_penalty_line = tot_length * x;
-        if dist_along_penalty_line < depth{
-            return Point2::new(penx + dist_along_penalty_line , peny );
-        }else if dist_along_penalty_line < depth + width{
-            return Point2::new(penx + depth, peny- (depth- dist_along_penalty_line));
-        }else{
-            return Point2::new(penx +depth - (dist_along_penalty_line - (depth + width))  , -peny );
-        }
+        let enlarged_penalty = world.geometry.ally_penalty.enlarged_penalty(0.3);
+        return enlarged_penalty.front_line.start;
+        // let pen_pos = world.geometry.ally_penalty.top_left_position;
+        // let offset = 0.3;
+        // let penx = pen_pos.x;
+        // let peny = pen_pos.y-offset;
+        // let width = world.geometry.ally_penalty.width+offset;
+        // let depth = world.geometry.ally_penalty.depth+offset;
+        // let tot_length = depth * 2. + width;
+        // let dist_along_penalty_line = tot_length * x;
+        // if dist_along_penalty_line < depth{
+        //     return Point2::new(penx + dist_along_penalty_line , peny );
+        // }else if dist_along_penalty_line < depth + width{
+        //     return Point2::new(penx + depth, peny- (depth- dist_along_penalty_line));
+        // }else{
+        //     return Point2::new(penx +depth - (dist_along_penalty_line - (depth + width))  , -peny );
+        // }
     }    
 }
 
@@ -85,13 +87,10 @@ impl Strategy for Defender {
         };
 
         //TODO add this constant in the geometry (see code in rbc branches maybe)
-        let goal_center = Point2::new(world.geometry.ally_penalty.top_left_position.x, 0.);
+        let goal_center = world.geometry.ally_goal.front_line.middle();
         let ball_to_goal = Line::new(goal_center, ball_pos);
-
-        let penalty_front_left = Point2::new(world.geometry.ally_penalty.top_left_position.x+world.geometry.ally_penalty.depth, world.geometry.ally_penalty.top_left_position.y);
-        let front_goal_line = Line::new(penalty_front_left, Point2::new(penalty_front_left.x, -penalty_front_left.y));
     
-        println!("{:?}", ball_to_goal.intersection_line(&front_goal_line));
+        println!("{:?}", ball_to_goal.intersection_line(&world.geometry.ally_penalty.front_line));
         let oscillating_value = (0.00005 * 2.0 * std::f64::consts::PI * x).sin() * 0.5 + 0.5;
         let pos = self.line(world, oscillating_value);
         action_wrapper.push(self.id, MoveTo::new(pos, 0.));
