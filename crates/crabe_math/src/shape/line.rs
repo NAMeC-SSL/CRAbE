@@ -48,4 +48,8 @@ impl Line{
     pub fn middle(&self) -> Point2<f64>{
         return self.point_allong_line(0.5);
     }
+
+    pub fn norm(&self) -> f64{
+        return ((self.start.x - self.end.x)*(self.start.x - self.end.x) +(self.start.y - self.end.y)*(self.start.y - self.end.y)).sqrt();             
+    }
 }
