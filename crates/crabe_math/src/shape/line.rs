@@ -26,14 +26,14 @@ impl Line{
     // from https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection equations
     pub fn intersection_line(&self, line: &Line) -> Option<Point2<f64>>{
         let t_nominator = ((self.start.x - line.start.x)*(line.start.y - line.end.y)) - ((self.start.y - line.start.y) * (line.start.x - line.end.x));
-        // let u_nominator = ((self.start.x - self.end.x)*(self.start.y - line.start.y)) - ((self.start.y - self.end.y) * (self.start.x - line.start.x));
+        let u_nominator = -((self.start.x - self.end.x)*(self.start.y - line.start.y)) - ((self.start.y - self.end.y) * (self.start.x - line.start.x));
 
-        let denominator = ((self.start.x - self.end.x)*(line.start.y - line.end.y)) - ((self.start.y - line.start.y) * (line.start.x - line.end.x));
+        let denominator = ((self.start.x - self.end.x)*(line.start.y - line.end.y)) - ((self.start.y - self.end.y) * (line.start.x - line.end.x));
         if denominator == 0.  {return None;}
         
         let t = t_nominator / denominator;
-        // let u = u_nominator / denominator;
-        if t > 1. || t < 0. {return None;}
+        let u = u_nominator / denominator;
+        if t > 1. || t < 0. || u > 1. || u < 0. {return None;}
         return Some(self.point_allong_line(t));
     }
 

@@ -310,7 +310,6 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "crabe_framework",
- "crabe_math",
  "crabe_protocol",
  "enum_dispatch",
  "log",
