@@ -1,3 +1,4 @@
+use nalgebra::Point2;
 use serde::Serialize;
 use crabe_math::shape::Line;
 
@@ -17,4 +18,26 @@ pub struct Penalty {
     pub right_line: Line,
 }
 
-impl Penalty {}
+impl Penalty {
+
+    //return a penalty enlarged with the margin parameter 
+    pub fn enlarged_penalty(&self, offset: f64) -> Penalty {
+        let factor = self.front_line.start.x.signum();
+        Penalty{
+            width: self.width+offset*2.,
+            depth: self.depth+offset,
+            front_line: Line::new(
+                Point2::new(self.front_line.start.x - factor * offset,self.front_line.start.y + factor*offset), 
+                Point2::new(self.front_line.end.x - factor * offset, self.front_line.end.y - factor*offset)
+            ),
+            left_line: Line::new(
+                Point2::new(self.left_line.start.x,self.left_line.start.y + factor*offset), 
+                Point2::new(self.left_line.end.x - factor * offset,self.left_line.end.y + factor*offset), 
+            ),
+            right_line: Line::new(
+                Point2::new(self.right_line.start.x,self.right_line.start.y - factor*offset), 
+                Point2::new(self.right_line.end.x - factor * offset,self.right_line.end.y - factor*offset), 
+            ),
+        }
+    }
+}
