@@ -8,8 +8,10 @@ pub mod sequencer;
 
 /// The state module contains the State enum which represents the current state of an action.
 pub mod state;
+pub mod bezier_move;
 
 use crate::action::move_to::MoveTo;
+use crate::action::bezier_move::BezierMove;
 use crate::action::order_raw::RawOrder;
 use crate::action::sequencer::Sequencer;
 use crabe_framework::data::output::{Command, CommandMap};
@@ -37,6 +39,7 @@ pub trait Action {
 pub enum Actions {
     MoveTo(MoveTo),
     RawOrder(RawOrder),
+    BezierMove(BezierMove)
 }
 
 /// The `ActionWrapper` struct represents a wrapper for a sequence of actions to be executed for each robot.
