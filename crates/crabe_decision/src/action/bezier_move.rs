@@ -209,7 +209,7 @@ impl BezierMove {
         let mut bcurve = CubicBezierCurve::new(
             robot.pose.position,
             // [POC] hardcoded id for POC (proof of concept)
-            world.allies_bot.get(&1).unwrap().pose.position,
+            world.allies_bot.get(&self.hardcoded_avoid_ally_id).unwrap().pose.position,
             self.target
         );
         self.initialized = true;
