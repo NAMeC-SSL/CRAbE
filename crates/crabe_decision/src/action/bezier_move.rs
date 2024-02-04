@@ -1,10 +1,12 @@
 use std::f64::consts::FRAC_PI_2;
-use log::error;
-use nalgebra::{distance, Isometry2, Matrix1x4, Matrix2x4, Matrix4, Matrix4x1, Point2, Vector2, Vector3};
+use log::{error, warn};
+use nalgebra::{distance, Isometry2, Matrix1x4, Matrix2x4, Matrix4, Matrix4x1, min, Point2};
 use crabe_framework::data::output::Command;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::{AllyInfo, Robot, World};
+use crabe_math::shape::Circle;
 use crate::action::Action;
+use crate::action::Actions::BezierMove;
 use crate::action::state::State;
 
 /// In this file, you can search for algorithmic decisions (such as determining how to compute one of the specific
@@ -22,6 +24,9 @@ use crate::action::state::State;
 
 /// Tolerance to attain the target
 const DIST_TARGET_REACHED: f64 = 0.2;
+
+/// The approximate radius of a robot on the field
+const ROBOT_RADIUS: f64 = 0.2;
 
 /// Represents a Bézier curve made of 4 control points
 #[derive(Clone)]
@@ -80,9 +85,8 @@ impl CubicBezierCurve {
         res_mat
     }
 
-    fn compute_points_on_curve(&mut self, num_points: i16) -> &Vec<Point2<f64>> {
-        // clear previously computed points
-        self.points_on_curve = vec![];
+    fn compute_points_on_curve(&self, num_points: i16, obstacles: &Vec<Point2<f64>>) -> Vec<Point2<f64>> {
+        let mut points : Vec<Point2<f64>>= vec![];
 
         // this is supposed to be const, see top of file
         let CUBIC_BEZIER_CHARAC_MATRIX: Matrix4<f64> = Matrix4::from_vec(vec![
@@ -103,14 +107,58 @@ impl CubicBezierCurve {
             let t = t_int as f64 / num_points as f64;
             let t_mat = Matrix4x1::from_vec([1., t, t.powf(2.), t.powf(3.)].to_vec());
             let influence_coeffs: Matrix4x1<f64> = CUBIC_BEZIER_CHARAC_MATRIX * t_mat;
-
-            // convert matrix result back into a Point2
             let two_mat_point = ctrl_pts_cvt * influence_coeffs;
+            // convert matrix result back into a Point2
             let step_point: Point2<f64> = Point2::new(two_mat_point.x, two_mat_point.y);
-            self.points_on_curve.push(step_point);
+
+            // if this newfound point collides with an obstacle, re-iterate the process to avoid this obstacle
+            if let Some(closest_obs) = CubicBezierCurve::closest_collision_point_circle(&step_point, obstacles) {
+
+                // the new start point is right before going into the obstacle's range
+                if let Some(new_start_point) = points.last() {
+
+                    // safe unwrap as self.control_points is already defined when initialized
+                    let additional_avoid_bcurve = CubicBezierCurve::new(
+                        *new_start_point,
+                        closest_obs,
+                        *self.control_points.get(4).unwrap());
+
+                    points.append(&mut additional_avoid_bcurve.compute_points_on_curve(num_points, obstacles));
+
+                    // the other points to complete the path towards target are thus not required to be computed
+                    // they will be computed by the above call, i.e. the new curve that avoids the newly
+                    // encountered obstacle
+                    break;
+                } else {
+                    warn!("[POC] An obstacle was encountered when computing the first point on the path\n\
+                           [POC] This means that the proof of concept is flawed.");
+                }
+            }
+            points.push(step_point);
         }
 
-        &self.points_on_curve
+        points
+    }
+
+    fn closest_collision_point_circle(p: &Point2<f64>, obstacles: &Vec<Point2<f64>>) -> Option<Point2<f64>> {
+        // get a mapping between obstacle and its distance to the point
+        let map_obs_dist: Vec<(&Point2<f64>, f64)> = obstacles.iter().filter_map(|o| {
+            let dist = distance(o, p);
+            if dist <= ROBOT_RADIUS { Some((o, dist)) }
+            else { None }
+        }).collect();
+
+        // find closest obstacle
+        let mut closest_obs: Option<Point2<f64>> = None;
+        let mut smallest_dist = &f64::INFINITY;
+        map_obs_dist.iter().for_each(|(obs, dist)| {
+            if dist < &smallest_dist {
+                smallest_dist = dist;
+                closest_obs = Some(**obs);
+            }
+        });
+
+        closest_obs
     }
 }
 
@@ -213,7 +261,7 @@ impl BezierMove {
             self.target
         );
         self.initialized = true;
-        let points = bcurve.compute_points_on_curve(100);
+        let points = bcurve.compute_points_on_curve(5);
         self.move_handler = Some(SteppedMovement::new(points.clone()));
         self.curve = Some(bcurve);
     }

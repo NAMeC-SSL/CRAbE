@@ -13,3 +13,4 @@ nalgebra = "0.32.3"
 enum_dispatch = "0.3.12"
 crabe_protocol = { path = "../crabe_protocol" }
 crabe_framework = { path = "../crabe_framework" }
+crabe_math = { path = "../crabe_math" }
