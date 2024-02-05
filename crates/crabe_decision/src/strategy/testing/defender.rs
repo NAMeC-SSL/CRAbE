@@ -15,17 +15,17 @@ use std::time::{SystemTime, UNIX_EPOCH};
 #[derive(Default)]
 pub struct Defender {
     /// The id of the robot to move.
-    id: u8,
+    ids: Vec<u8>
 }
 
 impl Defender {
     /// Creates a new Defender instance with the desired robot id.
-    pub fn new(id: u8) -> Self {
-        Self { id }
+    pub fn new(ids: Vec<u8>) -> Self {
+        Self { ids }
     }
 
     /// Return a point on the penalty outside line from a number between 0 and 1
-    fn line(
+    fn on_penalty_line(
         &mut self,
         world: &World,
         x: f64
@@ -82,7 +82,9 @@ impl Defender {
         world: &World,
         action_wrapper: &mut ActionWrapper,
     )-> bool {
-        action_wrapper.clear(self.id);
+        for id in self.ids.clone() {
+            action_wrapper.clear(id);
+        }
         let current_time = SystemTime::now();
         let mut x = 0.;
         if let Ok(duration) = current_time.duration_since(UNIX_EPOCH) {
@@ -90,8 +92,10 @@ impl Defender {
             x = current_time_ms ;
         } 
         let oscillating_value = (0.00005 * 2.0 * std::f64::consts::PI * x).sin() * 0.5 + 0.5;
-        let pos = self.line(world, oscillating_value);
-        action_wrapper.push(self.id, MoveTo::new(pos, 0.));
+        let pos = self.on_penalty_line(world, oscillating_value);
+        for id in self.ids.clone() {
+            action_wrapper.push(id, MoveTo::new(pos, 0.));
+        }
         false
     }
 }
@@ -121,22 +125,40 @@ impl Strategy for Defender {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
-        action_wrapper.clear(self.id);
+        for id in &self.ids{
+            action_wrapper.clear(*id);
+        }
 
         let ball_pos = match world.ball.clone() {
             None => {return false;}
             Some(ball) => {ball.position.xy() }
         };
 
-        //TODO add this constant in the geometry (see code in rbc branches maybe)
         let goal_center = world.geometry.ally_goal.front_line.middle();
         let ball_to_goal = Line::new(goal_center, ball_pos);
 
         let intersection_point_ratio = self.line_intersection_with_penalty(&world.geometry.ally_penalty.enlarged_penalty(0.3),ball_to_goal);
 
         if let Some(ratio) = intersection_point_ratio {
-            let pos = self.line(world, ratio);
-            action_wrapper.push(self.id, MoveTo::new(pos, 0.));
+			//TODO refactor this code (redundance in the on_penalty_line)
+            let enlarged_penalty = world.geometry.ally_penalty.enlarged_penalty(0.3);
+            let width = enlarged_penalty.front_line.norm();
+            let depth = enlarged_penalty.left_line.norm();    
+            let tot_penalty_line_length = depth * 2. + width;
+
+			//TODO replace 0.2 with reel bot diameter constant
+            let bot_diameter = 0.2;
+			let bot_nb = self.ids.len() as f64;
+			let bot_diameter_to_ratio = bot_diameter / tot_penalty_line_length; // bot diameter between 0 and 1
+			let starting_pos = (ratio - (bot_diameter_to_ratio/2.)*(bot_nb-1.)).clamp(0., 1.-(bot_nb-1.)*bot_diameter_to_ratio);
+
+            let mut i = 0;
+            for id in self.ids.clone() {
+                let relative_ratio = starting_pos + (i as f64) * bot_diameter_to_ratio;
+                let pos = self.on_penalty_line(world, relative_ratio);
+                action_wrapper.push(id, MoveTo::new(pos, 0.));
+                i+=1;
+            }
             println!("Final Intersection Point: {:?}", ratio);
         } else {
             println!("No intersection point found");
