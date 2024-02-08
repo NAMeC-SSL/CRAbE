@@ -4,3 +4,6 @@ target/
 # Code editors
 .idea/
 .vscode/
+
+# OS
+.DS_Store
