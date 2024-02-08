@@ -1,12 +1,13 @@
 use std::f64::consts::FRAC_PI_2;
+use std::ops::Div;
 use log::{error, warn};
 use nalgebra::{distance, Isometry2, Matrix1x4, Matrix2x4, Matrix4, Matrix4x1, min, Point2};
 use crabe_framework::data::output::Command;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::{AllyInfo, Robot, World};
-use crabe_math::shape::Circle;
+use crabe_math::shape::{Circle, Line};
+use crabe_protocol::protobuf::game_controller_packet::Vector2;
 use crate::action::Action;
-use crate::action::Actions::BezierMove;
 use crate::action::state::State;
 
 /// In this file, you can search for algorithmic decisions (such as determining how to compute one of the specific
@@ -43,13 +44,16 @@ impl CubicBezierCurve {
     /// a trajectory that will avoid the given obstacle
     /// A single obstacle is considered here
     fn avoidance_point(start: &Point2<f64>, obstacle: &Point2<f64>, end: &Point2<f64>) -> Point2<f64> {
-        // obtain vector from obstacle to end
-        let vec_obs_end = end - obstacle;
+        // obtain vector from start to end
+        let mut vec_start_end = end - start;
+
+        // offset it to start from obstacle
+        // vec_start_end += obstacle; //TODO: not confident about this one
 
         // rotate this vector by 90 degrees
         // [POC] this may be clockwise or counter-clockwise, depending on the environment
         // right now it doesn't matter
-        let mut nvec = Isometry2::rotation(FRAC_PI_2) * vec_obs_end;
+        let mut nvec = Isometry2::rotation(FRAC_PI_2) * vec_start_end;
         nvec = nvec.normalize();
 
         //scale this vector depending on distance from start to obstacle
@@ -121,7 +125,7 @@ impl CubicBezierCurve {
                     let additional_avoid_bcurve = CubicBezierCurve::new(
                         *new_start_point,
                         closest_obs,
-                        *self.control_points.get(4).unwrap());
+                        *self.control_points.get(3).unwrap());
 
                     points.append(&mut additional_avoid_bcurve.compute_points_on_curve(num_points, obstacles));
 
@@ -254,16 +258,54 @@ impl BezierMove {
     /// [POC] This is only initialized once and does not adapt to a dynamic environment.
     /// It will be adapted if the POC is considered valid
     pub fn init_curve(&mut self, robot: &Robot<AllyInfo>, world: &World) {
-        let mut bcurve = CubicBezierCurve::new(
-            robot.pose.position,
-            // [POC] hardcoded id for POC (proof of concept)
-            world.allies_bot.get(&self.hardcoded_avoid_ally_id).unwrap().pose.position,
-            self.target
-        );
-        self.initialized = true;
-        let points = bcurve.compute_points_on_curve(5);
-        self.move_handler = Some(SteppedMovement::new(points.clone()));
-        self.curve = Some(bcurve);
+        // check collisions with other robots
+        // [POC] only collisions with allies
+        let line_traj = Line { start: robot.pose.position, end: self.target };
+        let other_obstacles: Vec<Point2<f64>> = world.allies_bot
+            .iter()
+            .filter(|(id, obstacle_rob)|
+                robot.id != **id &&
+                Self::check_collision_with_target(&line_traj, &obstacle_rob.pose.position)
+            )
+            .map(|(id, obstacle_rob)|
+                obstacle_rob.pose.position
+            )
+            .collect();
+
+        if other_obstacles.len() == 0 {
+            // no collision, go to target
+           self.move_handler = Some(SteppedMovement::new(vec![self.target]));
+
+        } else {
+            // create Bézier curve to avoid point
+            // [POC] no optimizations, compute all the points
+            let mut bcurve = CubicBezierCurve::new(
+                robot.pose.position,
+                // [POC] hardcoded id for POC (proof of concept)
+                world.allies_bot.get(&self.hardcoded_avoid_ally_id).unwrap().pose.position,
+                self.target
+            );
+            let points = bcurve.compute_points_on_curve(5, &other_obstacles);
+            self.move_handler = Some(SteppedMovement::new(points.clone()));
+            self.curve = Some(bcurve);
+        }
+        // self.initialized = true;
+    }
+
+    /// Using a starting point and target point, defined in the Line parameter,
+    /// check that it does not collide with another robot located at point `obs`
+    fn check_collision_with_target(line: &Line, obs: &Point2<f64>) -> bool {
+        let collision_vector = obs - line.start;
+        let ref_vector = line.end - line.start;
+
+        // project vector to check collision
+        let numerator = collision_vector.dot(&ref_vector);
+        let denominator = ref_vector.dot(&ref_vector);
+        let projected = ref_vector * numerator.div(denominator);
+        let projected_point = Point2::from(projected);
+        let dist = distance(&projected_point, &Point2::from(collision_vector));
+
+        dbg!(dist <= ROBOT_RADIUS)
     }
 }
 
@@ -273,7 +315,7 @@ impl Action for BezierMove {
 
     fn state(&mut self) -> State { self.state }
 
-    fn compute_order(&mut self, id: u8, world: &World, tools: &mut ToolData) -> Command {
+    fn compute_order(&mut self, id: u8, world: &World, _: &mut ToolData) -> Command {
         if let Some(robot) = world.allies_bot.get(&id) {
             // [POC] this stays static for the moment, and doesn't take in account change in environment
             if !self.initialized { self.init_curve(robot, world) }
