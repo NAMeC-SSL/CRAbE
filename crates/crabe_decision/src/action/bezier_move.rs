@@ -303,7 +303,7 @@ impl BezierMove {
         let denominator = ref_vector.dot(&ref_vector);
         let projected = ref_vector * numerator.div(denominator);
         let projected_point = Point2::from(projected);
-        let dist = distance(&projected_point, &Point2::from(collision_vector));
+        let dist = distance(&projected_point, &Point2::from(collision_vector)); // TODO: check parameters value
 
         dbg!(dist <= ROBOT_RADIUS)
     }
