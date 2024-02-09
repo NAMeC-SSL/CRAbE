@@ -6,8 +6,6 @@ use crabe_framework::data::world::World;
 use crabe_framework::data::geometry::Penalty;
 use crabe_math::shape::Line;
 use nalgebra::Point2;
-use std::f64::consts::PI;
-use std::time::Instant;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// The Square struct represents a strategy that commands a robot to move in a square shape
@@ -15,13 +13,14 @@ use std::time::{SystemTime, UNIX_EPOCH};
 #[derive(Default)]
 pub struct Defender {
     /// The id of the robot to move.
-    ids: Vec<u8>
+    ids: Vec<u8>,
+    current_pos_along_penaly: f64
 }
 
 impl Defender {
     /// Creates a new Defender instance with the desired robot id.
     pub fn new(ids: Vec<u8>) -> Self {
-        Self { ids }
+        Self { ids, current_pos_along_penaly: 0.5 }
     }
 
     /// Return a point on the penalty outside line from a number between 0 and 1
@@ -51,25 +50,26 @@ impl Defender {
     pub fn line_intersection_with_penalty(
         &self, 
         penalty: &Penalty,
-        line: Line
+        line: Line,
+        strict_segment_intersection: bool//true : check intersection with segment line; false : check intersection with infinite line
     ) ->  Option<f64>{
-        let intersect_front_line =  line.intersection_line(&penalty.front_line);
+        let intersect_front_line = if strict_segment_intersection {line.intersection_line(&penalty.front_line)} else {line.intersection_line(&penalty.front_line)};
         let penalty_length = penalty.depth *2. + penalty.width;
         if intersect_front_line.is_some(){
-            println!("front");
+            //intersect front line
             return Some(((intersect_front_line.unwrap().y - penalty.front_line.start.y).abs() + penalty.depth)/penalty_length);
         }else{
             let intersect_left_line =  line.intersection_line(&penalty.left_line);
             if intersect_left_line.is_some() {
-                println!("left");
+                //intersect left line
                 return Some(((intersect_left_line.unwrap().x - penalty.left_line.start.x).abs() )/penalty_length);
             }else{
                 let intersect_right_line =  line.intersection_line(&penalty.right_line);
                 if intersect_right_line.is_some(){
-                    println!("right");
+                    //intersect right line
                     return Some(((intersect_right_line.unwrap().x - penalty.right_line.end.x).abs() + penalty.depth + penalty.width)/penalty_length);
                 }else{
-                    println!("ball is in our penalty zone");
+                    if strict_segment_intersection {println!("ball may be in our penalty zone");}
                     return None;
                 }
             }
@@ -97,6 +97,30 @@ impl Defender {
             action_wrapper.push(id, MoveTo::new(pos, 0.));
         }
         false
+    }
+
+    pub fn get_closest_point_on_penalty_line(
+        &mut self,
+        world: &World,
+        action_wrapper: &mut ActionWrapper,
+    ) -> Option<f64> {  
+
+        //TODO refactor to prevent code redundance
+        let goal_center = world.geometry.ally_goal.front_line.middle();
+        let mut total = 0.;
+        let mut total_bot_nb = 0.;//in case some bots don't have intersection line we shouldn't count them in the mean
+        for id in &self.ids{
+            let bot_pos = world.allies_bot[id].pose.position;
+            let bot_to_goal = Line::new(goal_center, bot_pos);
+            if let Some(bot_ratio_pos) = self.line_intersection_with_penalty(&world.geometry.ally_penalty.enlarged_penalty(0.3), bot_to_goal, false) {
+                total += bot_ratio_pos;
+                total_bot_nb += 1.;
+            }
+        }
+        if total_bot_nb <= 0. {
+            return None;
+        }
+        Some(total/total_bot_nb)
     }
 }
 
@@ -137,9 +161,16 @@ impl Strategy for Defender {
         let goal_center = world.geometry.ally_goal.front_line.middle();
         let ball_to_goal = Line::new(goal_center, ball_pos);
 
-        let intersection_point_ratio = self.line_intersection_with_penalty(&world.geometry.ally_penalty.enlarged_penalty(0.3),ball_to_goal);
+        let intersection_point_ratio = self.line_intersection_with_penalty(&world.geometry.ally_penalty.enlarged_penalty(0.3),ball_to_goal, true);
 
-        if let Some(ratio) = intersection_point_ratio {
+        if let Some(mut ratio) = intersection_point_ratio {//if ball to goal center intersect the penalty line
+            if let Some(current_pos) = self.get_closest_point_on_penalty_line(world, action_wrapper){
+                self.current_pos_along_penaly = current_pos;
+            }
+
+            //clamp new bot position so they have to move along the penalty line
+            ratio = ratio.clamp(self.current_pos_along_penaly-0.1, self.current_pos_along_penaly+0.1);
+            println!("{:?}", self.current_pos_along_penaly);
 			//TODO refactor this code (redundance in the on_penalty_line)
             let enlarged_penalty = world.geometry.ally_penalty.enlarged_penalty(0.3);
             let width = enlarged_penalty.front_line.norm();
