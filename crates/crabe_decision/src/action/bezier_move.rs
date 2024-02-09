@@ -267,7 +267,7 @@ impl BezierMove {
                 robot.id != **id &&
                 Self::check_collision_with_target(&line_traj, &obstacle_rob.pose.position)
             )
-            .map(|(id, obstacle_rob)|
+            .map(|(_, obstacle_rob)|
                 obstacle_rob.pose.position
             )
             .collect();
@@ -279,7 +279,7 @@ impl BezierMove {
         } else {
             // create Bézier curve to avoid point
             // [POC] no optimizations, compute all the points
-            let mut bcurve = CubicBezierCurve::new(
+            let bcurve = CubicBezierCurve::new(
                 robot.pose.position,
                 // [POC] hardcoded id for POC (proof of concept)
                 world.allies_bot.get(&self.hardcoded_avoid_ally_id).unwrap().pose.position,
@@ -303,9 +303,12 @@ impl BezierMove {
         let denominator = ref_vector.dot(&ref_vector);
         let projected = ref_vector * numerator.div(denominator);
         let projected_point = Point2::from(projected);
-        let dist = distance(&projected_point, &Point2::from(collision_vector)); // TODO: check parameters value
+        let dist_projected_obsvec = distance(&projected_point, &Point2::from(collision_vector)); // TODO: check parameters value
 
-        dbg!(dist <= ROBOT_RADIUS)
+        // note that we ignore the obstacle if it is not between the start point and the target
+        return
+            distance(&line.start, obs) <= distance(&line.start, &line.end)
+            && dist_projected_obsvec <= ROBOT_RADIUS
     }
 }
 
