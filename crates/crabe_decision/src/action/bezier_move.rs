@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::f64::consts::FRAC_PI_2;
 use std::ops::Div;
 use log::{error, warn};
@@ -26,7 +27,11 @@ use crate::action::state::State;
 const DIST_TARGET_REACHED: f64 = 0.2;
 
 /// The approximate radius of a robot on the field
-const ROBOT_RADIUS: f64 = 0.2;
+const ROBOT_RADIUS: f64 = 0.4; //TODO: modify, this is strongly linked to the scale multiplier to compute the avoidance control point
+
+/// The number of points to compute along the curve,
+/// that is, the step points to attain to follow the curve
+const NUM_POINTS_ALONG_CURVE: i16 = 4;
 
 /// Represents a Bézier curve made of 4 control points
 #[derive(Clone)]
@@ -90,6 +95,7 @@ impl CubicBezierCurve {
     }
 
     fn compute_points_on_curve(&self, num_points: i16, obstacles: &Vec<Point2<f64>>) -> Vec<Point2<f64>> {
+        //TODO: obstacles doesn't have all the obstacles
         let mut points : Vec<Point2<f64>>= vec![];
 
         // this is supposed to be const, see top of file
@@ -134,6 +140,9 @@ impl CubicBezierCurve {
                     // encountered obstacle
                     break;
                 } else {
+                    // [POC] Managed to attain this case with NUM_POINTS_ALONG_CURVE=2
+                    // have to find a new way to avoid this
+                    // (low probability of success) possibility : use other way around ? (rotate -90deg instead of +90deg)
                     warn!("[POC] An obstacle was encountered when computing the first point on the path\n\
                            [POC] This means that the proof of concept is flawed.");
                 }
@@ -152,7 +161,7 @@ impl CubicBezierCurve {
             else { None }
         }).collect();
 
-        // find closest obstacle
+        // find closest obstacle //TODO: return None if map_obs_dist.len() == 0
         let mut closest_obs: Option<Point2<f64>> = None;
         let mut smallest_dist = &f64::INFINITY;
         map_obs_dist.iter().for_each(|(obs, dist)| {
@@ -260,16 +269,17 @@ impl BezierMove {
     pub fn init_curve(&mut self, robot: &Robot<AllyInfo>, world: &World) {
         let line_traj = Line { start: robot.pose.position, end: self.target };
 
+        let all_obstacles: HashMap<&u8, &Robot<AllyInfo>> = world.allies_bot.iter().filter(|(id, _)| robot.id != **id).collect();
+
         // check collisions with other robots
         // [POC] only collisions with allies
-        let other_obstacles_on_path: Vec<Point2<f64>> = world.allies_bot
+        let other_obstacles_on_path: Vec<&Point2<f64>> = all_obstacles
             .iter()
-            .filter(|(id, obstacle_rob)|
-                robot.id != **id &&
+            .filter(|(_, obstacle_rob)|
                 Self::check_collision_with_target(&line_traj, &obstacle_rob.pose.position)
             )
             .map(|(_, obstacle_rob)|
-                obstacle_rob.pose.position
+                &obstacle_rob.pose.position
             )
             .collect();
 
@@ -293,14 +303,19 @@ impl BezierMove {
                 robot.pose.position,
                 // [POC] hardcoded id for POC (proof of concept)
                 // world.allies_bot.get(&self.hardcoded_avoid_ally_id).unwrap().pose.position,
-                *closest_obs,
+                **closest_obs,
                 self.target
             );
-            let points = bcurve.compute_points_on_curve(6  , &other_obstacles_on_path);
+            let points = bcurve.compute_points_on_curve(
+                NUM_POINTS_ALONG_CURVE,
+                &all_obstacles.iter().map(|(_, rob)| rob.pose.position).collect()
+            );
+
             self.move_handler = Some(SteppedMovement::new(points.clone()));
             self.curve = Some(bcurve);
         }
-        self.initialized = true;
+        // comment the following to make the algorithm update the trajectory in real time
+        // self.initialized = true;
     }
 
     /// Using a starting point and target point, defined in the Line parameter,
