@@ -27,11 +27,11 @@ use crate::action::state::State;
 const DIST_TARGET_REACHED: f64 = 0.2;
 
 /// The approximate radius of a robot on the field
-const ROBOT_RADIUS: f64 = 0.4; //TODO: modify, this is strongly linked to the scale multiplier to compute the avoidance control point
+const ROBOT_RADIUS: f64 = 0.2; //TODO: modify, this is strongly linked to the scale multiplier to compute the avoidance control point
 
 /// The number of points to compute along the curve,
 /// that is, the step points to attain to follow the curve
-const NUM_POINTS_ALONG_CURVE: i16 = 4;
+const NUM_POINTS_ALONG_CURVE: i16 = 6;
 
 /// Represents a Bézier curve made of 4 control points
 #[derive(Clone)]
@@ -48,7 +48,6 @@ impl CubicBezierCurve {
     /// a trajectory that will avoid the given obstacle
     /// A single obstacle is considered here
     fn avoidance_point(start: &Point2<f64>, obstacle: &Point2<f64>, end: &Point2<f64>) -> Point2<f64> {
-        // TODO: use normal vector from start to end !!!!! and offset it and rotate it blablabla
         // obtain vector from start to end
         let mut vec_start_end = end - start;
 
@@ -62,7 +61,7 @@ impl CubicBezierCurve {
         nvec = nvec.normalize();
 
         //scale this vector depending on distance from start to obstacle
-        nvec = nvec * distance(&start, &obstacle).clamp(1.0, 1.5); // very arbitrary number, for now  //TODO: CLAMP
+        nvec = nvec * distance(&start, &obstacle).clamp(1.5, 2.0); // very arbitrary number, for now
 
         // other possible test : bind scale to 1.5
         // which unit is it ? probably meters
@@ -95,7 +94,6 @@ impl CubicBezierCurve {
     }
 
     fn compute_points_on_curve(&self, num_points: i16, obstacles: &Vec<Point2<f64>>) -> Vec<Point2<f64>> {
-        //TODO: obstacles doesn't have all the obstacles
         let mut points : Vec<Point2<f64>>= vec![];
 
         // this is supposed to be const, see top of file
