@@ -1,12 +1,11 @@
 use std::f64::consts::FRAC_PI_2;
 use std::ops::Div;
 use log::{error, warn};
-use nalgebra::{distance, Isometry2, Matrix1x4, Matrix2x4, Matrix4, Matrix4x1, min, Point2};
+use nalgebra::{distance, Isometry2, Matrix1x4, Matrix2x4, Matrix4, Matrix4x1, Vector2, Point2};
 use crabe_framework::data::output::Command;
 use crabe_framework::data::tool::ToolData;
-use crabe_framework::data::world::{AllyInfo, Robot, World};
+use crabe_framework::data::world::{AllyInfo, Robot, RobotMap, World};
 use crabe_math::shape::{Circle, Line};
-use crabe_protocol::protobuf::game_controller_packet::Vector2;
 use crate::action::Action;
 use crate::action::state::State;
 
@@ -44,11 +43,12 @@ impl CubicBezierCurve {
     /// a trajectory that will avoid the given obstacle
     /// A single obstacle is considered here
     fn avoidance_point(start: &Point2<f64>, obstacle: &Point2<f64>, end: &Point2<f64>) -> Point2<f64> {
+        // TODO: use normal vector from start to end !!!!! and offset it and rotate it blablabla
         // obtain vector from start to end
         let mut vec_start_end = end - start;
 
         // offset it to start from obstacle
-        // vec_start_end += obstacle; //TODO: not confident about this one
+        vec_start_end += Vector2::new(obstacle.x, obstacle.y); //TODO: not confident about this one
 
         // rotate this vector by 90 degrees
         // [POC] this may be clockwise or counter-clockwise, depending on the environment
@@ -57,7 +57,7 @@ impl CubicBezierCurve {
         nvec = nvec.normalize();
 
         //scale this vector depending on distance from start to obstacle
-        nvec = nvec * distance(&start, &obstacle).max(1.5); // very arbitrary number, for now
+        nvec = nvec * distance(&start, &obstacle).max(1.5); // very arbitrary number, for now  //TODO: CLAMP
 
         // other possible test : bind scale to 1.5
         // which unit is it ? probably meters
