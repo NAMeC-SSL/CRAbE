@@ -258,10 +258,11 @@ impl BezierMove {
     /// [POC] This is only initialized once and does not adapt to a dynamic environment.
     /// It will be adapted if the POC is considered valid
     pub fn init_curve(&mut self, robot: &Robot<AllyInfo>, world: &World) {
+        let line_traj = Line { start: robot.pose.position, end: self.target };
+
         // check collisions with other robots
         // [POC] only collisions with allies
-        let line_traj = Line { start: robot.pose.position, end: self.target };
-        let other_obstacles: Vec<Point2<f64>> = world.allies_bot
+        let other_obstacles_on_path: Vec<Point2<f64>> = world.allies_bot
             .iter()
             .filter(|(id, obstacle_rob)|
                 robot.id != **id &&
@@ -272,24 +273,34 @@ impl BezierMove {
             )
             .collect();
 
-        if other_obstacles.len() == 0 {
+        if other_obstacles_on_path.len() == 0 {
             // no collision, go to target
            self.move_handler = Some(SteppedMovement::new(vec![self.target]));
 
         } else {
+            // get closest obstacle
+            let closest_obs = other_obstacles_on_path.iter().fold(other_obstacles_on_path.get(0).unwrap(), |closest, some_obs| {
+                return if distance(&line_traj.start, closest) >= distance(&line_traj.start, some_obs) {
+                    some_obs
+                } else {
+                    closest
+                }
+            }); // safe unwrap (otherwise we would fall into the `.len() == 0` branch
+
             // create Bézier curve to avoid point
             // [POC] no optimizations, compute all the points
             let bcurve = CubicBezierCurve::new(
                 robot.pose.position,
                 // [POC] hardcoded id for POC (proof of concept)
-                world.allies_bot.get(&self.hardcoded_avoid_ally_id).unwrap().pose.position,
+                // world.allies_bot.get(&self.hardcoded_avoid_ally_id).unwrap().pose.position,
+                *closest_obs,
                 self.target
             );
-            let points = bcurve.compute_points_on_curve(5, &other_obstacles);
+            let points = bcurve.compute_points_on_curve(6  , &other_obstacles_on_path);
             self.move_handler = Some(SteppedMovement::new(points.clone()));
             self.curve = Some(bcurve);
         }
-        // self.initialized = true;
+        self.initialized = true;
     }
 
     /// Using a starting point and target point, defined in the Line parameter,
