@@ -121,31 +121,36 @@ impl CubicBezierCurve {
 
             // if this newfound point collides with an obstacle, re-iterate the process to avoid this obstacle
             if let Some(closest_obs) = CubicBezierCurve::closest_collision_point_circle(&step_point, obstacles) {
-
-                // the new start point is right before going into the obstacle's range
-                if let Some(new_start_point) = points.last() {
-
-                    // safe unwrap as self.control_points is already defined when initialized
-                    let additional_avoid_bcurve = CubicBezierCurve::new(
-                        *new_start_point,
-                        closest_obs,
-                        *self.control_points.get(3).unwrap());
-
-                    points.append(&mut additional_avoid_bcurve.compute_points_on_curve(num_points, obstacles));
-
-                    // the other points to complete the path towards target are thus not required to be computed
-                    // they will be computed by the above call, i.e. the new curve that avoids the newly
-                    // encountered obstacle
-                    break;
+                if distance(&closest_obs, self.control_points.get(3).unwrap()) <= DIST_TARGET_REACHED {
+                    points.push(step_point);
+                    continue;
                 } else {
-                    // [POC] Managed to attain this case with NUM_POINTS_ALONG_CURVE=2
-                    // have to find a new way to avoid this
-                    // (low probability of success) possibility : use other way around ? (rotate -90deg instead of +90deg)
-                    warn!("[POC] An obstacle was encountered when computing the first point on the path\n\
+                    // the new start point is right before going into the obstacle's range
+                    if let Some(new_start_point) = points.last() {
+
+                        // safe unwrap as self.control_points is already defined when initialized
+                        let additional_avoid_bcurve = CubicBezierCurve::new(
+                            *new_start_point,
+                            closest_obs,
+                            *self.control_points.get(3).unwrap());
+
+                        points.append(&mut additional_avoid_bcurve.compute_points_on_curve(num_points, obstacles));
+
+                        // the other points to complete the path towards target are thus not required to be computed
+                        // they will be computed by the above call, i.e. the new curve that avoids the newly
+                        // encountered obstacle
+                        break;
+                    } else {
+                        // [POC] Managed to attain this case with NUM_POINTS_ALONG_CURVE=2
+                        // have to find a new way to avoid this
+                        // (low probability of success) possibility : use other way around ? (rotate -90deg instead of +90deg)
+                        warn!("[POC] An obstacle was encountered when computing the first point on the path\n\
                            [POC] This means that the proof of concept is flawed.");
+                    }
                 }
+            } else {
+                points.push(step_point);
             }
-            points.push(step_point);
         }
 
         points
@@ -316,7 +321,7 @@ impl BezierMove {
             self.curve = Some(bcurve);
         }
         // comment the following to make the algorithm update the trajectory in real time
-        // self.initialized = true;
+        self.initialized = true;
     }
 
     /// Using a starting point and target point, defined in the Line parameter,
