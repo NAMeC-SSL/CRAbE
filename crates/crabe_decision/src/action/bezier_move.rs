@@ -31,7 +31,7 @@ const ROBOT_RADIUS: f64 = 0.2; //TODO: modify, this is strongly linked to the sc
 
 /// The number of points to compute along the curve,
 /// that is, the step points to attain to follow the curve
-const NUM_POINTS_ALONG_CURVE: i16 = 6;
+const NUM_POINTS_ALONG_CURVE: i16 = 5;
 
 /// Represents a Bézier curve made of 4 control points
 #[derive(Clone)]
@@ -67,7 +67,7 @@ impl CubicBezierCurve {
         // which unit is it ? probably meters
         // nvec = nvec * 1.5;
 
-        obstacle + nvec
+        nvec.into()
     }
 
     fn new(start: Point2<f64>, obstacle: Point2<f64>, end: Point2<f64>) -> Self {
