@@ -159,15 +159,18 @@ impl CubicBezierCurve {
             else { None }
         }).collect();
 
-        // find closest obstacle //TODO: return None if map_obs_dist.len() == 0
+        // find closest obstacle
         let mut closest_obs: Option<Point2<f64>> = None;
-        let mut smallest_dist = &f64::INFINITY;
-        map_obs_dist.iter().for_each(|(obs, dist)| {
-            if dist < &smallest_dist {
-                smallest_dist = dist;
-                closest_obs = Some(**obs);
-            }
-        });
+
+        if !map_obs_dist.is_empty() {
+            let mut smallest_dist = &f64::INFINITY;
+            map_obs_dist.iter().for_each(|(obs, dist)| {
+                if dist < &smallest_dist {
+                    smallest_dist = dist;
+                    closest_obs = Some(**obs);
+                }
+            });
+        }
 
         closest_obs
     }
