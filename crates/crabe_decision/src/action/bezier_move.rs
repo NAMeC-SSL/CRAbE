@@ -57,7 +57,7 @@ impl CubicBezierCurve {
         nvec = nvec.normalize();
 
         //scale this vector depending on distance from start to obstacle
-        nvec = nvec * distance(&start, &obstacle).max(1.5); // very arbitrary number, for now  //TODO: CLAMP
+        nvec = nvec * distance(&start, &obstacle).clamp(1.0, 1.5); // very arbitrary number, for now  //TODO: CLAMP
 
         // other possible test : bind scale to 1.5
         // which unit is it ? probably meters
