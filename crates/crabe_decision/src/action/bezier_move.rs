@@ -90,13 +90,13 @@ impl CubicBezierCurve {
         });
 
         let res_mat = Matrix2x4::<f64>::from_vec(store_vec);
-        dbg!(&res_mat);
         res_mat
     }
 
-    fn compute_points_on_curve(&self, num_points: i16, obstacles: &Vec<Point2<f64>>) -> Vec<Point2<f64>> {
-        let mut points : Vec<Point2<f64>>= vec![];
-
+    fn compute_points_on_curve(&self,
+                               num_points: i16,
+                               obstacles: &Vec<Point2<f64>>,
+                               mut points: &mut Vec<Point2<f64>>) {
         // this is supposed to be const, see top of file
         let CUBIC_BEZIER_CHARAC_MATRIX: Matrix4<f64> = Matrix4::from_vec(vec![
             1., 0., 0., 0.,
@@ -122,38 +122,36 @@ impl CubicBezierCurve {
             // if this newfound point collides with an obstacle, re-iterate the process to avoid this obstacle
             if let Some(closest_obs) = CubicBezierCurve::closest_collision_point_circle(&step_point, obstacles) {
                 if distance(&closest_obs, self.control_points.get(3).unwrap()) <= DIST_TARGET_REACHED {
+                    dbg!(&step_point);
                     points.push(step_point);
                     continue;
                 } else {
+
                     // the new start point is right before going into the obstacle's range
-                    if let Some(new_start_point) = points.last() {
+                    let new_start_point = match points.last() {
+                        Some(pt) => pt,
+                        None => self.control_points.get(0).unwrap()
+                    };
 
-                        // safe unwrap as self.control_points is already defined when initialized
-                        let additional_avoid_bcurve = CubicBezierCurve::new(
-                            *new_start_point,
-                            closest_obs,
-                            *self.control_points.get(3).unwrap());
+                    // safe unwrap as self.control_points is already defined when initialized
+                    let additional_avoid_bcurve = CubicBezierCurve::new(
+                        *new_start_point,
+                        closest_obs,
+                        *self.control_points.get(3).unwrap()
+                    );
 
-                        points.append(&mut additional_avoid_bcurve.compute_points_on_curve(num_points, obstacles));
+                    additional_avoid_bcurve.compute_points_on_curve(num_points, obstacles, points);
 
-                        // the other points to complete the path towards target are thus not required to be computed
-                        // they will be computed by the above call, i.e. the new curve that avoids the newly
-                        // encountered obstacle
-                        break;
-                    } else {
-                        // [POC] Managed to attain this case with NUM_POINTS_ALONG_CURVE=2
-                        // have to find a new way to avoid this
-                        // (low probability of success) possibility : use other way around ? (rotate -90deg instead of +90deg)
-                        warn!("[POC] An obstacle was encountered when computing the first point on the path\n\
-                           [POC] This means that the proof of concept is flawed.");
-                    }
+                    // the other points to complete the path towards target are thus not required to be computed
+                    // they will be computed by the above call, i.e. the new curve that avoids the newly
+                    // encountered obstacle
+                    break;
                 }
             } else {
+                dbg!(&step_point);
                 points.push(step_point);
             }
         }
-
-        points
     }
 
     fn closest_collision_point_circle(p: &Point2<f64>, obstacles: &Vec<Point2<f64>>) -> Option<Point2<f64>> {
@@ -307,14 +305,16 @@ impl BezierMove {
             // [POC] no optimizations, compute all the points
             let bcurve = CubicBezierCurve::new(
                 robot.pose.position,
-                // [POC] hardcoded id for POC (proof of concept)
-                // world.allies_bot.get(&self.hardcoded_avoid_ally_id).unwrap().pose.position,
                 **closest_obs,
                 self.target
             );
-            let points = bcurve.compute_points_on_curve(
+
+            let mut points: Vec<Point2<f64>> = vec![];
+
+            bcurve.compute_points_on_curve(
                 NUM_POINTS_ALONG_CURVE,
-                &all_obstacles.iter().map(|(_, rob)| rob.pose.position).collect()
+                &all_obstacles.iter().map(|(_, rob)| rob.pose.position).collect(),
+                &mut points
             );
 
             self.move_handler = Some(SteppedMovement::new(points.clone()));
