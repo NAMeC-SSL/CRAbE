@@ -27,11 +27,11 @@ use crate::action::state::State;
 const DIST_TARGET_REACHED: f64 = 0.2;
 
 /// The approximate radius of a robot on the field
-const ROBOT_RADIUS: f64 = 0.2; //TODO: modify, this is strongly linked to the scale multiplier to compute the avoidance control point
+const ROBOT_RADIUS: f64 = 0.3; //TODO: modify, this is strongly linked to the scale multiplier to compute the avoidance control point
 
 /// The number of points to compute along the curve,
 /// that is, the step points to attain to follow the curve
-const NUM_POINTS_ALONG_CURVE: i16 = 5;
+const NUM_POINTS_ALONG_CURVE: i16 = 10;
 
 /// Represents a Bézier curve made of 4 control points
 #[derive(Clone)]
@@ -49,15 +49,16 @@ impl CubicBezierCurve {
     /// A single obstacle is considered here
     fn avoidance_point(start: &Point2<f64>, obstacle: &Point2<f64>, end: &Point2<f64>) -> Point2<f64> {
         // obtain vector from start to end
-        let mut vec_start_end = end - start;
+        let mut vec_start_end = obstacle - start;
 
-        // offset it to start from obstacle
-        vec_start_end += Vector2::new(obstacle.x, obstacle.y); //TODO: not confident about this one
+        // // offset it to start from obstacle
+        // vec_start_end += Vector2::new(obstacle.x, obstacle.y); //TODO: not confident about this one
 
         // rotate this vector by 90 degrees
         // [POC] this may be clockwise or counter-clockwise, depending on the environment
         // right now it doesn't matter
         let mut nvec = Isometry2::rotation(FRAC_PI_2) * vec_start_end;
+
         nvec = nvec.normalize();
 
         //scale this vector depending on distance from start to obstacle
@@ -67,7 +68,7 @@ impl CubicBezierCurve {
         // which unit is it ? probably meters
         // nvec = nvec * 1.5;
 
-        nvec.into()
+        (obstacle + nvec).into()
     }
 
     fn new(start: Point2<f64>, obstacle: Point2<f64>, end: Point2<f64>) -> Self {
@@ -106,7 +107,6 @@ impl CubicBezierCurve {
 
         // we need to convert the matrices of control points `Matrix4x1<Point2<f64>>`
         // into a 2 column matrix `Matrix4x2<f64>` to perform dot products
-        dbg!(&self.control_points);
         let ctrl_pts_cvt = CubicBezierCurve::convert_p2_matrix(&self.control_points);
 
         // compute Bézier curve points using matrix form
