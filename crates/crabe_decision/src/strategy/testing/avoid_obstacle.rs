@@ -7,12 +7,11 @@ use crate::strategy::Strategy;
 
 pub struct AvoidObstacle {
     id: u8,
-    ally_to_avoid_id: u8,
 }
 
 impl AvoidObstacle {
-    pub fn new(id: u8, ally_to_avoid_id: u8) -> Self {
-        Self { id, ally_to_avoid_id }
+    pub fn new(id: u8) -> Self {
+        Self { id }
     }
 }
 
@@ -22,7 +21,8 @@ impl Strategy for AvoidObstacle {
     fn step(&mut self, _world: &World, _tools_data: &mut ToolData, action_wrapper: &mut ActionWrapper) -> bool {
         action_wrapper.push(
             self.id,
-            BezierMove::new(Point2::new(1., 0.), 0., self.ally_to_avoid_id)
+            // MoveTo::new(Point2::new(0., 0.), 0.)
+            BezierMove::new(Point2::new(1., 0.), 0.)
         );
         true
     }

@@ -249,12 +249,10 @@ pub struct BezierMove {
     initialized: bool,
     curve: Option<CubicBezierCurve>,
     move_handler: Option<SteppedMovement>,
-    // [POC] hardcoded id of ally to avoid. temporary, just to test it
-    hardcoded_avoid_ally_id: u8,
 }
 
 impl BezierMove {
-    pub fn new(target: Point2<f64>, orientation: f64, hardcoded_avoid_ally_id: u8) -> Self {
+    pub fn new(target: Point2<f64>, orientation: f64) -> Self {
         Self {
             state: State::Running,
             target,
@@ -262,7 +260,6 @@ impl BezierMove {
             initialized: false,
             curve: None,
             move_handler: None,
-            hardcoded_avoid_ally_id,
         }
     }
 
@@ -374,7 +371,6 @@ impl From<&mut BezierMove> for BezierMove {
             initialized: value.initialized,
             curve: value.curve.clone(),
             move_handler: value.move_handler.clone(),
-            hardcoded_avoid_ally_id: value.hardcoded_avoid_ally_id
         }
     }
 }
