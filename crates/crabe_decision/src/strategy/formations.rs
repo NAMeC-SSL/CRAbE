@@ -16,5 +16,6 @@ pub use self::prepare_penalty_enemy::PreparePenaltyEnemy;
 
 mod go_out_from_ball;
 pub use self::go_out_from_ball::GoOutFromBall;
+
 mod ball_placement;
 pub use self::ball_placement::BallPlacement;

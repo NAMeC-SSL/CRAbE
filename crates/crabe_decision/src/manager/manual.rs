@@ -1,9 +1,11 @@
 use crate::action::ActionWrapper;
 use crate::manager::Manager;
 use crate::strategy::testing::{GoToCenter, Square};
+use crate::strategy::formations::BallPlacement;
 use crate::strategy::Strategy;
 use crabe_framework::data::tool::ToolData;
 use crabe_framework::data::world::World;
+use nalgebra::Point2;
 use crate::strategy::attacker::Shooter;
 use crate::strategy::keeper::Keep;
 
@@ -22,7 +24,7 @@ impl Manual {
     /// Creates a new `Manual` instance with the desired strategies to test.
     pub fn new() -> Self {
         Self {
-            strategies: vec![Box::new(GoToCenter::new(1))],
+            strategies: vec![Box::new(BallPlacement::new(0, Point2::new(0.,0.)))],
         }
     }
 }
