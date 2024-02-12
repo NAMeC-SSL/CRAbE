@@ -53,18 +53,18 @@ impl Defender {
         line: Line,
         strict_segment_intersection: bool//true : check intersection with segment line; false : check intersection with infinite line
     ) ->  Option<f64>{
-        let intersect_front_line = if strict_segment_intersection {line.intersection_line(&penalty.front_line)} else {line.intersection_line(&penalty.front_line)};
+        let intersect_front_line = if strict_segment_intersection {line.intersection_segment(&penalty.front_line)} else {penalty.front_line.intersection_segment_line(&line)};
         let penalty_length = penalty.depth *2. + penalty.width;
         if intersect_front_line.is_some(){
             //intersect front line
             return Some(((intersect_front_line.unwrap().y - penalty.front_line.start.y).abs() + penalty.depth)/penalty_length);
         }else{
-            let intersect_left_line =  line.intersection_line(&penalty.left_line);
+            let intersect_left_line = if strict_segment_intersection {line.intersection_segment(&penalty.left_line)} else {penalty.left_line.intersection_line(&line)};
             if intersect_left_line.is_some() {
                 //intersect left line
                 return Some(((intersect_left_line.unwrap().x - penalty.left_line.start.x).abs() )/penalty_length);
             }else{
-                let intersect_right_line =  line.intersection_line(&penalty.right_line);
+                let intersect_right_line = if strict_segment_intersection {line.intersection_segment(&penalty.right_line)} else {penalty.right_line.intersection_line(&line)};
                 if intersect_right_line.is_some(){
                     //intersect right line
                     return Some(((intersect_right_line.unwrap().x - penalty.right_line.end.x).abs() + penalty.depth + penalty.width)/penalty_length);
@@ -104,7 +104,7 @@ impl Defender {
         world: &World,
         action_wrapper: &mut ActionWrapper,
     ) -> Option<f64> {  
-
+        //THIS FUNCTION DO NOT WORK PROPERLY
         //TODO refactor to prevent code redundance
         let goal_center = world.geometry.ally_goal.front_line.middle();
         let mut total = 0.;
@@ -152,7 +152,7 @@ impl Strategy for Defender {
         for id in &self.ids{
             action_wrapper.clear(*id);
         }
-
+        
         let ball_pos = match world.ball.clone() {
             None => {return false;}
             Some(ball) => {ball.position.xy() }
@@ -167,9 +167,12 @@ impl Strategy for Defender {
             if let Some(current_pos) = self.get_closest_point_on_penalty_line(world, action_wrapper){
                 self.current_pos_along_penaly = current_pos;
             }
-
             //clamp new bot position so they have to move along the penalty line
-            ratio = ratio.clamp(self.current_pos_along_penaly-0.1, self.current_pos_along_penaly+0.1);
+            //REMOVE COMMENT 
+            //ratio = ratio.clamp(self.current_pos_along_penaly-0.1, self.current_pos_along_penaly+0.1);
+
+
+
             println!("{:?}", self.current_pos_along_penaly);
 			//TODO refactor this code (redundance in the on_penalty_line)
             let enlarged_penalty = world.geometry.ally_penalty.enlarged_penalty(0.3);
@@ -190,6 +193,8 @@ impl Strategy for Defender {
                 action_wrapper.push(id, MoveTo::new(pos, 0.));
                 i+=1;
             }
+            // action_wrapper.clear(4);
+            // action_wrapper.push(4, MoveTo::new(self.on_penalty_line(world, self.current_pos_along_penaly), 0.));
             println!("Final Intersection Point: {:?}", ratio);
         } else {
             println!("No intersection point found");
