@@ -17,9 +17,9 @@ impl GameData {
     /// Creates a new `GameData` with the given `team_color` as the team color for the ally team, and the opposite team color for the enemy team.
     pub fn new(team_color: TeamColor) -> Self {
         Self {
-            ally: Team::with_color(team_color),
-            enemy: Team::with_color(team_color.opposite()),
-            positive_half: team_color.opposite(),
+            ally: Team::with_color(team_color.opposite()),
+            enemy: Team::with_color(team_color),
+            positive_half: team_color,
         }
     }
 }
