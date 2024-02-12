@@ -1,4 +1,5 @@
 use crate::speed::SpeedGuard;
+use crate::positive_half::HalfGuard;
 use clap::Args;
 use crabe_framework::component::{Component, GuardComponent};
 use crabe_framework::config::CommonConfig;
@@ -25,7 +26,7 @@ pub struct GuardPipeline {
 impl GuardPipeline {
     pub fn with_config(_guard_cfg: GuardConfig, _common_cfg: &CommonConfig) -> Self {
         Self {
-            guards: vec![Box::<SpeedGuard>::default()],
+            guards: vec![Box::<SpeedGuard>::default(), Box::new(HalfGuard::default())],
         }
     }
 }
