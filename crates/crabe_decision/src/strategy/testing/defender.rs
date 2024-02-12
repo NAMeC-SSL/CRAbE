@@ -125,68 +125,6 @@ impl Defender {
         Some(total/total_bot_nb)
     }
 
-    pub fn oscillate_on_ball_bounds(
-        &mut self,
-        world: &World,
-        action_wrapper: &mut ActionWrapper,
-    ) -> bool{
-        for id in &self.ids{
-            action_wrapper.clear(*id);
-        }
-        
-        let ball_pos = match world.ball.clone() {
-            None => {return false;}
-            Some(ball) => {ball.position.xy() }
-        };
-
-        let goal_left = world.geometry.ally_goal.front_line.start;
-        let goal_right = world.geometry.ally_goal.front_line.end;
-        let ball_to_left = Line::new(goal_left, ball_pos);
-        let ball_to_right = Line::new(goal_right, ball_pos);
-
-        let intersection_point_ratio_left = self.line_intersection_with_penalty(&world.geometry.ally_penalty.enlarged_penalty(0.3),ball_to_left, true);
-        let intersection_point_ratio_right = self.line_intersection_with_penalty(&world.geometry.ally_penalty.enlarged_penalty(0.3),ball_to_right, true);
-        let ratio_left = match intersection_point_ratio_left{
-            None => {0.}
-            Some(ratio) => {ratio}
-        };
-        let ratio_right = match intersection_point_ratio_right{
-            None => {1.}
-            Some(ratio) => {ratio}
-        };
-        
-
-        let current_time = SystemTime::now();
-        let mut x = 0.;
-        if let Ok(duration) = current_time.duration_since(UNIX_EPOCH) {
-            let current_time_ms = duration.as_millis() as f64;
-            x = current_time_ms ;
-        } 
-        let oscillating_value = (0.0002 * 2.0 * std::f64::consts::PI * x).sin() * 0.5 + 0.5;
-        
-        let ratio = ratio_left + (ratio_right-ratio_left) * oscillating_value;
-        
-        //TODO refactor this code (redundance in the on_penalty_line)
-        let enlarged_penalty = world.geometry.ally_penalty.enlarged_penalty(0.3);
-        let width = enlarged_penalty.front_line.norm();
-        let depth = enlarged_penalty.left_line.norm();    
-        let tot_penalty_line_length = depth * 2. + width;
-
-        //TODO replace 0.2 with reel bot diameter constant
-        let bot_diameter = 0.2;
-        let bot_nb = self.ids.len() as f64;
-        let bot_diameter_to_ratio = bot_diameter / tot_penalty_line_length; // bot diameter between 0 and 1
-        let starting_pos = (ratio - (bot_diameter_to_ratio/2.)*(bot_nb-1.)).clamp(0., 1.-(bot_nb-1.)*bot_diameter_to_ratio);
-
-        let mut i = 0;
-        for id in self.ids.clone() {
-            let relative_ratio = starting_pos + (i as f64) * bot_diameter_to_ratio;
-            let pos = self.on_penalty_line(world, relative_ratio);
-            action_wrapper.push(id, MoveTo::new(pos,0.));
-            i+=1;
-        }
-        false
-    }
 
 }
 
@@ -215,55 +153,54 @@ impl Strategy for Defender {
         tools_data: &mut ToolData,
         action_wrapper: &mut ActionWrapper,
     ) -> bool {
-        // for id in &self.ids{
-        //     action_wrapper.clear(*id);
-        // }
+        for id in &self.ids{
+            action_wrapper.clear(*id);
+        }
         
-        // let ball_pos = match world.ball.clone() {
-        //     None => {return false;}
-        //     Some(ball) => {ball.position.xy() }
-        // };
+        let ball_pos = match world.ball.clone() {
+            None => {return false;}
+            Some(ball) => {ball.position.xy() }
+        };
 
-        // let goal_center = world.geometry.ally_goal.front_line.middle();
-        // let ball_to_goal = Line::new(goal_center, ball_pos);
+        let goal_center = world.geometry.ally_goal.front_line.middle();
+        let ball_to_goal = Line::new(goal_center, ball_pos);
 
-        // let intersection_point_ratio = self.line_intersection_with_penalty(&world.geometry.ally_penalty.enlarged_penalty(0.3),ball_to_goal, true);
+        let intersection_point_ratio = self.line_intersection_with_penalty(&world.geometry.ally_penalty.enlarged_penalty(0.3),ball_to_goal, true);
 
-        // if let Some(mut ratio) = intersection_point_ratio {//if ball to goal center intersect the penalty line
-        //     if let Some(current_pos) = self.get_closest_point_on_penalty_line(world, action_wrapper){
-        //         self.current_pos_along_penaly = current_pos;
-        //     }
-        //     //clamp new bot position so they have to move along the penalty line
-        //     //REMOVE COMMENT 
-        //     //ratio = ratio.clamp(self.current_pos_along_penaly-0.1, self.current_pos_along_penaly+0.1);
+        if let Some(mut ratio) = intersection_point_ratio {//if ball to goal center intersect the penalty line
+            if let Some(current_pos) = self.get_closest_point_on_penalty_line(world, action_wrapper){
+                self.current_pos_along_penaly = current_pos;
+            }
+            //clamp new bot position so they have to move along the penalty line
+            //REMOVE COMMENT 
+            //ratio = ratio.clamp(self.current_pos_along_penaly-0.1, self.current_pos_along_penaly+0.1);
 
-        //     println!("{:?}", self.current_pos_along_penaly);
-		// 	//TODO refactor this code (redundance in the on_penalty_line)
-        //     let enlarged_penalty = world.geometry.ally_penalty.enlarged_penalty(0.3);
-        //     let width = enlarged_penalty.front_line.norm();
-        //     let depth = enlarged_penalty.left_line.norm();    
-        //     let tot_penalty_line_length = depth * 2. + width;
+            println!("{:?}", self.current_pos_along_penaly);
+			//TODO refactor this code (redundance in the on_penalty_line)
+            let enlarged_penalty = world.geometry.ally_penalty.enlarged_penalty(0.3);
+            let width = enlarged_penalty.front_line.norm();
+            let depth = enlarged_penalty.left_line.norm();    
+            let tot_penalty_line_length = depth * 2. + width;
 
-		// 	//TODO replace 0.2 with reel bot diameter constant
-        //     let bot_diameter = 0.2;
-		// 	let bot_nb = self.ids.len() as f64;
-		// 	let bot_diameter_to_ratio = bot_diameter / tot_penalty_line_length; // bot diameter between 0 and 1
-		// 	let starting_pos = (ratio - (bot_diameter_to_ratio/2.)*(bot_nb-1.)).clamp(0., 1.-(bot_nb-1.)*bot_diameter_to_ratio);
+			//TODO replace 0.2 with reel bot diameter constant
+            let bot_diameter = 0.2;
+			let bot_nb = self.ids.len() as f64;
+			let bot_diameter_to_ratio = bot_diameter / tot_penalty_line_length; // bot diameter between 0 and 1
+			let starting_pos = (ratio - (bot_diameter_to_ratio/2.)*(bot_nb-1.)).clamp(0., 1.-(bot_nb-1.)*bot_diameter_to_ratio);
 
-        //     let mut i = 0;
-        //     for id in self.ids.clone() {
-        //         let relative_ratio = starting_pos + (i as f64) * bot_diameter_to_ratio;
-        //         let pos = self.on_penalty_line(world, relative_ratio);
-        //         action_wrapper.push(id, MoveTo::new(pos, 0.));
-        //         i+=1;
-        //     }
-        //     // action_wrapper.clear(4);
-        //     // action_wrapper.push(4, MoveTo::new(self.on_penalty_line(world, self.current_pos_along_penaly), 0.));
-        //     println!("Final Intersection Point: {:?}", ratio);
-        // } else {
-        //     println!("No intersection point found");
-        // }
-        // false
-        self.oscillate_on_ball_bounds(world, action_wrapper)
+            let mut i = 0;
+            for id in self.ids.clone() {
+                let relative_ratio = starting_pos + (i as f64) * bot_diameter_to_ratio;
+                let pos = self.on_penalty_line(world, relative_ratio);
+                action_wrapper.push(id, MoveTo::new(pos, 0.));
+                i+=1;
+            }
+            // action_wrapper.clear(4);
+            // action_wrapper.push(4, MoveTo::new(self.on_penalty_line(world, self.current_pos_along_penaly), 0.));
+            println!("Final Intersection Point: {:?}", ratio);
+        } else {
+            println!("No intersection point found");
+        }
+        false
     }
 }
