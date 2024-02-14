@@ -5,3 +5,5 @@ mod square;
 pub use self::square::Square;
 mod goto_ball;
 pub use self::goto_ball::GotoBall;
+mod move_ball;
+pub use self::move_ball::MoveBall;

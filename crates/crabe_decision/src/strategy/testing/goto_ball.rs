@@ -35,7 +35,7 @@ impl Strategy for GotoBall {
     /// * world: The current state of the game world.
     /// * tools_data: A collection of external tools used by the strategy, such as a viewer.    
     /// * action_wrapper: An `ActionWrapper` instance used to issue actions to the robot.
-    ///
+    ///&
     /// # Returns
     ///
     /// A boolean value indicating whether the strategy is finished or not.
