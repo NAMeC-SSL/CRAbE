@@ -12,3 +12,13 @@ pub struct Line {
     /// The ending point of the line segment.
     pub end: Point2<f64>,
 }
+
+
+impl Line{
+    pub fn new(start: Point2<f64>, end: Point2<f64>) -> Self {
+        Self { 
+            start,
+            end
+        }
+    }
+}
