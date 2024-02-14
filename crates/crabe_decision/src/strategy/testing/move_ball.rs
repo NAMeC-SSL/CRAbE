@@ -70,6 +70,8 @@ impl Strategy for MoveBall {
         let robot_ball = ball - robot.position;
         let robot_ball_angle = robot_ball.y.atan2(robot_ball.x);
 
+        let distance_to_ball = (((((ball_target_angle - robot_ball_angle).abs() / PI)) * 6.0).exp() - 2.0).min(DISTANCE_TO_BALL*2.0).max(-ball_target.norm()/3.0);
+
         let angle_to_go = if (ball_target_angle - robot_ball_angle).abs() > PI/2.0 {
             if ball_target_angle - robot_ball_angle > 0.0 {
                 robot_ball_angle + PI/2.0
@@ -80,7 +82,7 @@ impl Strategy for MoveBall {
             ball_target_angle
         };
 
-        let new_pos: OPoint<f64, Const<2>> = [(angle_to_go - PI).cos()*DISTANCE_TO_BALL + ball.x, (angle_to_go - PI).sin()*DISTANCE_TO_BALL + ball.y].into();
+        let new_pos: OPoint<f64, Const<2>> = [(angle_to_go - PI).cos()*distance_to_ball + ball.x, (angle_to_go - PI).sin()*distance_to_ball + ball.y].into();
 
         // let new_pos = (robot.position - ball).normalize()*DISTANCE_TO_BALL;
         // let mut angle = f64::atan(new_pos.y/new_pos.x);
